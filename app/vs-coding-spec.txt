@@ -1,0 +1,450 @@
+
+VISION STUDIO
+Coding Specification
+Foundation by Ascension  |  Screen 9  |  AI Spatial Design Workstation
+
+foundation-with-vs.html  |  Vanilla JS + HTML prototype
+Production stack: Next.js 14 / Supabase / Drizzle / Tailwind / Claude Sonnet 4 / Gemini 2.0 Flash
+
+1. Overview
+Vision Studio is Screen 9 of Foundation by Ascension. It occupies a dedicated slot in Foundation's navigation — accessible from the desktop sidebar (camera icon) and the mobile bottom nav "Studio" tab. No other Foundation screen is modified.
+A user uploads a photograph of any interior space, describes the desired transformation in plain English, and clicks Calculate. Three parallel AI threads analyze the room's spatial geometry and generate three photorealistic variant renders. Simultaneously, an architectural brief streams into the left chat panel and a live cost estimate populates the right panel.
+Clicking Generate Blueprint converts the Vision Studio session directly into a Foundation project: tasks are pre-populated from the execution blueprint, materials are loaded into the shopping list, and the app navigates to the new project's Blueprint screen.
+
+2. Prototype Implementation
+The delivered prototype is a single 494kb HTML file (foundation-with-vs.html) using vanilla JS and inline styles. It fully demonstrates every interaction, animation, data flow, and state transition. The production build must replicate this behavior exactly.
+
+Prototype File
+What It Covers
+foundation-with-vs.html (494kb)
+All 9 Foundation screens navigable. VS screen fully wired.
+Screen id="screen-vision-studio"
+32kb of HTML: mobile shell + desktop shell + fullscreen overlay
+First <script> block (21kb)
+vsCalculate, vsGenerateBrief, vsGenerateEstimate, vsSendChat, vsGenerateBlueprint + all helpers
+VS CSS override block (1160 chars)
+vsLoadCell, vsTypingBounce keyframes + .vs-chat-msg, .vs-brief-block, .vs-brief-item classes
+
+3. State Object
+The prototype stores all VS runtime state in a single var VS object. The production Zustand slice mirrors this structure:
+
+var VS = {
+  variants:      [],     // VSVariant[] - grows as each thread completes
+  activeVariant: 0,      // 0-2, index into variants[]
+  hasEstimate:   false,  // gates Generate Blueprint button
+  isDragging:    false,  // true while user drags the canvas divider
+  genActive:     false,  // prevents double-firing Calculate
+  uploadedSrc:   null,   // base64 or blob URL of uploaded photo
+  _progressInterval: null // cleanup handle for progress bar setInterval
+}
+
+The prefix parameter ("d" for desktop, "m" for mobile) threads through every VS function to address the correct DOM IDs. In production, replace this with a single responsive component that reads window width.
+
+4. Element ID Registry
+Every VS interactive element has a predictable id pattern: vs-{d|m}-{element-name}. The prefix is "d" for desktop, "m" for mobile. In production these become component refs.
+
+ID
+Element
+Reads / Writes
+vs-d-upload-zone / vs-m-upload-zone
+Drop zone container
+Drag events, click-through to file input
+vs-d-file / vs-m-file
+Hidden file input
+onchange fires vsHandleUpload(this, prefix)
+vs-d-preview / vs-m-preview
+Uploaded photo preview img
+.src = base64, .style.display toggle
+vs-d-upload-placeholder / vs-m-upload-placeholder
+Icon + hint text div
+.style.display = "none" on upload
+vs-d-prompt / vs-m-prompt
+Prompt textarea
+.value read on calculate
+vs-d-td-0/1/2 / vs-m-td-0/1/2
+Thread status dots
+background: gold (running) / green-br (done) / raised (idle)
+vs-d-calc-btn / vs-m-calc-btn
+Calculate button
+textContent, disabled toggled
+vs-d-status
+Desktop topbar status text
+textContent = current operation
+vs-d-empty
+Canvas empty state div
+display: none when generation starts
+vs-d-orig-side / vs-d-render-side
+Left/right canvas panels
+display flex/none, flex-basis set by divider drag
+vs-d-divider
+Gold 1px divider line
+display flex/none, mousedown fires vsDragStart
+vs-d-orig-img
+Original photo img
+.src = VS.uploadedSrc
+vs-d-render-img
+Active variant img
+.src = VS.variants[activeVariant].imageUrl
+vs-d-render-label
+Variant label overlay
+textContent = "Variant N / 3"
+vs-d-loading
+Loading overlay on render side
+.style.display none after first variant arrives
+vs-d-loading-txt
+Loading text inside overlay
+textContent updates with status
+vs-d-canvas-mode
+Mode readout in canvas header
+textContent = "Generating" / "Comparative View"
+vs-d-canvas-variant
+Variant counter in canvas header
+textContent = "N / 3"
+vs-d-progress
+Progress bar fill div
+style.width 0%-100%
+vs-d-thumbs / vs-m-thumb-strip
+Thumbnail strip container
+innerHTML replaced with spinner / img elements
+vs-d-chat-msgs / vs-m-chat-msgs
+Chat messages container
+appendChild for each new message
+vs-d-chat-inp / vs-m-chat-inp
+Chat refinement input
+.value read on send, cleared after
+vs-d-live-dot
+Live badge dot
+background + animation set per state
+vs-d-live-txt
+Live badge text
+textContent: "Standby" / "Processing..." / "Live"
+vs-d-est-empty
+Estimate empty state
+display none when estimate arrives
+vs-d-est-content
+Estimate content wrapper
+display flex when estimate arrives
+vs-d-budget-num / vs-m-budget-num
+Budget number
+vsAnimateNum 0 to total
+vs-d-budget-fill
+Budget bar fill
+style.width 0% to 68%
+vs-d-est-mat / vs-d-est-lab
+Materials / Labor values
+textContent = "$N"
+vs-d-mat-list / vs-m-mat-list
+Shopping list container
+innerHTML = rendered items
+vs-d-blueprint-btn / vs-d-blueprint-btn2
+Blueprint buttons (topbar + estimate panel)
+innerHTML updated on lock
+vs-m-results
+Mobile results section
+display block after first variant arrives
+vs-m-active-variant
+Mobile active variant img
+.src = VS.variants[activeVariant].imageUrl
+vs-m-estimate
+Mobile estimate card
+display block when estimate arrives
+vs-m-brief
+Mobile brief card
+innerHTML = brief HTML on generation
+vs-fs-overlay
+Fullscreen overlay div
+display flex / none
+vs-fs-img
+Fullscreen image
+.src set on open
+
+5. Generation Sequence
+The vsCalculate(prefix) function is the core orchestrator. The exact timing from the prototype is the production spec:
+
+t=0ms      User clicks Calculate
+           VS.genActive = true
+           Button text: "Analyzing spatial geometry..."
+           Canvas empty state hidden, split view shown
+           Upload photo placed into original panel
+           Thread dots start animating (staggered +400ms each)
+           Progress bar setInterval starts (every 350ms, +random*7, caps at 85%)
+
+t=1200ms   Thread 0 (Variant 1) completes
+           Thumbnail 0 spinner -> image
+           Render panel loading overlay removed
+           VS.variants[0].imageUrl shown in render panel
+           canvas-variant: "1 / 3"
+
+t=1800ms   vsGenerateBrief fires (600ms after all variants complete)
+           Brief typing indicator shown in chat
+           Claude API call: brief prompt with user prompt
+
+t=2100ms   Thread 1 (Variant 2) completes
+           Thumbnail 1 spinner -> image
+           canvas-variant: "2 / 3"
+
+t=3000ms   Thread 2 (Variant 3) completes
+           Thumbnail 2 spinner -> image
+           canvas-variant: "3 / 3"
+           Progress bar -> 100%, then clears after 1000ms
+           canvas-mode: "Comparative View"
+           Button text: "Recalculate", re-enabled
+           Thread dots: green-br for 2500ms, then back to idle
+
+t=3600ms   vsGenerateBrief fires (600ms after all done)
+           Brief blocks rendered in chat
+
+t=5200ms   vsGenerateEstimate fires (2200ms after all done)
+           live-dot: gold + pulseDot animation
+           live-txt: "Processing..."
+
+t=6600ms   Estimate renders (1400ms after estimate start)
+           vsAnimateNum: budget-num 0->total over 1200ms (desktop) / 1000ms (mobile)
+           budget-fill: width 0%->68%, transition 1s ease (after 200ms delay)
+           est-mat, est-lab: textContent set directly
+           mat-list: innerHTML = shopping list items
+           live-dot: green-br, live-txt: "Live"
+           VS.hasEstimate = true
+
+6. Function Reference
+
+Function
+Signature
+Description
+vsHandleUpload
+(input, prefix)
+FileReader reads file as dataURL, updates VS.uploadedSrc, swaps placeholder for preview img, shrinks upload zone padding to 0
+vsCalculate
+(prefix)
+Main orchestrator. Guards against double-fire with VS.genActive. Runs generation sequence above. Calls vsGenerateBrief and vsGenerateEstimate via setTimeout.
+vsSelectVariant
+(idx, prefix)
+Sets VS.activeVariant = idx, updates render img src, updates render-label, updates thumbnail borders (gold for active, border for others)
+vsGenerateBrief
+(prefix)
+Builds brief HTML from hardcoded demo data. Production: calls /api/vision-studio/brief, streams response. Calls vsAppendAIMsg(prefix, html, true).
+vsGenerateEstimate
+(prefix)
+Shows loading state on live-dot, delays 1400ms, then populates all estimate elements. Budget number uses vsAnimateNum. Shopping list items rendered with inline checkboxes.
+vsAppendAIMsg
+(prefix, html, isRich)
+Creates .vs-chat-msg div. If isRich=true, html is inserted directly (for brief blocks). If isRich=false, html is wrapped in a message text div. Appends to chat-msgs, scrolls to bottom.
+vsSendChat
+(prefix)
+Reads chat input, clears it, appends user message div, fires 1200ms timeout, then appends AI response. Detects "walnut"/"light" keywords for specific demo responses.
+vsGenerateBlueprint
+(prefix)
+Guards: requires VS.hasEstimate. Shows toast. Updates button innerHTML to "Blueprint Saved". Production: calls /api/projects, then navigate to new project blueprint.
+vsOpenFullscreen
+(src)
+Sets vs-fs-img.src, sets vs-fs-overlay display: flex
+vsCloseFullscreen
+()
+Sets vs-fs-overlay display: none. Also bound to Escape key and overlay click.
+vsSetMode
+(mode)
+Toggles orig-side/divider/render-side display based on "compare" or "render". Updates btn-compare and btn-render border/color.
+vsDragStart
+(e)
+Sets VS.isDragging = true, attaches mousemove/mouseup to document
+vsDrag
+(e)
+Reads clientX, calculates pct = (x - split.left) / split.width, clamped 0.2-0.8. Sets orig-side.style.width = pct*100%, render-side.style.flex = 1.
+vsDragEnd
+()
+Sets VS.isDragging = false, removes event listeners
+vsSetStatus
+(msg)
+Sets vs-d-status textContent
+vsAnimateNum
+(id, from, to, dur, fmt)
+requestAnimationFrame loop. p = (now-start)/dur, ease = 1-pow(1-p,3). Calls fmt(round(from+(to-from)*ease)). Stops when p>=1.
+vsShowToast
+(msg)
+Uses shared Foundation toast element. Sets opacity 1, clears after 2400ms.
+
+7. Production API Routes
+The prototype uses hardcoded demo data (VS_DEMO_VARIANTS, VS_DEMO_EST, hardcoded brief text). The production implementation replaces these with real API calls.
+
+POST /api/vision-studio/generate
+Fires 3 parallel Gemini 2.0 Flash image generation threads. Returns streaming NDJSON — one JSON line per variant as it completes. Client reads the stream and calls vsSelectVariant as each arrives.
+
+// Request
+{ imageBase64: string, prompt: string, houseId: string }
+
+// Streamed response (NDJSON, one line per variant)
+{ variantIndex: 0|1|2, imageUrl: string, status: "done"|"error" }
+
+// Three creative seeds used for diversity:
+// Thread 0: "photorealistic, warm natural materials"
+// Thread 1: "photorealistic, cool industrial palette"
+// Thread 2: "photorealistic, luxury refined finishes"
+
+POST /api/vision-studio/brief
+Calls Claude Sonnet 4 with a structured prompt. Returns three blocks: Architectural Analysis, Material Specification, Execution Blueprint. Response is JSON, rendered into .vs-brief-block HTML by vsGenerateBrief.
+
+// Request
+{ prompt: string, imageBase64: string, variantUrl: string }
+
+// Response
+{ blocks: Array<{ label: string, items: string[] }> }
+
+POST /api/vision-studio/estimate
+Calls Claude Sonnet 4 with the accumulated brief text. Returns a VSEstimate object. Fires silently 2200ms after all variants complete.
+
+// Request
+{ briefText: string, prompt: string }
+
+// Response — VSEstimate
+{
+  total: number,
+  materials: number, labor: number, fixtures: number, contingency: number,
+  timeline: { prep: string, execution: string, finishing: string },
+  materials_list: Array<{ name: string, price: number, category: string }>
+}
+
+POST /api/vision-studio/refine
+Chat refinement. Receives message + conversation history + current estimate. Returns AI reply and an optional estimate delta. If the response body contains <estimate_update>{...}</estimate_update>, parse and apply to the estimate panel.
+
+// Request
+{ message: string, history: VSBriefMessage[], estimate: VSEstimate|null }
+
+// Response
+{ reply: string, estimateUpdate?: Partial<VSEstimate> }
+
+8. Navigation Integration
+Vision Studio is a standard Foundation screen. APP_SCREENS in the routing script includes "vision-studio" as the 9th entry. The navigate() function works identically to all other screens.
+
+Integration Point
+Implementation
+APP_SCREENS array
+['dashboard','projects','blueprint','budget','materials','brainstorm','onboarding','new-project','vision-studio']
+Sidebar icon (all 7 screens)
+Camera/image SVG added before .d-sidebar-bot in every screen's sidebar. onclick="navigate('vision-studio')"
+Mobile nav (all 5 screens)
+Studio tab added as 5th item in m-bottom-nav in every screen
+Active state (VS sidebar)
+.d-nav-item with no onclick — already "active" when VS screen is shown
+Active state (VS mobile)
+.m-nav-item.active on the Studio tab in VS's own bottom nav
+Blueprint handoff
+vsGenerateBlueprint calls navigate("blueprint") after creating project in Supabase
+
+9. Database
+One new table. Add to the existing Foundation Supabase migration:
+
+create table vs_sessions (
+  id          uuid primary key default gen_random_uuid(),
+  house_id    uuid references houses on delete cascade not null,
+  project_id  uuid references projects on delete set null,
+  prompt      text not null,
+  input_image text,           -- Supabase Storage path
+  variants    jsonb default '[]',  -- VSVariant[]
+  brief       jsonb default '[]',  -- VSBriefMessage[]
+  estimate    jsonb,          -- VSEstimate | null
+  locked      boolean default false,
+  created_at  timestamptz default now()
+);
+
+alter table vs_sessions enable row level security;
+create policy "House members see VS sessions" on vs_sessions
+  for all using (
+    house_id in (select house_id from profiles where id = auth.uid())
+  );
+
+-- Supabase Storage bucket
+-- Name: "vision-studio"
+-- Max upload size: 20MB
+-- Allowed MIME types: image/jpeg, image/png, image/webp
+
+10. Blueprint to Project Handoff
+When Generate Blueprint is clicked, VS creates a complete Foundation project and navigates to it. This is the key integration point between Vision Studio and the rest of Foundation.
+
+// vsGenerateBlueprint production implementation
+async function handleBlueprint(session, estimate) {
+
+  // 1. Extract project name and room from prompt
+  const name = extractProjectName(session.prompt)
+  const room = extractRoom(session.prompt)
+
+  // 2. Create Foundation project
+  const project = await db.insert(projects).values({
+    house_id: session.house_id,
+    name, room,
+    budget: estimate.total,
+    status: "planning",
+    color: "#d4903a",
+  }).returning()
+
+  // 3. Create tasks from execution blueprint steps
+  const executionBlock = session.brief.blocks.find(b => b.label === "Execution Blueprint")
+  for (const step of executionBlock.items) {
+    await db.insert(tasks).values({
+      project_id: project.id,
+      name: step.replace(/^0d+ -- /, ""),
+      tag: "DIY", who: "Both", done: false
+    })
+  }
+
+  // 4. Create materials from shopping list
+  for (const mat of estimate.materials_list) {
+    await db.insert(materials).values({
+      house_id: session.house_id,
+      project_id: project.id,
+      name: mat.name, price: mat.price, priority: "needed"
+    })
+  }
+
+  // 5. Lock VS session
+  await db.update(vs_sessions).set({ project_id: project.id, locked: true })
+    .where(eq(vs_sessions.id, session.id))
+
+  // 6. Navigate to blueprint
+  navigate("blueprint")  // Foundation routing
+}
+
+11. Error States
+Condition
+UI Response
+Calculate clicked, no image
+vsShowToast("Upload a photograph first")
+Calculate clicked, no prompt
+vsShowToast("Describe the transformation")
+Generate Blueprint clicked, no estimate
+vsShowToast("Generate a design first")
+1 of 3 threads fails
+Thumbnail shows error state (red border), other 2 continue
+All 3 threads fail
+Error card in canvas center: "Generation failed -- check API key"
+Brief generation fails
+Chat appends: "Could not generate brief. Type a question to try again."
+Estimate fails
+Estimate panel stays in empty state, retry link appears
+File > 20MB
+vsShowToast("Image too large -- max 20MB")
+Wrong file type
+vsShowToast("Upload JPG, PNG, or WEBP")
+Chat sent before generation
+vsShowToast("Generate a design first")
+
+12. Performance Requirements
+Interaction
+Target Time
+Upload -> Calculate button responds
+< 100ms (client-side only)
+First variant appears in canvas
+< 8 seconds after Calculate
+All 3 variants complete
+< 15 seconds (parallel threads)
+Brief generation completes
+< 3 seconds after first variant
+Estimate panel populates
+< 2 seconds after brief
+Divider drag frame rate
+60fps — CSS transform only, no layout reflow
+Thumbnail click -> variant swap
+< 50ms (instant src swap)
+Budget number animation
+1200ms cubic ease-out (desktop), 1000ms (mobile)
+Generate Blueprint -> DB writes + navigate
+< 2 seconds

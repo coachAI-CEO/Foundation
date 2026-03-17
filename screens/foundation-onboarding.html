@@ -1,0 +1,799 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<title>Foundation — Welcome</title>
+<link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;500;600;700;900&family=DM+Sans:opsz,wght@9..40,300;9..40,400;9..40,500;9..40,600&display=swap" rel="stylesheet">
+<style>
+:root {
+  --void:#0b0b0c; --base:#111113; --card:#161618; --raised:#1c1c1f; --lift:#242428;
+  --border:rgba(255,255,255,0.055); --border-warm:rgba(210,185,130,0.22);
+  --gold:#d4b978; --gold-br:#ecd49a; --gold-dim:rgba(212,185,120,0.08);
+  --gold-glow:rgba(212,185,120,0.15);
+  --white:#ede9e3; --muted:#5c5850; --soft:#8a8478;
+  --green:#4e7a5e; --green-br:#72b08a; --green-dim:rgba(78,122,94,0.12);
+  --amber:#d4903a; --amber-dim:rgba(212,144,58,0.1);
+  --blue-br:#7aaac8; --blue-dim:rgba(122,170,200,0.1);
+  --r:14px; --r-sm:10px;
+}
+*{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent;}
+html{font-size:16px;}
+body{background:var(--void);color:var(--white);font-family:'DM Sans',sans-serif;min-height:100vh;overflow-x:hidden;}
+
+/* ===== ATMOSPHERIC BACKGROUND ===== */
+.atmo{position:fixed;inset:0;pointer-events:none;z-index:0;
+  background:
+    radial-gradient(ellipse 70% 55% at 50% -10%, rgba(212,185,120,0.07) 0%, transparent 65%),
+    radial-gradient(ellipse 40% 40% at 95% 80%, rgba(78,122,94,0.04) 0%, transparent 55%),
+    radial-gradient(ellipse 35% 45% at 5% 75%, rgba(122,170,200,0.03) 0%, transparent 50%);}
+.grid-bg{position:fixed;inset:0;pointer-events:none;z-index:0;opacity:0.022;
+  background-image:linear-gradient(var(--gold) 1px,transparent 1px),linear-gradient(90deg,var(--gold) 1px,transparent 1px);
+  background-size:52px 52px;}
+.grain{position:fixed;inset:0;pointer-events:none;z-index:1;opacity:0.025;
+  background-image:url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='1'/%3E%3C/svg%3E");}
+
+/* ===== SHELL ===== */
+.shell{position:relative;z-index:2;min-height:100vh;display:flex;flex-direction:column;}
+
+/* ===== PROGRESS BAR ===== */
+.progress-bar{position:fixed;top:0;left:0;right:0;z-index:100;height:2px;background:rgba(255,255,255,0.04);}
+.progress-fill{height:100%;background:linear-gradient(90deg,var(--gold),var(--gold-br));transition:width 0.5s cubic-bezier(0.4,0,0.2,1);box-shadow:0 0 12px rgba(212,185,120,0.4);}
+
+/* ===== STEP COUNTER ===== */
+.step-counter{position:fixed;top:16px;right:20px;z-index:100;display:flex;align-items:center;gap:8px;}
+.step-dots{display:flex;gap:6px;}
+.step-dot{width:6px;height:6px;border-radius:50%;background:var(--border);transition:all 0.35s;}
+.step-dot.done{background:var(--gold);box-shadow:0 0 6px rgba(212,185,120,0.4);}
+.step-dot.active{background:var(--gold-br);width:18px;border-radius:3px;}
+.step-label{font-size:10px;color:var(--muted);letter-spacing:0.1em;text-transform:uppercase;}
+
+/* ===== BACK BUTTON ===== */
+.back-btn{position:fixed;top:12px;left:16px;z-index:100;display:flex;align-items:center;gap:6px;padding:7px 12px;border-radius:8px;background:transparent;border:1px solid var(--border);color:var(--muted);font-family:'DM Sans',sans-serif;font-size:11px;cursor:pointer;transition:all 0.18s;opacity:0;}
+.back-btn.visible{opacity:1;}
+.back-btn:hover{border-color:var(--border-warm);color:var(--white);}
+
+/* ===== STEP CONTAINER ===== */
+.steps-wrap{flex:1;display:flex;align-items:center;justify-content:center;padding:60px 24px 40px;}
+.step{display:none;flex-direction:column;align-items:center;max-width:520px;width:100%;animation:stepIn 0.4s cubic-bezier(0.2,0,0.1,1) both;}
+.step.active{display:flex;}
+.step.exit{animation:stepOut 0.25s ease both;}
+
+/* ===== LOGO / BRAND ===== */
+.brand-lockup{display:flex;flex-direction:column;align-items:center;gap:16px;margin-bottom:40px;}
+.brand-mark{position:relative;width:72px;height:72px;}
+.brand-mark svg{display:block;}
+.brand-name{font-family:'Cinzel',serif;font-size:28px;font-weight:700;letter-spacing:0.18em;color:var(--white);text-align:center;}
+.brand-name span{color:var(--gold);}
+.brand-by{font-size:10px;color:var(--muted);letter-spacing:0.2em;text-transform:uppercase;margin-top:-8px;}
+
+/* ===== STEP HEADER ===== */
+.step-eyebrow{font-size:10px;font-weight:600;letter-spacing:0.18em;text-transform:uppercase;color:var(--gold);margin-bottom:10px;text-align:center;}
+.step-title{font-family:'Cinzel',serif;font-size:26px;font-weight:700;letter-spacing:0.08em;color:var(--white);text-align:center;line-height:1.3;margin-bottom:8px;}
+.step-sub{font-size:14px;color:var(--soft);text-align:center;line-height:1.6;max-width:400px;margin-bottom:32px;}
+
+/* ===== FORM ELEMENTS ===== */
+.field-group{width:100%;display:flex;flex-direction:column;gap:12px;margin-bottom:24px;}
+.field-row{display:grid;gap:12px;}
+.field-row.two{grid-template-columns:1fr 1fr;}
+.field-row.three{grid-template-columns:1fr 1fr 1fr;}
+.field{display:flex;flex-direction:column;gap:6px;}
+.field-label{font-size:11px;font-weight:600;letter-spacing:0.08em;text-transform:uppercase;color:var(--muted);}
+.field-input{background:var(--card);border:1px solid var(--border);border-radius:var(--r-sm);padding:12px 14px;font-family:'DM Sans',sans-serif;font-size:14px;color:var(--white);outline:none;transition:border-color 0.2s;width:100%;}
+.field-input:focus{border-color:var(--border-warm);}
+.field-input::placeholder{color:var(--muted);}
+.field-input.error{border-color:rgba(204,136,136,0.5);}
+select.field-input{cursor:pointer;appearance:none;background-image:url("data:image/svg+xml,%3Csvg width='10' height='6' viewBox='0 0 10 6' fill='none' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M1 1l4 4 4-4' stroke='%235c5850' stroke-width='1.3' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 14px center;}
+select.field-input option{background:var(--raised);}
+.field-hint{font-size:11px;color:var(--muted);line-height:1.4;}
+
+/* ===== PERSON CARDS ===== */
+.person-cards{display:grid;grid-template-columns:1fr 1fr;gap:12px;width:100%;margin-bottom:24px;}
+.person-card{background:var(--card);border:1px solid var(--border);border-radius:var(--r);padding:18px 16px;display:flex;flex-direction:column;gap:10px;}
+.person-card-header{display:flex;align-items:center;gap:10px;margin-bottom:4px;}
+.person-avatar{width:36px;height:36px;border-radius:50%;border:1px solid var(--border-warm);background:var(--gold-dim);display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:11px;font-weight:700;color:var(--gold);letter-spacing:0.05em;}
+.person-role{font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:0.1em;}
+
+/* ===== ROOM GRID ===== */
+.room-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;width:100%;margin-bottom:24px;}
+.room-tile{background:var(--card);border:1px solid var(--border);border-radius:var(--r);padding:14px 10px;display:flex;flex-direction:column;align-items:center;gap:8px;cursor:pointer;transition:all 0.18s;position:relative;}
+.room-tile:hover{border-color:var(--border-warm);}
+.room-tile.selected{border-color:var(--gold);background:var(--gold-dim);}
+.room-tile.selected .room-tile-check{opacity:1;}
+.room-tile-icon{color:var(--muted);transition:color 0.18s;}
+.room-tile.selected .room-tile-icon{color:var(--gold);}
+.room-tile-name{font-size:11px;font-weight:500;color:var(--soft);text-align:center;transition:color 0.18s;}
+.room-tile.selected .room-tile-name{color:var(--white);}
+.room-tile-check{position:absolute;top:8px;right:8px;width:16px;height:16px;border-radius:50%;background:var(--gold);display:flex;align-items:center;justify-content:center;opacity:0;transition:opacity 0.18s;}
+
+/* ===== GOAL CHIPS ===== */
+.goal-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;width:100%;margin-bottom:24px;}
+.goal-card{background:var(--card);border:1px solid var(--border);border-radius:var(--r);padding:16px;cursor:pointer;transition:all 0.18s;display:flex;gap:12px;align-items:flex-start;}
+.goal-card:hover{border-color:var(--border-warm);}
+.goal-card.selected{border-color:var(--gold);background:var(--gold-dim);}
+.goal-card-icon{width:34px;height:34px;border-radius:9px;background:var(--raised);display:flex;align-items:center;justify-content:center;color:var(--muted);flex-shrink:0;transition:all 0.18s;}
+.goal-card.selected .goal-card-icon{background:rgba(212,185,120,0.15);color:var(--gold);}
+.goal-card-body{flex:1;}
+.goal-card-title{font-size:13px;font-weight:600;color:var(--white);margin-bottom:3px;}
+.goal-card.selected .goal-card-title{color:var(--gold-br);}
+.goal-card-desc{font-size:11px;color:var(--muted);line-height:1.5;}
+
+/* ===== DIY LEVEL SLIDER ===== */
+.diy-slider-wrap{width:100%;margin-bottom:24px;}
+.diy-labels{display:flex;justify-content:space-between;margin-bottom:8px;}
+.diy-label{font-size:10px;color:var(--muted);letter-spacing:0.06em;}
+.diy-track{position:relative;height:4px;background:var(--raised);border-radius:4px;}
+.diy-fill{position:absolute;left:0;top:0;height:100%;background:linear-gradient(90deg,var(--gold),var(--gold-br));border-radius:4px;transition:width 0.2s;}
+input[type=range].diy-range{position:absolute;top:-8px;left:0;width:100%;opacity:0;cursor:pointer;height:20px;}
+.diy-thumb{position:absolute;top:50%;transform:translate(-50%,-50%);width:18px;height:18px;border-radius:50%;background:var(--gold);border:3px solid var(--void);box-shadow:0 0 0 1px var(--gold);transition:left 0.2s;pointer-events:none;}
+.diy-value{text-align:center;margin-top:12px;font-family:'Cinzel',serif;font-size:13px;color:var(--gold);letter-spacing:0.06em;}
+
+/* ===== FIRST PROJECT ===== */
+.project-options{display:flex;flex-direction:column;gap:10px;width:100%;margin-bottom:24px;}
+.project-option{background:var(--card);border:1px solid var(--border);border-radius:var(--r);padding:14px 16px;cursor:pointer;transition:all 0.18s;display:flex;align-items:center;gap:14px;}
+.project-option:hover{border-color:var(--border-warm);}
+.project-option.selected{border-color:var(--gold);background:var(--gold-dim);}
+.po-icon{width:36px;height:36px;border-radius:10px;background:var(--raised);display:flex;align-items:center;justify-content:center;color:var(--muted);flex-shrink:0;transition:all 0.18s;}
+.project-option.selected .po-icon{background:rgba(212,185,120,0.15);color:var(--gold);}
+.po-body{flex:1;}
+.po-title{font-size:13px;font-weight:600;color:var(--white);margin-bottom:2px;}
+.po-desc{font-size:11px;color:var(--muted);}
+.po-badge{font-size:9px;font-weight:600;letter-spacing:0.08em;text-transform:uppercase;padding:2px 8px;border-radius:10px;flex-shrink:0;}
+.po-badge.quick{background:var(--green-dim);color:var(--green-br);}
+.po-badge.medium{background:var(--amber-dim);color:var(--amber);}
+.po-badge.large{background:var(--gold-dim);color:var(--gold);}
+
+/* ===== WELCOME / COMPLETE ===== */
+.welcome-hero{text-align:center;margin-bottom:32px;}
+.welcome-lines{display:flex;flex-direction:column;gap:8px;width:100%;margin-bottom:28px;}
+.welcome-line{display:flex;align-items:center;gap:12px;padding:12px 16px;background:var(--card);border:1px solid var(--border);border-radius:var(--r-sm);animation:fadeUp 0.4s ease both;}
+.welcome-line-icon{color:var(--gold);flex-shrink:0;}
+.welcome-line-text{font-size:13px;color:var(--white);}
+.welcome-line-text strong{color:var(--gold-br);}
+
+/* ===== CTA BUTTONS ===== */
+.cta-row{display:flex;flex-direction:column;gap:10px;width:100%;}
+.btn-primary{display:flex;align-items:center;justify-content:center;gap:8px;padding:15px 24px;border-radius:var(--r-sm);background:var(--gold);color:#0b0b0c;font-family:'DM Sans',sans-serif;font-size:14px;font-weight:600;border:none;cursor:pointer;transition:all 0.2s;letter-spacing:0.03em;width:100%;}
+.btn-primary:hover{background:var(--gold-br);box-shadow:0 8px 32px rgba(212,185,120,0.25);}
+.btn-primary:active{transform:scale(0.98);}
+.btn-primary:disabled{opacity:0.4;cursor:not-allowed;}
+.btn-secondary{display:flex;align-items:center;justify-content:center;gap:8px;padding:13px 24px;border-radius:var(--r-sm);background:transparent;color:var(--soft);font-family:'DM Sans',sans-serif;font-size:13px;font-weight:500;border:1px solid var(--border);cursor:pointer;transition:all 0.2s;width:100%;}
+.btn-secondary:hover{border-color:var(--border-warm);color:var(--white);}
+.btn-skip{background:transparent;border:none;color:var(--muted);font-family:'DM Sans',sans-serif;font-size:12px;cursor:pointer;padding:8px;transition:color 0.18s;text-align:center;}
+.btn-skip:hover{color:var(--soft);}
+
+/* ===== DIVIDER ===== */
+.gold-divider{display:flex;align-items:center;gap:12px;width:100%;margin:4px 0 20px;}
+.gold-divider::before,.gold-divider::after{content:'';flex:1;height:1px;background:linear-gradient(90deg,transparent,var(--border-warm),transparent);}
+.gold-divider-mark{color:var(--gold);font-size:10px;letter-spacing:0.15em;}
+
+/* ===== COMPLETENESS INDICATOR ===== */
+.house-completeness{width:100%;background:var(--card);border:1px solid var(--border);border-radius:var(--r);padding:16px 18px;margin-bottom:20px;}
+.hc-row{display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;}
+.hc-label{font-size:11px;color:var(--muted);letter-spacing:0.06em;}
+.hc-pct{font-family:'Cinzel',serif;font-size:14px;color:var(--gold);}
+.hc-track{height:3px;background:rgba(255,255,255,0.05);border-radius:3px;overflow:hidden;}
+.hc-fill{height:100%;background:linear-gradient(90deg,var(--gold),var(--gold-br));border-radius:3px;transition:width 0.6s ease;}
+
+@keyframes stepIn{from{opacity:0;transform:translateY(18px)}to{opacity:1;transform:translateY(0)}}
+@keyframes stepOut{from{opacity:1;transform:translateY(0)}to{opacity:0;transform:translateY(-12px)}}
+@keyframes fadeUp{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
+@keyframes pulse{0%,100%{opacity:0.6}50%{opacity:1}}
+@keyframes goldGlow{0%,100%{box-shadow:0 0 0 0 rgba(212,185,120,0)}50%{box-shadow:0 0 32px 4px rgba(212,185,120,0.12)}}
+
+/* ===== THEMED SCROLLBARS ===== */
+::-webkit-scrollbar { width: 4px; height: 4px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: rgba(212,185,120,0.18); border-radius: 4px; }
+::-webkit-scrollbar-thumb:hover { background: rgba(212,185,120,0.38); }
+::-webkit-scrollbar-corner { background: transparent; }
+* { scrollbar-width: thin; scrollbar-color: rgba(212,185,120,0.18) transparent; }
+</style>
+</head>
+<body>
+<div class="atmo"></div>
+<div class="grid-bg"></div>
+<div class="grain"></div>
+
+<div class="progress-bar"><div class="progress-fill" id="prog-fill" style="width:0%"></div></div>
+
+<button class="back-btn" id="back-btn" onclick="prevStep()">
+  <svg width="12" height="12" viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"><polyline points="9,2 4,7 9,12"/></svg>
+  Back
+</button>
+
+<div class="step-counter">
+  <div class="step-dots" id="step-dots"></div>
+  <div class="step-label" id="step-label"></div>
+</div>
+
+<div class="shell">
+<div class="steps-wrap">
+
+  <!-- ===== STEP 0: SPLASH ===== -->
+  <div class="step active" id="step-0">
+    <div class="brand-lockup">
+      <div class="brand-mark">
+        <svg width="72" height="72" viewBox="0 0 72 72" fill="none" style="animation:goldGlow 3s ease-in-out infinite">
+          <circle cx="36" cy="36" r="34" stroke="#d4b978" stroke-width="0.8" opacity="0.4"/>
+          <path d="M36 4 L68 36 L36 68 L4 36 Z" stroke="#d4b978" stroke-width="0.8" fill="none" opacity="0.7"/>
+          <path d="M36 16 L56 36 L36 56 L16 36 Z" stroke="#d4b978" stroke-width="0.6" fill="rgba(212,185,120,0.05)"/>
+          <path d="M36 26 L46 36 L36 46 L26 36 Z" stroke="#d4b978" stroke-width="0.5" fill="rgba(212,185,120,0.08)"/>
+          <circle cx="36" cy="36" r="3.5" fill="#d4b978"/>
+          <line x1="36" y1="4" x2="36" y2="26" stroke="#d4b978" stroke-width="0.5" opacity="0.4"/>
+          <line x1="36" y1="46" x2="36" y2="68" stroke="#d4b978" stroke-width="0.5" opacity="0.4"/>
+          <line x1="4" y1="36" x2="26" y2="36" stroke="#d4b978" stroke-width="0.5" opacity="0.4"/>
+          <line x1="46" y1="36" x2="68" y2="36" stroke="#d4b978" stroke-width="0.5" opacity="0.4"/>
+        </svg>
+      </div>
+      <div>
+        <div class="brand-name">FOUNDATION</div>
+        <div class="brand-by">by Ascension</div>
+      </div>
+    </div>
+
+    <div class="step-eyebrow">Welcome</div>
+    <div class="step-title">Your home, always<br>under control.</div>
+    <div class="step-sub">Plan every project, track every dollar, remember every decision. Built for couples who get things done.</div>
+
+    <div style="width:100%;margin-bottom:28px;">
+      <div class="gold-divider"><div class="gold-divider-mark">&#10022;</div></div>
+      <div style="display:flex;flex-direction:column;gap:8px;">
+        <div class="welcome-line" style="animation-delay:0.1s">
+          <div class="welcome-line-icon"><svg width="16" height="16" viewBox="0 0 18 18" fill="none" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round"><path d="M2 9.5L9 3l7 6.5"/><rect x="4" y="9.5" width="10" height="7" rx="0.5"/><rect x="7" y="12" width="4" height="4.5"/></svg></div>
+          <div class="welcome-line-text"><strong>One home, one dashboard</strong> &mdash; every project sequenced</div>
+        </div>
+        <div class="welcome-line" style="animation-delay:0.18s">
+          <div class="welcome-line-icon"><svg width="16" height="16" viewBox="0 0 18 18" fill="none" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round"><path d="M9 1.5l1.4 3.1 3.5.35-2.45 2.45.7 3.5L9 9.3l-3.15 1.55.7-3.5L4.1 4.95l3.5-.35z"/></svg></div>
+          <div class="welcome-line-text"><strong>AI that reads your notes</strong> &mdash; turns chaos into a blueprint</div>
+        </div>
+        <div class="welcome-line" style="animation-delay:0.26s">
+          <div class="welcome-line-icon"><svg width="16" height="16" viewBox="0 0 18 18" fill="none" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"><circle cx="9" cy="9" r="7"/><circle cx="9" cy="9" r="2"/><line x1="9" y1="2" x2="9" y2="7"/><line x1="9" y1="11" x2="9" y2="16"/><line x1="2" y1="9" x2="7" y2="9"/><line x1="11" y1="9" x2="16" y2="9"/></svg></div>
+          <div class="welcome-line-text"><strong>Weekend to full reno</strong> &mdash; scales to any project size</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="cta-row">
+      <button class="btn-primary" onclick="nextStep()">
+        Get Started
+        <svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><line x1="3" y1="8" x2="13" y2="8"/><polyline points="9,4 13,8 9,12"/></svg>
+      </button>
+      <button class="btn-skip" onclick="skipToEnd()">Already have an account? Sign in</button>
+    </div>
+  </div>
+
+  <!-- ===== STEP 1: HOUSE ===== -->
+  <div class="step" id="step-1">
+    <div class="step-eyebrow">Step 1 of 6 &mdash; Your Home</div>
+    <div class="step-title">Tell us about<br>your house.</div>
+    <div class="step-sub">This becomes your permanent home profile. Foundation remembers everything about your home so you never start from scratch.</div>
+
+    <div class="field-group">
+      <div class="field">
+        <div class="field-label">Street Address</div>
+        <input class="field-input" id="f-address" type="text" placeholder="4246 Elmwood Drive" autocomplete="street-address">
+      </div>
+      <div class="field-row two">
+        <div class="field">
+          <div class="field-label">City</div>
+          <input class="field-input" id="f-city" type="text" placeholder="Sacramento" autocomplete="address-level2">
+        </div>
+        <div class="field">
+          <div class="field-label">State</div>
+          <select class="field-input" id="f-state">
+            <option value="">Select state</option>
+            <option>CA</option><option>TX</option><option>FL</option><option>NY</option><option>WA</option><option>CO</option><option>AZ</option><option>OR</option><option>NV</option><option>GA</option><option>NC</option><option>VA</option><option>OH</option><option>IL</option><option>PA</option><option>MI</option><option>MN</option><option>WI</option><option>TN</option><option>MO</option><option>Other</option>
+          </select>
+        </div>
+      </div>
+      <div class="field-row three">
+        <div class="field">
+          <div class="field-label">Year Built</div>
+          <input class="field-input" id="f-year" type="number" placeholder="1987" min="1800" max="2025">
+        </div>
+        <div class="field">
+          <div class="field-label">Sq Footage</div>
+          <input class="field-input" id="f-sqft" type="number" placeholder="1,840">
+        </div>
+        <div class="field">
+          <div class="field-label">Ownership</div>
+          <select class="field-input" id="f-own">
+            <option value="own">Own</option>
+            <option value="rent">Rent</option>
+          </select>
+        </div>
+      </div>
+      <div class="field">
+        <div class="field-label">Home Style</div>
+        <select class="field-input" id="f-style">
+          <option value="">Select style (optional)</option>
+          <option>Ranch</option><option>Craftsman</option><option>Colonial</option><option>Tudor</option><option>Mid-Century Modern</option><option>Contemporary</option><option>Victorian</option><option>Cape Cod</option><option>Split-Level</option><option>Townhouse</option><option>Condo / Apartment</option><option>Other</option>
+        </select>
+      </div>
+    </div>
+
+    <div class="cta-row">
+      <button class="btn-primary" id="btn-step1" onclick="validateStep1()">
+        Continue
+        <svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><line x1="3" y1="8" x2="13" y2="8"/><polyline points="9,4 13,8 9,12"/></svg>
+      </button>
+      <button class="btn-skip" onclick="nextStep()">Skip for now</button>
+    </div>
+  </div>
+
+  <!-- ===== STEP 2: COUPLE ===== -->
+  <div class="step" id="step-2">
+    <div class="step-eyebrow">Step 2 of 6 &mdash; Your Team</div>
+    <div class="step-title">Who's on the<br>crew?</div>
+    <div class="step-sub">Foundation is built for partners. Add both names so tasks, budgets, and decisions are always shared.</div>
+
+    <div class="person-cards">
+      <div class="person-card">
+        <div class="person-card-header">
+          <div class="person-avatar" id="av-1">L</div>
+          <div>
+            <div style="font-size:11px;font-weight:600;color:var(--white)">Person 1</div>
+            <div class="person-role">Primary</div>
+          </div>
+        </div>
+        <div class="field">
+          <div class="field-label">First Name</div>
+          <input class="field-input" id="f-name1" type="text" placeholder="Leo" oninput="updateAvatar(this,'av-1')">
+        </div>
+        <div class="field">
+          <div class="field-label">DIY Comfort</div>
+          <select class="field-input" id="f-diy1">
+            <option value="hands-on">Hands-on builder</option>
+            <option value="capable">Capable, learns fast</option>
+            <option value="basic">Basic tasks only</option>
+            <option value="manager">Project manager</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="person-card">
+        <div class="person-card-header">
+          <div class="person-avatar" id="av-2" style="background:var(--blue-dim);border-color:rgba(122,170,200,0.3);color:var(--blue-br);">M</div>
+          <div>
+            <div style="font-size:11px;font-weight:600;color:var(--white)">Person 2</div>
+            <div class="person-role">Optional</div>
+          </div>
+        </div>
+        <div class="field">
+          <div class="field-label">First Name</div>
+          <input class="field-input" id="f-name2" type="text" placeholder="(optional)" oninput="updateAvatar(this,'av-2')">
+        </div>
+        <div class="field">
+          <div class="field-label">DIY Comfort</div>
+          <select class="field-input" id="f-diy2">
+            <option value="hands-on">Hands-on builder</option>
+            <option value="capable">Capable, learns fast</option>
+            <option value="basic">Basic tasks only</option>
+            <option value="manager">Project manager</option>
+          </select>
+        </div>
+      </div>
+    </div>
+
+    <div class="field" style="width:100%;margin-bottom:24px;">
+      <div class="field-label">Weekend availability</div>
+      <select class="field-input" id="f-weekends">
+        <option value="full">Most weekends free</option>
+        <option value="half">About half our weekends</option>
+        <option value="few">A few weekends a month</option>
+        <option value="rare">Rarely free on weekends</option>
+      </select>
+      <div class="field-hint" style="margin-top:6px">Used to pace project timelines realistically.</div>
+    </div>
+
+    <div class="cta-row">
+      <button class="btn-primary" onclick="nextStep()">
+        Continue
+        <svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><line x1="3" y1="8" x2="13" y2="8"/><polyline points="9,4 13,8 9,12"/></svg>
+      </button>
+      <button class="btn-skip" onclick="nextStep()">Skip</button>
+    </div>
+  </div>
+
+  <!-- ===== STEP 3: ROOMS ===== -->
+  <div class="step" id="step-3">
+    <div class="step-eyebrow">Step 3 of 6 &mdash; Your Rooms</div>
+    <div class="step-title">Map your home.</div>
+    <div class="step-sub">Select every room or space you have. Foundation tracks history, projects, and notes per room &mdash; forever.</div>
+
+    <div class="room-grid" id="room-grid"></div>
+
+    <div class="cta-row">
+      <button class="btn-primary" onclick="nextStep()">
+        Continue
+        <svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><line x1="3" y1="8" x2="13" y2="8"/><polyline points="9,4 13,8 9,12"/></svg>
+      </button>
+      <button class="btn-skip" onclick="nextStep()">Skip for now</button>
+    </div>
+  </div>
+
+  <!-- ===== STEP 4: GOALS ===== -->
+  <div class="step" id="step-4">
+    <div class="step-eyebrow">Step 4 of 6 &mdash; Your Style</div>
+    <div class="step-title">What kind of<br>projects are you doing?</div>
+    <div class="step-sub">Foundation tailors AI suggestions, budget defaults, and complexity to match how you actually work. Select all that apply.</div>
+
+    <div class="goal-grid" id="goal-grid"></div>
+
+    <div class="cta-row">
+      <button class="btn-primary" onclick="nextStep()">
+        Continue
+        <svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><line x1="3" y1="8" x2="13" y2="8"/><polyline points="9,4 13,8 9,12"/></svg>
+      </button>
+    </div>
+  </div>
+
+  <!-- ===== STEP 5: FIRST PROJECT ===== -->
+  <div class="step" id="step-5">
+    <div class="step-eyebrow">Step 5 of 6 &mdash; First Project</div>
+    <div class="step-title">What do you want<br>to tackle first?</div>
+    <div class="step-sub">Pick something to start with. You can add more projects any time &mdash; or skip and explore the app first.</div>
+
+    <div class="project-options" id="project-options"></div>
+
+    <div style="width:100%;margin-bottom:16px;">
+      <div class="field-label" style="margin-bottom:8px">Or describe your own</div>
+      <input class="field-input" id="f-custom-project" type="text" placeholder="e.g. Paint the garage door, fix the kitchen faucet...">
+    </div>
+
+    <div class="cta-row">
+      <button class="btn-primary" onclick="nextStep()">
+        Continue
+        <svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><line x1="3" y1="8" x2="13" y2="8"/><polyline points="9,4 13,8 9,12"/></svg>
+      </button>
+      <button class="btn-skip" onclick="nextStep()">Just exploring &mdash; skip</button>
+    </div>
+  </div>
+
+  <!-- ===== STEP 6: COMPLETE ===== -->
+  <div class="step" id="step-6">
+    <div style="text-align:center;margin-bottom:32px;">
+      <div style="width:72px;height:72px;border-radius:50%;background:var(--gold-dim);border:1px solid var(--border-warm);display:flex;align-items:center;justify-content:center;margin:0 auto 20px;animation:goldGlow 2s ease-in-out infinite">
+        <svg width="32" height="32" viewBox="0 0 34 34" fill="none">
+          <polyline points="7,17 14,24 27,11" stroke="#d4b978" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+      </div>
+      <div class="step-eyebrow">Foundation is ready</div>
+      <div class="step-title" style="font-size:22px">Your home profile<br>is set.</div>
+      <div class="step-sub" style="margin-bottom:0">Everything you told us is saved. Here is what Foundation has set up for you.</div>
+    </div>
+
+    <div class="house-completeness">
+      <div class="hc-row">
+        <div class="hc-label">Profile completeness</div>
+        <div class="hc-pct" id="complete-pct">0%</div>
+      </div>
+      <div class="hc-track"><div class="hc-fill" id="complete-fill" style="width:0%"></div></div>
+    </div>
+
+    <div class="welcome-lines" id="summary-lines"></div>
+
+    <div class="cta-row">
+      <button class="btn-primary" onclick="enterApp()">
+        <svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M2 9L9 2.5 16 9"/><rect x="4" y="9" width="10" height="6" rx="0.5"/><rect x="7" y="11" width="4" height="4"/></svg>
+        Enter Foundation
+      </button>
+    </div>
+  </div>
+
+</div><!-- /steps-wrap -->
+</div><!-- /shell -->
+
+<script>
+var currentStep = 0;
+var totalSteps = 7;
+var state = {
+  address:'', city:'', state:'', year:'', sqft:'', ownership:'own', style:'',
+  name1:'', name2:'', diy1:'hands-on', diy2:'capable', weekends:'full',
+  rooms:[], goals:[], firstProject:''
+};
+
+var ROOMS = [
+  { id:'kitchen',  name:'Kitchen',    icon:'<svg width="20" height="20" viewBox="0 0 22 22" fill="none" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="12" width="16" height="7" rx="1"/><line x1="3" y1="15.5" x2="19" y2="15.5"/><circle cx="7.5" cy="9" r="2"/><circle cx="14.5" cy="9" r="2"/><line x1="7.5" y1="3" x2="7.5" y2="7"/><line x1="14.5" y1="3" x2="14.5" y2="7"/></svg>' },
+  { id:'bathroom', name:'Bathroom',   icon:'<svg width="20" height="20" viewBox="0 0 22 22" fill="none" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12H3V9a3 3 0 016 0"/><rect x="3" y="12" width="16" height="5" rx="1"/><line x1="8" y1="17" x2="8" y2="20"/><line x1="14" y1="17" x2="14" y2="20"/></svg>' },
+  { id:'living',   name:'Living Room',icon:'<svg width="20" height="20" viewBox="0 0 22 22" fill="none" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="10" width="18" height="8" rx="1.5"/><path d="M2 13h18"/><rect x="5" y="13" width="5" height="5" rx="0.5"/><rect x="12" y="13" width="5" height="5" rx="0.5"/></svg>' },
+  { id:'bedroom',  name:'Bedroom',    icon:'<svg width="20" height="20" viewBox="0 0 22 22" fill="none" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="11" width="18" height="7" rx="1"/><path d="M2 14h18"/><rect x="4" y="5" width="5" height="6" rx="1"/><rect x="13" y="5" width="5" height="6" rx="1"/></svg>' },
+  { id:'bed2',     name:'Bedroom 2',  icon:'<svg width="20" height="20" viewBox="0 0 22 22" fill="none" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="11" width="18" height="7" rx="1"/><path d="M2 14h18"/><rect x="4" y="5" width="5" height="6" rx="1"/><rect x="13" y="5" width="5" height="6" rx="1"/></svg>' },
+  { id:'bed3',     name:'Bedroom 3',  icon:'<svg width="20" height="20" viewBox="0 0 22 22" fill="none" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="11" width="18" height="7" rx="1"/><path d="M2 14h18"/><rect x="4" y="5" width="5" height="6" rx="1"/><rect x="13" y="5" width="5" height="6" rx="1"/></svg>' },
+  { id:'bath2',    name:'Bath 2',     icon:'<svg width="20" height="20" viewBox="0 0 22 22" fill="none" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12H3V9a3 3 0 016 0"/><rect x="3" y="12" width="16" height="5" rx="1"/><line x1="8" y1="17" x2="8" y2="20"/><line x1="14" y1="17" x2="14" y2="20"/></svg>' },
+  { id:'garage',   name:'Garage',     icon:'<svg width="20" height="20" viewBox="0 0 22 22" fill="none" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="8" width="18" height="12" rx="1"/><path d="M2 8L11 2l9 6"/><line x1="2" y1="12" x2="20" y2="12"/><line x1="2" y1="15" x2="20" y2="15"/></svg>' },
+  { id:'basement', name:'Basement',   icon:'<svg width="20" height="20" viewBox="0 0 22 22" fill="none" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="10" width="18" height="10" rx="1"/><path d="M2 10L11 3l9 7"/><line x1="6" y1="20" x2="6" y2="14"/><line x1="11" y1="20" x2="11" y2="14"/><line x1="16" y1="20" x2="16" y2="14"/></svg>' },
+  { id:'laundry',  name:'Laundry',    icon:'<svg width="20" height="20" viewBox="0 0 22 22" fill="none" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"><rect x="2" y="2" width="18" height="19" rx="1.5"/><circle cx="11" cy="13" r="4.5"/><circle cx="11" cy="13" r="2"/><line x1="5" y1="5.5" x2="7" y2="5.5"/></svg>' },
+  { id:'office',   name:'Office',     icon:'<svg width="20" height="20" viewBox="0 0 22 22" fill="none" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"><rect x="3" y="5" width="16" height="11" rx="1"/><line x1="3" y1="9" x2="19" y2="9"/><line x1="8" y1="16" x2="8" y2="19"/><line x1="14" y1="16" x2="14" y2="19"/><line x1="6" y1="19" x2="16" y2="19"/></svg>' },
+  { id:'exterior', name:'Exterior',   icon:'<svg width="20" height="20" viewBox="0 0 22 22" fill="none" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"><circle cx="11" cy="7" r="3"/><line x1="11" y1="2" x2="11" y2="3.5"/><line x1="16.5" y1="4" x2="15.4" y2="5.1"/><line x1="5.5" y1="4" x2="6.6" y2="5.1"/><line x1="4" y1="13" x2="4" y2="20"/><line x1="8.5" y1="13" x2="8.5" y2="20"/><line x1="13.5" y1="13" x2="13.5" y2="20"/><line x1="18" y1="13" x2="18" y2="20"/><line x1="4" y1="16" x2="18" y2="16"/></svg>' },
+  { id:'attic',    name:'Attic',      icon:'<svg width="20" height="20" viewBox="0 0 22 22" fill="none" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round"><path d="M2 12L11 3l9 9"/><rect x="4" y="12" width="14" height="7" rx="0.5"/><line x1="9" y1="19" x2="9" y2="15"/><line x1="13" y1="19" x2="13" y2="15"/></svg>' },
+  { id:'dining',   name:'Dining',     icon:'<svg width="20" height="20" viewBox="0 0 22 22" fill="none" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"><ellipse cx="11" cy="13" rx="7" ry="3"/><line x1="4" y1="13" x2="4" y2="17"/><line x1="18" y1="13" x2="18" y2="17"/><line x1="11" y1="4" x2="11" y2="10"/><line x1="8" y1="7" x2="14" y2="7"/></svg>' },
+  { id:'deck',     name:'Deck/Patio', icon:'<svg width="20" height="20" viewBox="0 0 22 22" fill="none" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"><rect x="2" y="12" width="18" height="3" rx="0.5"/><line x1="4" y1="15" x2="4" y2="20"/><line x1="8" y1="15" x2="8" y2="20"/><line x1="12" y1="15" x2="12" y2="20"/><line x1="16" y1="15" x2="16" y2="20"/><line x1="18" y1="15" x2="18" y2="20"/><rect x="6" y="7" width="10" height="5" rx="0.5"/></svg>' },
+  { id:'pool',     name:'Pool/Yard',  icon:'<svg width="20" height="20" viewBox="0 0 22 22" fill="none" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"><rect x="3" y="9" width="16" height="10" rx="1"/><path d="M3 13c2-2 4 2 6 0s4-2 6 0"/><line x1="7" y1="9" x2="7" y2="5"/><line x1="15" y1="9" x2="15" y2="5"/><line x1="7" y1="5" x2="15" y2="5"/></svg>' },
+  { id:'mudroom',  name:'Mudroom',    icon:'<svg width="20" height="20" viewBox="0 0 22 22" fill="none" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="16" height="16" rx="1"/><rect x="8" y="10" width="6" height="10" rx="0.5"/><circle cx="13.5" cy="15" r="0.8" fill="currentColor" stroke="none"/><line x1="5" y1="7" x2="5" y2="11"/><line x1="8" y1="7" x2="8" y2="11"/></svg>' },
+  { id:'closet',   name:'Walk-in Closet', icon:'<svg width="20" height="20" viewBox="0 0 22 22" fill="none" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"><rect x="3" y="3" width="16" height="17" rx="1"/><line x1="11" y1="3" x2="11" y2="20"/><line x1="5" y1="8" x2="9" y2="8"/><line x1="13" y1="8" x2="17" y2="8"/><line x1="5" y1="11" x2="9" y2="11"/><line x1="13" y1="11" x2="17" y2="11"/></svg>' }
+];
+
+var GOALS = [
+  { id:'quick',    title:'Quick Fixes',      desc:'Caulk, patch, touch-up, hardware swaps. Under $500, done in a day.',
+    icon:'<svg width="18" height="18" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"><circle cx="10" cy="10" r="7.5"/><line x1="10" y1="5" x2="10" y2="10"/><line x1="10" y1="10" x2="13.5" y2="11.5"/><circle cx="10" cy="10" r="1" fill="currentColor" stroke="none"/></svg>' },
+  { id:'weekend',  title:'Weekend Projects', desc:'Paint a room, build a shelf, fix the fence. $100-$1,000.',
+    icon:'<svg width="18" height="18" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round"><path d="M4 8h12l1.5 9H2.5z"/><path d="M7 8V5.5a3 3 0 016 0V8"/></svg>' },
+  { id:'reno',     title:'Room Renovations', desc:'Kitchen, bathroom, flooring. Multi-week, some contractor help.',
+    icon:'<svg width="18" height="18" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"><rect x="2.5" y="2.5" width="15" height="15" rx="1"/><line x1="2.5" y1="7" x2="17.5" y2="7"/><line x1="7" y1="7" x2="7" y2="17.5"/></svg>' },
+  { id:'systems',  title:'Home Systems',     desc:'HVAC, plumbing, electrical, roofing. Big ticket, long-term.',
+    icon:'<svg width="18" height="18" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"><circle cx="10" cy="10" r="2.5"/><path d="M10 2v1.5M10 16.5V18M2 10h1.5M16.5 10H18M4.4 4.4l1.1 1.1M14.5 14.5l1.1 1.1M4.4 15.6l1.1-1.1M14.5 5.5l1.1-1.1"/></svg>' },
+  { id:'curb',     title:'Curb Appeal',      desc:'Exterior paint, landscaping, driveway, front door.',
+    icon:'<svg width="18" height="18" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"><circle cx="10" cy="7" r="3"/><line x1="10" y1="2" x2="10" y2="3.5"/><line x1="3" y1="13" x2="3" y2="18"/><line x1="8" y1="13" x2="8" y2="18"/><line x1="13" y1="13" x2="13" y2="18"/><line x1="17" y1="13" x2="17" y2="18"/><line x1="3" y1="16" x2="17" y2="16"/></svg>' },
+  { id:'addition', title:'Major Projects',   desc:'Additions, conversions, full gut renos. Long-term vision.',
+    icon:'<svg width="18" height="18" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round"><path d="M2 10L10 2.5 18 10"/><rect x="5" y="10" width="10" height="7.5" rx="0.5"/><rect x="8" y="13" width="4" height="4.5"/></svg>' }
+];
+
+var FIRST_PROJECTS = [
+  { id:'bathroom-caulk', title:'Recaulk a bathroom',     desc:'1-2 hours, under $30, immediate impact', badge:'quick',  btext:'Quick Fix',
+    icon:'<svg width="18" height="18" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12H3V9a3 3 0 016 0"/><rect x="3" y="12" width="16" height="5" rx="1"/></svg>' },
+  { id:'paint-room',     title:'Paint a room',           desc:'One weekend, $80-$250 in supplies', badge:'quick', btext:'Weekend',
+    icon:'<svg width="18" height="18" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="2" width="14" height="10" rx="1"/><path d="M8 12v3l-2 3h8l-2-3v-3"/></svg>' },
+  { id:'kitchen-hardware', title:'Swap cabinet hardware', desc:'A few hours, $80-$200 for all pulls', badge:'quick', btext:'Quick Fix',
+    icon:'<svg width="18" height="18" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"><rect x="2.5" y="2.5" width="15" height="15" rx="1"/><line x1="2.5" y1="9" x2="17.5" y2="9"/><line x1="8" y1="2.5" x2="8" y2="17.5"/></svg>' },
+  { id:'landscape',      title:'Front yard cleanup',    desc:'Weekend project, $50-$400', badge:'medium', btext:'Weekend',
+    icon:'<svg width="18" height="18" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"><circle cx="10" cy="7" r="3"/><line x1="4" y1="13" x2="4" y2="18"/><line x1="8" y1="13" x2="8" y2="18"/><line x1="12" y1="13" x2="12" y2="18"/><line x1="16" y1="13" x2="16" y2="18"/><line x1="4" y1="16" x2="16" y2="16"/></svg>' },
+  { id:'flooring',       title:'New flooring in one room', desc:'1-2 weekends, $500-$2,500', badge:'medium', btext:'Multi-week',
+    icon:'<svg width="18" height="18" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"><rect x="2" y="2" width="7" height="7" rx="0.5"/><rect x="11" y="2" width="7" height="7" rx="0.5"/><rect x="2" y="11" width="7" height="7" rx="0.5"/><rect x="11" y="11" width="7" height="7" rx="0.5"/></svg>' },
+  { id:'kitchen-reno',   title:'Kitchen renovation',    desc:'6-12 weeks, $8k-$30k range', badge:'large', btext:'Major',
+    icon:'<svg width="18" height="18" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="12" width="14" height="5" rx="1"/><circle cx="7.5" cy="9" r="2"/><circle cx="13.5" cy="9" r="2"/></svg>' }
+];
+
+// ===== INIT =====
+window.addEventListener('load', function() {
+  renderRooms();
+  renderGoals();
+  renderProjectOptions();
+  renderStepDots();
+  updateProgress();
+});
+
+// ===== RENDER ROOMS =====
+function renderRooms() {
+  var grid = document.getElementById('room-grid');
+  if (!grid) return;
+  var html = '';
+  ROOMS.forEach(function(r) {
+    var sel = state.rooms.indexOf(r.id) > -1;
+    html += '<div class="room-tile' + (sel ? ' selected' : '') + '" onclick="toggleRoom(\'' + r.id + '\')">';
+    html += '<div class="room-tile-check"><svg width="8" height="8" viewBox="0 0 10 10" fill="none" stroke="#0b0b0c" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="2,5 4,7 8,3"/></svg></div>';
+    html += '<div class="room-tile-icon">' + r.icon + '</div>';
+    html += '<div class="room-tile-name">' + r.name + '</div>';
+    html += '</div>';
+  });
+  grid.innerHTML = html;
+}
+
+function toggleRoom(id) {
+  var idx = state.rooms.indexOf(id);
+  if (idx > -1) state.rooms.splice(idx, 1);
+  else state.rooms.push(id);
+  renderRooms();
+}
+
+// ===== RENDER GOALS =====
+function renderGoals() {
+  var grid = document.getElementById('goal-grid');
+  if (!grid) return;
+  var html = '';
+  GOALS.forEach(function(g) {
+    var sel = state.goals.indexOf(g.id) > -1;
+    html += '<div class="goal-card' + (sel ? ' selected' : '') + '" onclick="toggleGoal(\'' + g.id + '\')">';
+    html += '<div class="goal-card-icon">' + g.icon + '</div>';
+    html += '<div class="goal-card-body"><div class="goal-card-title">' + g.title + '</div><div class="goal-card-desc">' + g.desc + '</div></div>';
+    html += '</div>';
+  });
+  grid.innerHTML = html;
+}
+
+function toggleGoal(id) {
+  var idx = state.goals.indexOf(id);
+  if (idx > -1) state.goals.splice(idx, 1);
+  else state.goals.push(id);
+  renderGoals();
+}
+
+// ===== RENDER PROJECT OPTIONS =====
+function renderProjectOptions() {
+  var el = document.getElementById('project-options');
+  if (!el) return;
+  var html = '';
+  FIRST_PROJECTS.forEach(function(p) {
+    var sel = state.firstProject === p.id;
+    html += '<div class="project-option' + (sel ? ' selected' : '') + '" onclick="selectFirstProject(\'' + p.id + '\')">';
+    html += '<div class="po-icon">' + p.icon + '</div>';
+    html += '<div class="po-body"><div class="po-title">' + p.title + '</div><div class="po-desc">' + p.desc + '</div></div>';
+    html += '<div class="po-badge ' + p.badge + '">' + p.btext + '</div>';
+    html += '</div>';
+  });
+  el.innerHTML = html;
+}
+
+function selectFirstProject(id) {
+  state.firstProject = state.firstProject === id ? '' : id;
+  renderProjectOptions();
+  document.getElementById('f-custom-project').value = '';
+}
+
+// ===== STEP DOTS =====
+function renderStepDots() {
+  var dots = document.getElementById('step-dots');
+  var label = document.getElementById('step-label');
+  if (!dots) return;
+  var steps = ['Welcome','House','Team','Rooms','Goals','Project','Done'];
+  var html = '';
+  for (var i = 0; i < steps.length; i++) {
+    var cls = i < currentStep ? 'done' : (i === currentStep ? 'active' : '');
+    html += '<div class="step-dot ' + cls + '"></div>';
+  }
+  dots.innerHTML = html;
+  if (label && currentStep > 0) label.textContent = currentStep + ' of 6';
+  else if (label) label.textContent = '';
+}
+
+// ===== PROGRESS =====
+function updateProgress() {
+  var pct = (currentStep / (totalSteps - 1)) * 100;
+  var fill = document.getElementById('prog-fill');
+  if (fill) fill.style.width = pct + '%';
+  var back = document.getElementById('back-btn');
+  if (back) back.className = 'back-btn' + (currentStep > 0 ? ' visible' : '');
+}
+
+// ===== NAV =====
+function nextStep() {
+  if (currentStep >= totalSteps - 1) return;
+  saveStepData();
+  var curr = document.getElementById('step-' + currentStep);
+  if (curr) curr.classList.add('exit');
+  setTimeout(function() {
+    if (curr) { curr.classList.remove('active'); curr.classList.remove('exit'); }
+    currentStep++;
+    var next = document.getElementById('step-' + currentStep);
+    if (next) next.classList.add('active');
+    renderStepDots();
+    updateProgress();
+    if (currentStep === totalSteps - 1) buildSummary();
+    window.scrollTo(0, 0);
+  }, 200);
+}
+
+function prevStep() {
+  if (currentStep <= 0) return;
+  var curr = document.getElementById('step-' + currentStep);
+  if (curr) { curr.classList.remove('active'); }
+  currentStep--;
+  var prev = document.getElementById('step-' + currentStep);
+  if (prev) prev.classList.add('active');
+  renderStepDots();
+  updateProgress();
+  window.scrollTo(0, 0);
+}
+
+function validateStep1() {
+  var addr = document.getElementById('f-address');
+  if (addr && !addr.value.trim()) {
+    addr.classList.add('error');
+    addr.focus();
+    setTimeout(function() { addr.classList.remove('error'); }, 1800);
+    return;
+  }
+  nextStep();
+}
+
+function saveStepData() {
+  if (currentStep === 1) {
+    state.address = val('f-address');
+    state.city = val('f-city');
+    state.state = val('f-state');
+    state.year = val('f-year');
+    state.sqft = val('f-sqft');
+    state.ownership = val('f-own');
+    state.style = val('f-style');
+  } else if (currentStep === 2) {
+    state.name1 = val('f-name1');
+    state.name2 = val('f-name2');
+    state.diy1 = val('f-diy1');
+    state.diy2 = val('f-diy2');
+    state.weekends = val('f-weekends');
+  } else if (currentStep === 5) {
+    var custom = val('f-custom-project');
+    if (custom) state.firstProject = custom;
+  }
+}
+
+// ===== SUMMARY =====
+function buildSummary() {
+  var lines = [];
+  var score = 0;
+
+  if (state.address) {
+    lines.push({ icon: '<svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round"><path d="M2 8L8 2.5 14 8"/><rect x="4" y="8" width="8" height="6" rx="0.5"/><rect x="6.5" y="10" width="3" height="4"/></svg>', text: 'Home: <strong>' + state.address + (state.city ? ', ' + state.city : '') + '</strong>' });
+    score += 30;
+  } else {
+    lines.push({ icon: '<svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round"><path d="M2 8L8 2.5 14 8"/><rect x="4" y="8" width="8" height="6" rx="0.5"/></svg>', text: 'Home profile not filled in yet &mdash; <strong>add it in Settings</strong>' });
+  }
+
+  if (state.name1) {
+    var team = '<strong>' + state.name1 + '</strong>';
+    if (state.name2) team += ' + <strong>' + state.name2 + '</strong>';
+    lines.push({ icon: '<svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"><circle cx="6" cy="5" r="2.5"/><path d="M1.5 13.5c0-2.5 2-4 4.5-4s4.5 1.5 4.5 4"/><circle cx="12" cy="5" r="2" opacity="0.6"/><path d="M14.5 13.5c0-2-1.5-3.5-3.5-3.5" opacity="0.6"/></svg>', text: 'Team: ' + team });
+    score += 20;
+  }
+
+  if (state.rooms.length > 0) {
+    lines.push({ icon: '<svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"><rect x="1.5" y="1.5" width="5.5" height="5.5" rx="0.5"/><rect x="9" y="1.5" width="5.5" height="5.5" rx="0.5"/><rect x="1.5" y="9" width="5.5" height="5.5" rx="0.5"/><rect x="9" y="9" width="5.5" height="5.5" rx="0.5"/></svg>', text: '<strong>' + state.rooms.length + ' rooms</strong> mapped and ready for tracking' });
+    score += 25;
+  }
+
+  if (state.goals.length > 0) {
+    lines.push({ icon: '<svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round"><path d="M8 1.5l1.4 3.1 3.5.35-2.45 2.45.7 3.5L8 9.3l-3.15 1.55.7-3.5L3.1 4.95l3.5-.35z"/></svg>', text: 'AI tuned for: <strong>' + state.goals.map(function(g){ return GOALS.find(function(x){return x.id===g;}).title; }).join(', ') + '</strong>' });
+    score += 15;
+  }
+
+  if (state.firstProject) {
+    var proj = FIRST_PROJECTS.find(function(p) { return p.id === state.firstProject; });
+    var pname = proj ? proj.title : state.firstProject;
+    lines.push({ icon: '<svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"><rect x="2" y="1.5" width="9" height="11" rx="1"/><path d="M9 1.5v4h4"/><line x1="4" y1="7" x2="8" y2="7"/><line x1="4" y1="9.5" x2="8" y2="9.5"/><line x1="11" y1="8.5" x2="11" y2="14.5"/><line x1="8" y1="11.5" x2="14" y2="11.5"/></svg>', text: 'First project queued: <strong>' + pname + '</strong>' });
+    score += 10;
+  }
+
+  var el = document.getElementById('summary-lines');
+  if (el) {
+    var html = '';
+    lines.forEach(function(l, i) {
+      html += '<div class="welcome-line" style="animation-delay:' + (i * 0.08) + 's">';
+      html += '<div class="welcome-line-icon">' + l.icon + '</div>';
+      html += '<div class="welcome-line-text">' + l.text + '</div>';
+      html += '</div>';
+    });
+    el.innerHTML = html;
+  }
+
+  var pct = Math.min(score, 100);
+  var pctEl = document.getElementById('complete-pct');
+  var fillEl = document.getElementById('complete-fill');
+  if (pctEl) pctEl.textContent = pct + '%';
+  setTimeout(function() {
+    if (fillEl) fillEl.style.width = pct + '%';
+  }, 300);
+}
+
+// ===== ACTIONS =====
+function updateAvatar(el, avId) {
+  var av = document.getElementById(avId);
+  if (av) av.textContent = el.value ? el.value.charAt(0).toUpperCase() : (avId === 'av-1' ? 'L' : 'M');
+}
+
+function enterApp() {
+  showToast('Loading your Foundation dashboard...');
+  setTimeout(function() { showToast('Welcome to Foundation.'); }, 1200);
+}
+
+function skipToEnd() { showToast('Sign in coming soon.'); }
+
+// ===== UTILS =====
+function val(id) { var el = document.getElementById(id); return el ? el.value.trim() : ''; }
+
+function showToast(msg) {
+  var t = document.getElementById('toast-el');
+  if (!t) {
+    t = document.createElement('div');
+    t.id = 'toast-el';
+    t.style.cssText = 'position:fixed;bottom:32px;left:50%;transform:translateX(-50%);background:var(--raised);border:1px solid var(--border-warm);color:var(--white);font-size:12px;padding:10px 20px;border-radius:10px;z-index:99999;white-space:nowrap;opacity:0;transition:opacity 0.25s;box-shadow:0 8px 24px rgba(0,0,0,0.5);font-family:\'DM Sans\',sans-serif;letter-spacing:0.02em;';
+    document.body.appendChild(t);
+  }
+  t.textContent = msg;
+  t.style.opacity = '1';
+  clearTimeout(t._t);
+  t._t = setTimeout(function() { t.style.opacity = '0'; }, 2600);
+}
+</script>
+</body>
+</html>

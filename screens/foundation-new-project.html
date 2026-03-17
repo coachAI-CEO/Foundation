@@ -1,0 +1,1105 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<title>Foundation — New Project</title>
+<link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;500;600;700&family=DM+Sans:opsz,wght@9..40,300;9..40,400;9..40,500;9..40,600&display=swap" rel="stylesheet">
+<style>
+:root {
+  --void:#0b0b0c; --base:#111113; --card:#161618; --raised:#1c1c1f; --lift:#242428;
+  --border:rgba(255,255,255,0.055); --border-warm:rgba(210,185,130,0.22);
+  --gold:#d4b978; --gold-br:#ecd49a; --gold-dim:rgba(212,185,120,0.08); --gold-glow:rgba(212,185,120,0.18);
+  --white:#ede9e3; --muted:#5c5850; --soft:#8a8478;
+  --green:#4e7a5e; --green-br:#72b08a; --green-dim:rgba(78,122,94,0.12);
+  --red-br:#cc8888; --amber:#d4903a;
+  --r:16px; --r-sm:10px;
+}
+*{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent;}
+html{font-size:16px;}
+body{background:#080809;color:var(--white);font-family:'DM Sans',sans-serif;font-weight:400;min-height:100vh;overflow-x:hidden;}
+.atmo{position:fixed;inset:0;pointer-events:none;z-index:0;
+  background:radial-gradient(ellipse 70% 50% at 50% -5%,rgba(212,185,120,0.06) 0%,transparent 65%),
+             radial-gradient(ellipse 40% 55% at 95% 60%,rgba(78,122,94,0.025) 0%,transparent 55%);}
+
+.view-toggle{position:fixed;top:18px;left:50%;transform:translateX(-50%);z-index:9999;display:flex;align-items:center;background:rgba(11,11,12,0.92);border:1px solid var(--border-warm);border-radius:12px;padding:4px;backdrop-filter:blur(20px);box-shadow:0 8px 32px rgba(0,0,0,0.5);}
+.vbtn{display:flex;align-items:center;gap:6px;padding:7px 16px;border-radius:8px;font-family:'DM Sans',sans-serif;font-size:12px;font-weight:500;letter-spacing:0.05em;cursor:pointer;border:none;background:transparent;color:var(--muted);transition:all 0.2s;}
+.vbtn.active{background:var(--gold);color:#0b0b0c;font-weight:600;}
+.vdiv{width:1px;height:18px;background:var(--border);margin:0 2px;}
+
+.page{min-height:100vh;display:flex;align-items:flex-start;justify-content:center;padding-top:76px;position:relative;z-index:1;padding-bottom:40px;}
+
+/* MOBILE */
+body.mode-mobile .mobile-shell{width:390px;border-radius:44px;overflow:hidden;box-shadow:0 0 0 10px #0d0d0f,0 0 0 12px #1e1e22,0 0 0 13px #0d0d0f,0 40px 100px rgba(0,0,0,0.9);background:var(--void);min-height:844px;position:relative;flex-shrink:0;}
+body.mode-mobile .mobile-shell::before{content:'';position:absolute;top:0;left:50%;transform:translateX(-50%);width:126px;height:34px;background:#0d0d0f;border-radius:0 0 22px 22px;z-index:999;pointer-events:none;}
+body.mode-desktop .mobile-shell{display:none;}
+
+/* DESKTOP */
+body.mode-mobile .desktop-shell{display:none;}
+body.mode-desktop .page{padding:76px 0 0;align-items:stretch;display:block;}
+body.mode-desktop .desktop-shell{display:grid;grid-template-columns:64px 1fr;min-height:calc(100vh - 76px);}
+
+/* SHARED */
+.step-dot{width:28px;height:28px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:600;transition:all 0.3s;flex-shrink:0;font-family:'Cinzel',serif;}
+.step-dot.done{background:var(--green);color:#fff;border:2px solid var(--green);}
+.step-dot.active{background:var(--gold);color:#0b0b0c;border:2px solid var(--gold);box-shadow:0 0 14px rgba(212,185,120,0.4);}
+.step-dot.pending{background:var(--raised);color:var(--muted);border:2px solid var(--border);}
+.step-line{flex:1;height:1px;background:var(--border);margin:0 -1px;}
+.step-line.done{background:var(--green);}
+.step-label{font-size:9px;text-transform:uppercase;letter-spacing:0.1em;margin-top:4px;color:var(--muted);text-align:center;}
+.step-label.active{color:var(--gold);}
+.step-label.done{color:var(--green-br);}
+
+.form-label{font-size:10px;letter-spacing:0.12em;text-transform:uppercase;color:var(--muted);margin-bottom:7px;display:block;}
+.form-input{width:100%;background:var(--raised);border:1px solid var(--border);border-radius:var(--r-sm);padding:11px 14px;color:var(--white);font-family:'DM Sans',sans-serif;font-size:14px;outline:none;transition:border-color 0.2s;-webkit-appearance:none;}
+.form-input::placeholder{color:var(--muted);}
+.form-input:focus{border-color:var(--border-warm);box-shadow:0 0 0 3px rgba(212,185,120,0.06);}
+.form-textarea{width:100%;background:var(--raised);border:1px solid var(--border);border-radius:var(--r-sm);padding:12px 14px;color:var(--white);font-family:'DM Sans',sans-serif;font-size:13px;font-weight:300;outline:none;resize:none;transition:border-color 0.2s;line-height:1.55;}
+.form-textarea::placeholder{color:var(--muted);}
+.form-textarea:focus{border-color:var(--border-warm);}
+.form-field{margin-bottom:16px;}
+
+.chip-grid{display:flex;flex-wrap:wrap;gap:7px;}
+.chip{padding:8px 14px;border-radius:20px;border:1px solid var(--border);background:var(--raised);font-size:12px;cursor:pointer;transition:all 0.18s;color:var(--soft);user-select:none;}
+.chip:hover{border-color:var(--border-warm);color:var(--white);}
+.chip.selected{background:var(--gold-dim);border-color:var(--border-warm);color:var(--gold);font-weight:500;}
+
+.room-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;}
+.room-card{background:var(--raised);border:1px solid var(--border);border-radius:var(--r-sm);padding:12px 8px;text-align:center;cursor:pointer;transition:all 0.18s;}
+.room-card:hover{border-color:var(--border-warm);}
+.room-card.selected{background:var(--gold-dim);border-color:var(--border-warm);}
+.room-card .rc-icon{font-size:22px;margin-bottom:5px;}
+.room-card .rc-label{font-size:10px;color:var(--soft);letter-spacing:0.04em;}
+.room-card.selected .rc-label{color:var(--gold);}
+
+.budget-slider-wrap{position:relative;padding:4px 0;}
+.budget-slider{width:100%;-webkit-appearance:none;appearance:none;height:4px;border-radius:4px;background:linear-gradient(to right,var(--gold) var(--pct,40%),var(--raised) var(--pct,40%));outline:none;cursor:pointer;}
+.budget-slider::-webkit-slider-thumb{-webkit-appearance:none;width:20px;height:20px;border-radius:50%;background:var(--gold);border:2px solid var(--void);box-shadow:0 0 8px rgba(212,185,120,0.4);cursor:pointer;}
+.budget-display{display:flex;justify-content:space-between;align-items:center;margin-top:10px;}
+.budget-val{font-family:'Cinzel',serif;font-size:22px;font-weight:600;color:var(--gold);}
+.budget-range{font-size:10px;color:var(--muted);}
+
+.timeline-opts{display:flex;flex-direction:column;gap:8px;}
+.timeline-opt{display:flex;align-items:center;gap:12px;padding:12px 14px;background:var(--raised);border:1px solid var(--border);border-radius:var(--r-sm);cursor:pointer;transition:all 0.18s;}
+.timeline-opt:hover{border-color:var(--border-warm);}
+.timeline-opt.selected{background:var(--gold-dim);border-color:var(--border-warm);}
+.to-icon{font-size:18px;flex-shrink:0;}
+.to-title{font-size:13px;font-weight:500;color:var(--white);}
+.to-sub{font-size:10px;color:var(--muted);margin-top:1px;}
+.to-badge{margin-left:auto;font-size:9px;font-weight:600;letter-spacing:0.06em;text-transform:uppercase;padding:3px 8px;border-radius:20px;}
+.tb-easy{background:var(--green-dim);color:var(--green-br);}
+.tb-med{background:rgba(212,185,120,0.12);color:var(--gold);}
+.tb-hard{background:rgba(176,144,58,0.12);color:var(--amber);}
+
+.photo-zone{border:1px dashed rgba(212,185,120,0.2);border-radius:var(--r);padding:24px 16px;text-align:center;cursor:pointer;transition:all 0.2s;background:var(--gold-dim);}
+.photo-zone:hover{border-color:var(--gold);background:rgba(212,185,120,0.12);}
+.photo-zone-icon{font-size:32px;margin-bottom:8px;}
+.photo-zone-title{font-size:13px;font-weight:500;color:var(--white);margin-bottom:3px;}
+.photo-zone-sub{font-size:11px;color:var(--muted);}
+.photo-previews{display:flex;gap:8px;flex-wrap:wrap;margin-top:10px;}
+.photo-preview{width:70px;height:70px;border-radius:8px;background:var(--raised);border:1px solid var(--border);display:flex;align-items:center;justify-content:center;font-size:24px;position:relative;}
+.photo-remove{position:absolute;top:-6px;right:-6px;width:16px;height:16px;border-radius:50%;background:var(--red-br);color:#fff;font-size:9px;display:flex;align-items:center;justify-content:center;cursor:pointer;}
+
+.ai-gen-screen{display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:400px;padding:24px;text-align:center;gap:20px;}
+.ai-orb-lg{width:72px;height:72px;border-radius:50%;background:radial-gradient(circle at 35% 35%,var(--gold-br),var(--gold));animation:orbPulse 2s ease-in-out infinite;}
+@keyframes orbPulse{0%,100%{box-shadow:0 0 20px rgba(212,185,120,0.3),0 0 0 0 rgba(212,185,120,0.2);}50%{box-shadow:0 0 40px rgba(212,185,120,0.5),0 0 0 16px rgba(212,185,120,0);}}
+.gen-title{font-family:'Cinzel',serif;font-size:18px;font-weight:600;letter-spacing:0.08em;color:var(--white);}
+.gen-status{font-size:13px;color:var(--gold);min-height:20px;transition:opacity 0.3s;}
+.gen-progress{width:200px;height:2px;background:var(--raised);border-radius:2px;overflow:hidden;}
+.gen-fill{height:100%;background:linear-gradient(90deg,var(--gold),var(--gold-br));border-radius:2px;transition:width 0.4s ease;}
+.gen-steps{display:flex;flex-direction:column;gap:8px;width:100%;max-width:300px;text-align:left;}
+.gen-step{display:flex;align-items:center;gap:10px;font-size:12px;color:var(--muted);transition:color 0.3s;}
+.gen-step.done{color:var(--green-br);}
+.gen-step.active{color:var(--white);}
+.gen-step-icon{width:18px;height:18px;border-radius:50%;border:1.5px solid var(--border);display:flex;align-items:center;justify-content:center;font-size:9px;flex-shrink:0;}
+.gen-step.done .gen-step-icon{background:var(--green);border-color:var(--green);color:#fff;}
+.gen-step.active .gen-step-icon{border-color:var(--gold);color:var(--gold);animation:spin 1s linear infinite;}
+@keyframes spin{to{transform:rotate(360deg);}}
+
+.result-phase{background:var(--card);border:1px solid var(--border);border-radius:var(--r);overflow:hidden;transition:all 0.2s;}
+.result-phase-header{display:flex;align-items:center;gap:10px;padding:12px 14px;border-bottom:1px solid var(--border);cursor:pointer;}
+.rph-dot{width:8px;height:8px;border-radius:50%;flex-shrink:0;}
+.rph-name{font-family:'Cinzel',serif;font-size:11px;letter-spacing:0.12em;flex:1;}
+.rph-count{font-size:10px;color:var(--muted);}
+.rph-dur{font-size:10px;color:var(--soft);}
+.rph-toggle{color:var(--muted);font-size:10px;transition:transform 0.2s;}
+.result-tasks{padding:8px 14px 12px;display:flex;flex-direction:column;gap:6px;}
+.result-task{background:var(--raised);border-radius:var(--r-sm);border-left:2px solid transparent;animation:slideIn 0.3s ease both;overflow:hidden;}
+@keyframes slideIn{from{opacity:0;transform:translateX(-8px)}to{opacity:1;transform:translateX(0)}}
+.rt-header{display:flex;align-items:flex-start;gap:10px;padding:10px 12px;cursor:pointer;}
+.rt-num{font-family:'Cinzel',serif;font-size:12px;color:var(--gold);flex-shrink:0;min-width:20px;padding-top:1px;}
+.rt-body{flex:1;}
+.rt-name{font-size:12px;font-weight:500;color:var(--white);margin-bottom:3px;}
+.rt-meta{display:flex;gap:8px;flex-wrap:wrap;}
+.rt-dur{font-size:10px;color:var(--muted);}
+.rt-cost{font-size:10px;color:var(--gold);font-weight:500;}
+.rt-who{font-size:10px;color:var(--soft);}
+.rt-tip{font-size:10px;color:var(--soft);margin-top:4px;line-height:1.4;font-style:italic;}
+.rt-chevron{font-size:10px;color:var(--muted);flex-shrink:0;padding-top:3px;transition:transform 0.25s;}
+.rt-chevron.open{transform:rotate(180deg);}
+.rt-resources{display:none;border-top:1px solid var(--border);padding:14px 12px;background:rgba(0,0,0,0.2);}
+.rt-resources.visible{display:block;animation:fadeUp 0.2s ease both;}
+.res-section{margin-bottom:14px;}
+.res-section:last-child{margin-bottom:0;}
+.res-label{font-size:9px;letter-spacing:0.14em;text-transform:uppercase;color:var(--muted);margin-bottom:8px;display:flex;align-items:center;gap:6px;}
+.res-label::after{content:'';flex:1;height:1px;background:var(--border);}
+.skill-row{display:flex;align-items:center;gap:8px;flex-wrap:wrap;}
+.skill-badge{padding:4px 10px;border-radius:20px;font-size:10px;font-weight:600;letter-spacing:0.05em;}
+.skill-beg{background:var(--green-dim);color:var(--green-br);border:1px solid rgba(78,122,94,0.25);}
+.skill-med{background:rgba(212,185,120,0.1);color:var(--gold);border:1px solid rgba(212,185,120,0.2);}
+.skill-adv{background:rgba(204,136,136,0.1);color:var(--red-br);border:1px solid rgba(204,136,136,0.2);}
+.warn-tag{display:flex;align-items:center;gap:5px;font-size:10px;color:var(--red-br);background:rgba(204,136,136,0.08);border:1px solid rgba(204,136,136,0.15);border-radius:6px;padding:4px 8px;}
+.tools-grid{display:flex;flex-wrap:wrap;gap:5px;}
+.tool-chip{padding:5px 9px;background:var(--card);border:1px solid var(--border);border-radius:6px;font-size:10px;color:var(--soft);}
+.tool-chip.req{border-color:rgba(212,185,120,0.2);color:var(--gold-br);}
+.yt-links{display:flex;flex-direction:column;gap:6px;}
+.yt-link{display:flex;align-items:center;gap:10px;padding:9px 11px;background:var(--card);border:1px solid var(--border);border-radius:8px;text-decoration:none;transition:all 0.18s;cursor:pointer;}
+.yt-link:hover{border-color:rgba(255,80,80,0.3);background:rgba(255,60,60,0.05);}
+.yt-icon{width:28px;height:20px;background:#ff0000;border-radius:4px;display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:10px;color:white;font-weight:700;}
+.yt-text{flex:1;}
+.yt-title{font-size:11px;color:var(--white);font-weight:500;margin-bottom:1px;}
+.yt-sub{font-size:9px;color:var(--muted);}
+.yt-arr{font-size:10px;color:var(--muted);}
+.howto-step{display:flex;gap:9px;margin-bottom:8px;}
+.howto-step:last-child{margin-bottom:0;}
+.howto-num{width:18px;height:18px;border-radius:50%;background:var(--gold-dim);border:1px solid var(--border-warm);display:flex;align-items:center;justify-content:center;font-size:9px;font-family:'Cinzel',serif;color:var(--gold);flex-shrink:0;margin-top:1px;}
+.howto-text{color:var(--soft);font-size:11px;line-height:1.55;padding-top:1px;}
+.howto-loading{display:flex;align-items:center;gap:6px;color:var(--muted);font-size:11px;padding:4px 0;}
+.hdot{width:4px;height:4px;border-radius:50%;background:var(--gold);animation:dotPulse 1.2s ease-in-out infinite;}
+.hdot:nth-child(2){animation-delay:0.2s;}.hdot:nth-child(3){animation-delay:0.4s;}
+@keyframes dotPulse{0%,80%,100%{opacity:0.2;transform:scale(0.8)}40%{opacity:1;transform:scale(1);}}
+
+.summary-bar{display:flex;gap:0;border:1px solid var(--border);border-radius:var(--r-sm);overflow:hidden;}
+.sb-item{flex:1;padding:12px 10px;text-align:center;border-right:1px solid var(--border);}
+.sb-item:last-child{border-right:none;}
+.sb-val{font-family:'Cinzel',serif;font-size:16px;font-weight:600;color:var(--white);}
+.sb-lbl{font-size:9px;letter-spacing:0.1em;text-transform:uppercase;color:var(--muted);margin-top:2px;}
+
+.btn-primary{display:flex;align-items:center;justify-content:center;gap:8px;width:100%;padding:14px;border-radius:var(--r-sm);background:var(--gold);color:#0b0b0c;font-family:'DM Sans',sans-serif;font-size:14px;font-weight:600;border:none;cursor:pointer;transition:all 0.2s;letter-spacing:0.03em;}
+.btn-primary:hover{background:var(--gold-br);}
+.btn-primary:active{transform:scale(0.98);}
+.btn-secondary{display:flex;align-items:center;justify-content:center;gap:8px;width:100%;padding:13px;border-radius:var(--r-sm);background:transparent;border:1px solid var(--border);color:var(--soft);font-family:'DM Sans',sans-serif;font-size:13px;font-weight:500;cursor:pointer;transition:all 0.2s;}
+.btn-secondary:hover{border-color:var(--border-warm);color:var(--white);}
+
+.step-nav{display:flex;gap:10px;padding:16px 20px;border-top:1px solid var(--border);background:var(--void);position:sticky;bottom:0;z-index:10;}
+.step-content{padding:20px;overflow-y:auto;flex:1;-webkit-overflow-scrolling:touch;scrollbar-width:none;}
+.step-content
+
+/* Desktop sidebar */
+.d-sidebar{grid-row:1/-1;background:var(--base);border-right:1px solid var(--border);display:flex;flex-direction:column;align-items:center;padding:20px 0;gap:6px;position:sticky;top:76px;height:calc(100vh - 76px);z-index:10;}
+.d-nav-item{width:40px;height:40px;border-radius:10px;display:flex;align-items:center;justify-content:center;cursor:pointer;transition:all 0.2s;color:var(--muted);position:relative;}
+.d-nav-item:hover{color:var(--white);background:var(--raised);}
+.d-nav-item.active{color:var(--gold);background:var(--gold-dim);}
+.d-nav-item.active::before{content:'';position:absolute;left:-1px;width:2px;height:18px;background:var(--gold);border-radius:0 2px 2px 0;}
+.d-tooltip{position:absolute;left:50px;background:var(--raised);border:1px solid var(--border);color:var(--white);font-size:10px;letter-spacing:0.08em;text-transform:uppercase;padding:5px 10px;border-radius:6px;white-space:nowrap;opacity:0;pointer-events:none;transition:opacity 0.15s;}
+.d-nav-item:hover .d-tooltip{opacity:1;}
+.d-sidebar-bot{margin-top:auto;display:flex;flex-direction:column;align-items:center;gap:8px;}
+.d-avatar{width:30px;height:30px;border-radius:50%;background:var(--gold-dim);border:1px solid var(--gold);display:flex;align-items:center;justify-content:center;font-size:9px;color:var(--gold);font-weight:700;cursor:pointer;}
+.d-main{display:flex;flex-direction:column;overflow:hidden;}
+.d-topbar{padding:20px 24px 0;display:flex;align-items:center;justify-content:space-between;}
+.bc-back{font-size:12px;color:var(--muted);cursor:pointer;transition:color 0.15s;letter-spacing:0.04em;}
+.bc-back:hover{color:var(--gold);}
+.bc-sep{color:var(--muted);font-size:11px;margin:0 6px;}
+.bc-curr{font-family:'Cinzel',serif;font-size:13px;letter-spacing:0.1em;color:var(--white);}
+.d-wizard{display:grid;grid-template-columns:260px 1fr;gap:0;flex:1;overflow:hidden;margin-top:20px;}
+.d-wizard-sidebar{background:var(--base);border-right:1px solid var(--border);padding:24px 20px;display:flex;flex-direction:column;gap:24px;overflow-y:auto;}
+.d-step-list{display:flex;flex-direction:column;gap:4px;}
+.d-step-item{display:flex;align-items:center;gap:12px;padding:11px 14px;border-radius:var(--r-sm);cursor:pointer;transition:all 0.18s;}
+.d-step-item:hover{background:var(--raised);}
+.d-step-item.active{background:var(--gold-dim);border:1px solid var(--border-warm);}
+.dsi-num{width:24px;height:24px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:600;flex-shrink:0;font-family:'Cinzel',serif;transition:all 0.2s;}
+.dsi-num.done{background:var(--green);color:#fff;}
+.dsi-num.active{background:var(--gold);color:#0b0b0c;}
+.dsi-num.pending{background:var(--raised);color:var(--muted);border:1px solid var(--border);}
+.dsi-label{font-size:12px;font-weight:500;color:var(--white);}
+.dsi-sub{font-size:10px;color:var(--muted);margin-top:1px;}
+.d-step-item.active .dsi-label{color:var(--gold);}
+.d-wizard-content{overflow-y:auto;padding:28px 32px;display:flex;flex-direction:column;}
+.tip-card{background:var(--gold-dim);border:1px solid var(--border-warm);border-radius:var(--r-sm);padding:12px 14px;font-size:11px;color:var(--soft);line-height:1.5;}
+.tip-card strong{color:var(--gold);}
+
+@keyframes fadeUp{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:translateY(0)}}
+@keyframes fadeDown{from{opacity:0;transform:translateY(-10px)}to{opacity:1;transform:translateY(0)}}
+
+/* ===== THEMED SCROLLBARS ===== */
+::-webkit-scrollbar { width: 4px; height: 4px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: rgba(212,185,120,0.18); border-radius: 4px; }
+::-webkit-scrollbar-thumb:hover { background: rgba(212,185,120,0.38); }
+::-webkit-scrollbar-corner { background: transparent; }
+* { scrollbar-width: thin; scrollbar-color: rgba(212,185,120,0.18) transparent; }
+</style>
+</head>
+<body class="mode-mobile">
+<div class="atmo"></div>
+
+<div class="view-toggle">
+  <button class="vbtn active" id="btn-mobile" onclick="setView('mobile')">📱 Mobile</button>
+  <div class="vdiv"></div>
+  <button class="vbtn" id="btn-desktop" onclick="setView('desktop')">🖥️ Desktop</button>
+</div>
+
+<div class="page">
+
+<!-- MOBILE SHELL -->
+<div class="mobile-shell" id="mobile-view">
+  <div style="display:flex;flex-direction:column;height:100%;min-height:844px">
+    <div style="padding:38px 20px 0;display:flex;align-items:center;justify-content:space-between;flex-shrink:0">
+      <div style="display:flex;align-items:center;gap:8px">
+        <svg width="28" height="28" viewBox="0 0 34 34" fill="none">
+          <circle cx="17" cy="17" r="15.5" stroke="#d4b978" stroke-width="0.7" opacity="0.55"/>
+          <path d="M17 3.5 L30.5 17 L17 30.5 L3.5 17 Z" stroke="#d4b978" stroke-width="0.7" fill="none"/>
+          <path d="M17 9.5 L24.5 17 L17 24.5 L9.5 17 Z" stroke="#d4b978" stroke-width="0.45" fill="rgba(212,185,120,0.06)"/>
+          <circle cx="17" cy="17" r="1.8" fill="#d4b978"/>
+        </svg>
+        <div>
+          <div style="font-family:'Cinzel',serif;font-size:12px;font-weight:600;letter-spacing:0.15em;color:var(--gold)">Foundation</div>
+          <div style="font-size:8px;letter-spacing:0.18em;text-transform:uppercase;color:var(--muted);margin-top:1px">by Ascension</div>
+        </div>
+      </div>
+      <div style="font-size:11px;color:var(--muted);letter-spacing:0.04em;cursor:pointer" onclick="cancelFlow()">✕ Cancel</div>
+    </div>
+    <div style="padding:14px 20px 0;flex-shrink:0" id="m-step-indicator"></div>
+    <div style="padding:16px 20px 0;flex-shrink:0" id="m-step-title"></div>
+    <div class="step-content" id="m-step-content" style="flex:1"></div>
+    <div class="step-nav" id="m-step-nav"></div>
+  </div>
+</div>
+
+<!-- DESKTOP SHELL -->
+<div class="desktop-shell" id="desktop-view">
+  <div class="d-sidebar">
+    <div style="margin-bottom:20px">
+      <svg width="30" height="30" viewBox="0 0 34 34" fill="none">
+        <circle cx="17" cy="17" r="15.5" stroke="#d4b978" stroke-width="0.7" opacity="0.55"/>
+        <path d="M17 3.5 L30.5 17 L17 30.5 L3.5 17 Z" stroke="#d4b978" stroke-width="0.7" fill="none"/>
+        <path d="M17 9.5 L24.5 17 L17 24.5 L9.5 17 Z" stroke="#d4b978" stroke-width="0.45" fill="rgba(212,185,120,0.06)"/>
+        <circle cx="17" cy="17" r="1.8" fill="#d4b978"/>
+      </svg>
+    </div>
+    <div class="d-nav-item"><svg width="18" height="18" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round"><path d="M2 9L10 2.5 18 9"/><path d="M4.5 7.5V17.5H8.5V13H11.5V17.5H15.5V7.5"/></svg><span class="d-tooltip">Command</span></div>
+    <div class="d-nav-item"><svg width="18" height="18" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"><rect x="2" y="2" width="6.5" height="6.5" rx="1"/><rect x="11.5" y="2" width="6.5" height="6.5" rx="1"/><rect x="2" y="11.5" width="6.5" height="6.5" rx="1"/><rect x="11.5" y="11.5" width="6.5" height="6.5" rx="1"/></svg><span class="d-tooltip">Projects</span></div>
+    <div class="d-nav-item active"><svg width="18" height="18" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"><rect x="2.5" y="2.5" width="15" height="15" rx="1"/><line x1="2.5" y1="7" x2="17.5" y2="7"/><line x1="7" y1="7" x2="7" y2="17.5"/><line x1="10" y1="10" x2="15" y2="10"/><line x1="10" y1="13" x2="15" y2="13"/><line x1="10" y1="16" x2="13" y2="16"/></svg><span class="d-tooltip">Blueprint</span></div>
+    <div class="d-nav-item"><svg width="18" height="18" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round"><circle cx="10" cy="10" r="7.5"/><path d="M10 6.5v7M8 8.5c0-1.1.9-2 2-2s2 .9 2 2-.9 1.5-2 1.5-2 .4-2 1.5.9 2 2 2 2-.9 2-2"/></svg><span class="d-tooltip">Budget</span></div>
+    <div class="d-nav-item"><svg width="18" height="18" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round"><path d="M10 2.5L17.5 7v6L10 17.5 2.5 13V7z"/><polyline points="2.5,7 10,11.5 17.5,7"/><line x1="10" y1="11.5" x2="10" y2="17.5"/></svg><span class="d-tooltip">Materials</span></div>
+    <div class="d-nav-item"><svg width="18" height="18" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"><rect x="2.5" y="4" width="15" height="13.5" rx="1"/><line x1="2.5" y1="8.5" x2="17.5" y2="8.5"/><line x1="6.5" y1="2" x2="6.5" y2="6"/><line x1="13.5" y1="2" x2="13.5" y2="6"/><circle cx="6.5" cy="12.5" r="0.9" fill="currentColor" stroke="none"/><circle cx="10" cy="12.5" r="0.9" fill="currentColor" stroke="none"/><circle cx="13.5" cy="12.5" r="0.9" fill="currentColor" stroke="none"/><circle cx="6.5" cy="15.5" r="0.9" fill="currentColor" stroke="none"/><circle cx="10" cy="15.5" r="0.9" fill="currentColor" stroke="none"/></svg><span class="d-tooltip">Calendar</span></div>
+    <div class="d-nav-item"><svg width="18" height="18" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round"><circle cx="10" cy="10" r="7.5"/><circle cx="10" cy="10" r="2.5"/><line x1="10" y1="2.5" x2="10" y2="7.5"/><line x1="10" y1="12.5" x2="10" y2="17.5"/><line x1="2.5" y1="10" x2="7.5" y2="10"/><line x1="12.5" y1="10" x2="17.5" y2="10"/></svg><span class="d-tooltip">House Memory</span></div>
+    <div class="d-sidebar-bot">
+      <div class="d-nav-item"><svg width="18" height="18" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"><circle cx="10" cy="10" r="2.5"/><path d="M10 2v1.5M10 16.5V18M2 10h1.5M16.5 10H18M4.4 4.4l1.1 1.1M14.5 14.5l1.1 1.1M4.4 15.6l1.1-1.1M14.5 5.5l1.1-1.1"/></svg><span class="d-tooltip">Settings</span></div>
+      <div class="d-avatar">L+M</div>
+    </div>
+  </div>
+  <div class="d-main">
+    <div class="d-topbar">
+      <div>
+        <span class="bc-back">← Projects</span>
+        <span class="bc-sep">/</span>
+        <span class="bc-curr">New Project</span>
+      </div>
+      <div style="font-size:12px;color:var(--muted);cursor:pointer;letter-spacing:0.04em" onclick="cancelFlow()">✕ Cancel</div>
+    </div>
+    <div class="d-wizard">
+      <div class="d-wizard-sidebar">
+        <div>
+          <div style="font-family:'Cinzel',serif;font-size:10px;letter-spacing:0.2em;text-transform:uppercase;color:var(--gold);margin-bottom:14px">Project Setup</div>
+          <div class="d-step-list" id="d-step-list"></div>
+        </div>
+        <div class="tip-card" id="d-tip-card"></div>
+        <div id="d-summary-card" style="display:none">
+          <div style="font-family:'Cinzel',serif;font-size:10px;letter-spacing:0.18em;text-transform:uppercase;color:var(--gold);margin-bottom:10px">Your Project</div>
+          <div id="d-summary-content"></div>
+        </div>
+      </div>
+      <div class="d-wizard-content" id="d-step-content"></div>
+    </div>
+  </div>
+</div>
+
+</div><!-- /page -->
+
+<script>
+var state = {
+  step: 1,
+  totalSteps: 5,
+  data: {
+    projectName: '',
+    room: '',
+    scope: [],
+    description: '',
+    budget: 300,
+    timeline: '',
+    startDate: '',
+    condition: '',
+    photos: [],
+    generatedPlan: null
+  }
+};
+
+var STEPS = [
+  { num:1, label:'Room & Scope',  sub:'What are we working on?',  icon:'<svg width="16" height="16" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round"><path d="M2 10L10 3l8 7"/><rect x="4" y="10" width="12" height="8" rx="0.5"/><rect x="8" y="13" width="4" height="5"/></svg>' },
+  { num:2, label:'Details',       sub:'Tell us more',              icon:'📝' },
+  { num:3, label:'Budget & Time', sub:'Set your parameters',       icon:'<svg width="16" height="16" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"><circle cx="10" cy="10" r="7.5"/><path d="M10 5.5v9M8 7.5c0-1 .9-2 2-2s2 .9 2 2-.9 1.5-2 1.5-2 .4-2 1.5.9 2 2 2 2-.9 2-2"/></svg>' },
+  { num:4, label:'Generate Plan', sub:'AI builds your blueprint',  icon:'<svg width="16" height="16" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round"><path d="M10 2.5l2 4.5 5 .5-3.5 3.5 1 5L10 14l-4.5 2.5 1-5L3 8l5-.5z"/></svg>'  },
+  { num:5, label:'Review & Save', sub:'Confirm and launch',        icon:'🚀' }
+];
+
+var ROOMS = [
+  { id:'kitchen',  icon:'<svg width="20" height="20" viewBox="0 0 22 22" fill="none" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="12" width="16" height="7" rx="1"/><line x1="3" y1="15.5" x2="19" y2="15.5"/><circle cx="7.5" cy="9" r="2"/><circle cx="14.5" cy="9" r="2"/><line x1="7.5" y1="3" x2="7.5" y2="7"/><line x1="14.5" y1="3" x2="14.5" y2="7"/></svg>', label:'Kitchen'    },
+  { id:'bathroom', icon:'<svg width="20" height="20" viewBox="0 0 22 22" fill="none" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12H3V9a3 3 0 016 0"/><rect x="3" y="12" width="16" height="5" rx="1"/><line x1="8" y1="17" x2="8" y2="20"/><line x1="14" y1="17" x2="14" y2="20"/><line x1="3" y1="14.5" x2="19" y2="14.5"/></svg>', label:'Bathroom'   },
+  { id:'living',   icon:'<svg width="20" height="20" viewBox="0 0 22 22" fill="none" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="10" width="18" height="8" rx="1.5"/><path d="M2 13h18"/><rect x="5" y="13" width="5" height="5" rx="0.5"/><rect x="12" y="13" width="5" height="5" rx="0.5"/><path d="M5 10V8a2 2 0 014 0v2"/><path d="M13 10V8a2 2 0 014 0v2"/></svg>', label:'Living Room' },
+  { id:'bedroom',  icon:'<svg width="20" height="20" viewBox="0 0 22 22" fill="none" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="11" width="18" height="7" rx="1"/><path d="M2 14h18"/><rect x="4" y="5" width="5" height="6" rx="1"/><rect x="13" y="5" width="5" height="6" rx="1"/><line x1="4" y1="19" x2="4" y2="21"/><line x1="18" y1="19" x2="18" y2="21"/></svg>', label:'Bedroom'    },
+  { id:'exterior', icon:'<svg width="20" height="20" viewBox="0 0 22 22" fill="none" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"><circle cx="11" cy="7" r="3"/><line x1="11" y1="2" x2="11" y2="3.5"/><line x1="16.5" y1="4" x2="15.4" y2="5.1"/><line x1="5.5" y1="4" x2="6.6" y2="5.1"/><line x1="18.5" y1="7" x2="17" y2="7"/><line x1="4" y1="7" x2="5.5" y2="7"/><line x1="4" y1="13" x2="4" y2="20"/><line x1="8.5" y1="13" x2="8.5" y2="20"/><line x1="13.5" y1="13" x2="13.5" y2="20"/><line x1="18" y1="13" x2="18" y2="20"/><line x1="4" y1="16" x2="18" y2="16"/></svg>', label:'Exterior'   },
+  { id:'garage',   icon:'<svg width="20" height="20" viewBox="0 0 22 22" fill="none" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="8" width="18" height="12" rx="1"/><path d="M2 8L11 2l9 6"/><line x1="2" y1="12" x2="20" y2="12"/><line x1="2" y1="15" x2="20" y2="15"/><line x1="8" y1="20" x2="8" y2="12"/><line x1="14" y1="20" x2="14" y2="12"/></svg>', label:'Garage'     },
+  { id:'laundry',  icon:'<svg width="20" height="20" viewBox="0 0 22 22" fill="none" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"><rect x="2" y="2" width="18" height="19" rx="1.5"/><circle cx="11" cy="13" r="4.5"/><circle cx="11" cy="13" r="2"/><line x1="5" y1="5.5" x2="7" y2="5.5"/><circle cx="9.5" cy="5.5" r="0.8" fill="currentColor" stroke="none"/></svg>', label:'Laundry'    },
+  { id:'basement', icon:'<svg width="20" height="20" viewBox="0 0 22 22" fill="none" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="10" width="18" height="10" rx="1"/><path d="M2 10L11 3l9 7"/><line x1="6" y1="20" x2="6" y2="14"/><line x1="11" y1="20" x2="11" y2="14"/><line x1="16" y1="20" x2="16" y2="14"/><line x1="2" y1="10" x2="20" y2="10"/></svg>', label:'Basement'   },
+  { id:'anywhere', icon:'<svg width="20" height="20" viewBox="0 0 22 22" fill="none" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8.5"/><path d="M11 2.5v17M2.5 11h17"/><path d="M4.5 5.5C7 8 7 14 4.5 16.5M17.5 5.5C15 8 15 14 17.5 16.5"/></svg>', label:'Any Room'   }
+];
+
+var SCOPES = [
+  { id:'touchup',    label:'Touch-up & Caulk' },
+  { id:'painting',   label:'Painting'          },
+  { id:'hardware',   label:'Hardware Swap'      },
+  { id:'fixtures',   label:'Fixtures'           },
+  { id:'flooring',   label:'Flooring'           },
+  { id:'tile',       label:'Tile Work'          },
+  { id:'trim',       label:'Trim & Molding'     },
+  { id:'drywall',    label:'Drywall / Patch'    },
+  { id:'cabinetry',  label:'Cabinetry'          },
+  { id:'plumbing',   label:'Plumbing'           },
+  { id:'electrical', label:'Electrical'         },
+  { id:'demo',       label:'Demo & Removal'     },
+  { id:'windows',    label:'Windows/Doors'      },
+  { id:'appliances', label:'Appliances'         }
+];
+
+var TIMELINES = [
+  { id:'hours',   icon:'<svg width="16" height="16" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"><circle cx="10" cy="10" r="7.5"/><line x1="10" y1="5" x2="10" y2="10"/><line x1="10" y1="10" x2="13.5" y2="11.5"/><circle cx="10" cy="10" r="1" fill="currentColor" stroke="none"/></svg>', title:'Few Hours',           sub:'Under a day, quick fix or refresh', badge:'Quick',  badgeCls:'tb-easy' },
+  { id:'weekend', icon:'<svg width="16" height="16" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round"><path d="M4 8h12l1.5 9H2.5z"/><path d="M7 8V5.5a3 3 0 016 0V8"/><line x1="10" y1="12" x2="10" y2="15"/></svg>', title:'Weekend Project',     sub:'1-3 days, full DIY',                badge:'Easy',   badgeCls:'tb-easy' },
+  { id:'month',   icon:'<svg width="16" height="16" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"><rect x="2.5" y="4" width="15" height="13" rx="1"/><line x1="2.5" y1="8" x2="17.5" y2="8"/><line x1="6.5" y1="2" x2="6.5" y2="6"/><line x1="13.5" y1="2" x2="13.5" y2="6"/><line x1="6" y1="12" x2="8" y2="14"/><line x1="8" y1="12" x2="14" y2="12"/></svg>', title:'Multi-Week Project',  sub:'2-6 weeks, may need help',          badge:'Medium', badgeCls:'tb-med'  },
+  { id:'season',  icon:'<svg width="16" height="16" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round"><path d="M2 10L10 2.5 18 10"/><rect x="5" y="10" width="10" height="7.5" rx="0.5"/><rect x="8" y="13" width="4" height="4.5"/><line x1="8" y1="6.5" x2="12" y2="6.5"/></svg>', title:'Full Renovation',     sub:'1-3 months, significant work',      badge:'Major',  badgeCls:'tb-hard' }
+];
+
+var CONDITIONS = [
+  'Original / Untouched',
+  'Previously remodeled',
+  'Partially demoed',
+  'Needs structural work',
+  'Good bones, cosmetic only'
+];
+
+var TIPS = [
+  'Works for a $30 caulk job or a full kitchen reno. Describe what you want done and the AI tailors the plan.',
+  'Upload before photos — AI can analyze the current state and plan accordingly.',
+  'Be honest with your budget. Foundation AI will flag if scope exceeds it.',
+  'Foundation AI is analyzing your inputs and building a sequenced task plan.',
+  'Review each task carefully. You can edit or remove any step before launching.'
+];
+
+// ==================== RENDER ====================
+function render() {
+  renderMobile();
+  renderDesktop();
+}
+
+function renderMobile() {
+  renderMStepIndicator();
+  renderMStepTitle();
+  renderStepContent('m');
+  renderMNav();
+}
+
+function renderDesktop() {
+  renderDStepList();
+  renderStepContent('d');
+  renderDTip();
+  renderDSummary();
+}
+
+function renderMStepIndicator() {
+  var el = document.getElementById('m-step-indicator');
+  var html = '<div style="display:flex;align-items:center;gap:0">';
+  STEPS.forEach(function(s, i) {
+    var status = s.num < state.step ? 'done' : s.num === state.step ? 'active' : 'pending';
+    var label = status === 'done' ? '&#10003;' : String(s.num);
+    html += '<div style="display:flex;flex-direction:column;align-items:center;gap:3px">';
+    html += '<div class="step-dot ' + status + '">' + label + '</div>';
+    html += '</div>';
+    if (i < STEPS.length - 1) {
+      html += '<div class="step-line' + (s.num < state.step ? ' done' : '') + '"></div>';
+    }
+  });
+  html += '</div>';
+  html += '<div style="display:flex;justify-content:space-between;margin-top:5px">';
+  STEPS.forEach(function(s) {
+    var cls = s.num < state.step ? 'done' : s.num === state.step ? 'active' : '';
+    html += '<div class="step-label ' + cls + '" style="flex:1;text-align:center">' + s.label + '</div>';
+  });
+  html += '</div>';
+  el.innerHTML = html;
+}
+
+function renderMStepTitle() {
+  var el = document.getElementById('m-step-title');
+  var step = STEPS[state.step - 1];
+  el.innerHTML = '<div style="animation:fadeUp 0.3s ease both">'
+    + '<div style="font-family:\'Cinzel\',serif;font-size:18px;font-weight:600;color:var(--white);margin-bottom:4px">' + step.label + '</div>'
+    + '<div style="font-size:12px;color:var(--muted);letter-spacing:0.03em">' + step.sub + '</div>'
+    + '</div>';
+}
+
+function renderDStepList() {
+  var el = document.getElementById('d-step-list');
+  if (!el) return;
+  var html = '';
+  STEPS.forEach(function(s) {
+    var status = s.num < state.step ? 'done' : s.num === state.step ? 'active' : 'pending';
+    var isActive = status === 'active';
+    var numLabel = status === 'done' ? '&#10003;' : String(s.num);
+    html += '<div class="d-step-item' + (isActive ? ' active' : '') + '" onclick="jumpToStep(' + s.num + ')">';
+    html += '<div class="dsi-num ' + status + '">' + numLabel + '</div>';
+    html += '<div><div class="dsi-label">' + s.icon + ' ' + s.label + '</div>';
+    html += '<div class="dsi-sub">' + s.sub + '</div></div>';
+    html += '</div>';
+  });
+  el.innerHTML = html;
+}
+
+function renderDTip() {
+  var el = document.getElementById('d-tip-card');
+  if (!el) return;
+  el.innerHTML = '<strong>Tip</strong><br>' + TIPS[state.step - 1];
+}
+
+function renderDSummary() {
+  var sc = document.getElementById('d-summary-card');
+  var cont = document.getElementById('d-summary-content');
+  if (!sc || !cont) return;
+  if (state.step < 3) { sc.style.display = 'none'; return; }
+  sc.style.display = 'block';
+  var html = '<div style="display:flex;flex-direction:column;gap:8px;font-size:12px">';
+  if (state.data.room) html += '<div style="display:flex;justify-content:space-between"><span style="color:var(--muted)">Room</span><span style="font-weight:500;text-transform:capitalize">' + state.data.room + '</span></div>';
+  if (state.data.projectName) html += '<div style="display:flex;justify-content:space-between"><span style="color:var(--muted)">Name</span><span style="font-weight:500">' + state.data.projectName + '</span></div>';
+  if (state.data.budget) html += '<div style="display:flex;justify-content:space-between"><span style="color:var(--muted)">Budget</span><span style="font-weight:500;color:var(--gold)">' + fmtBudget(state.data.budget) + '</span></div>';
+  if (state.data.timeline) html += '<div style="display:flex;justify-content:space-between"><span style="color:var(--muted)">Timeline</span><span style="font-weight:500;text-transform:capitalize">' + state.data.timeline + '</span></div>';
+  if (state.data.scope.length) html += '<div style="display:flex;justify-content:space-between;align-items:flex-start"><span style="color:var(--muted)">Scope</span><span style="font-weight:500;text-align:right;max-width:140px">' + state.data.scope.slice(0,3).join(', ') + (state.data.scope.length > 3 ? '...' : '') + '</span></div>';
+  html += '</div>';
+  cont.innerHTML = html;
+}
+
+function renderMNav() {
+  var el = document.getElementById('m-step-nav');
+  if (!el) return;
+  if (state.step === 4) { el.innerHTML = ''; return; }
+  if (state.step === 5) {
+    el.innerHTML = '<button class="btn-primary" onclick="saveProject()">Launch Project</button>';
+    return;
+  }
+  var backLabel = state.step === 1 ? 'Cancel' : 'Back';
+  var backAction = state.step === 1 ? 'cancelFlow()' : 'prevStep()';
+  var nextLabel = state.step === 3 ? 'Generate Blueprint' : 'Continue';
+  el.innerHTML = '<button class="btn-secondary" style="flex:1" onclick="' + backAction + '">' + backLabel + '</button>'
+    + '<button class="btn-primary" style="flex:2" onclick="nextStep()">' + nextLabel + '</button>';
+}
+
+// ==================== STEP CONTENT ====================
+function renderStepContent(view) {
+  var el = document.getElementById(view + '-step-content');
+  if (!el) return;
+  var html = '';
+  if (state.step === 1) html = buildStep1(view);
+  else if (state.step === 2) html = buildStep2(view);
+  else if (state.step === 3) html = buildStep3(view);
+  else if (state.step === 4) html = buildStep4(view);
+  else if (state.step === 5) html = buildStep5(view);
+  el.innerHTML = html;
+  el.style.animation = 'none';
+  requestAnimationFrame(function() { el.style.animation = 'fadeUp 0.35s ease both'; });
+  attachEvents(view);
+}
+
+function buildStep1(view) {
+  var html = '<div style="display:flex;flex-direction:column;gap:18px">';
+  if (view === 'd') {
+    html += '<div><div style="font-family:\'Cinzel\',serif;font-size:22px;font-weight:600;color:var(--white);margin-bottom:6px">Room &amp; Scope</div>';
+    html += '<div style="font-size:13px;color:var(--muted)">Pick the room and what work is involved</div></div>';
+  }
+  html += '<div class="form-field">';
+  html += '<label class="form-label">Project Name</label>';
+  html += '<input class="form-input" id="' + view + '-proj-name" placeholder="e.g. Master Bath Renovation" value="' + escHtml(state.data.projectName) + '">';
+  html += '</div>';
+  html += '<div class="form-field"><label class="form-label">Select Room</label>';
+  html += '<div class="room-grid">';
+  ROOMS.forEach(function(r) {
+    var sel = state.data.room === r.id ? ' selected' : '';
+    html += '<div class="room-card' + sel + '" onclick="selectRoom(\'' + r.id + '\')">';
+    html += '<div class="rc-icon">' + r.icon + '</div>';
+    html += '<div class="rc-label">' + r.label + '</div></div>';
+  });
+  html += '</div></div>';
+  html += '<div class="form-field" style="margin-bottom:0"><label class="form-label">Scope of Work</label>';
+  html += '<div class="chip-grid">';
+  SCOPES.forEach(function(s) {
+    var sel = state.data.scope.indexOf(s.id) > -1 ? ' selected' : '';
+    html += '<div class="chip' + sel + '" onclick="toggleScope(\'' + s.id + '\')">' + s.label + '</div>';
+  });
+  html += '</div></div>';
+  html += '</div>';
+  if (view === 'd') html += buildDNav();
+  return html;
+}
+
+function buildStep2(view) {
+  var html = '<div style="display:flex;flex-direction:column;gap:18px">';
+  if (view === 'd') {
+    html += '<div><div style="font-family:\'Cinzel\',serif;font-size:22px;font-weight:600;color:var(--white);margin-bottom:6px">Project Details</div>';
+    html += '<div style="font-size:13px;color:var(--muted)">Describe what you want done</div></div>';
+  }
+  html += '<div class="form-field"><label class="form-label">Describe the project</label>';
+  html += '<textarea class="form-textarea" id="' + view + '-description" rows="5" placeholder="e.g. Full gut reno of the master bath. Walk-in shower, double vanity, heated floors...">' + escHtml(state.data.description) + '</textarea></div>';
+  html += '<div class="form-field"><label class="form-label">Current condition</label>';
+  html += '<div class="chip-grid">';
+  CONDITIONS.forEach(function(c) {
+    var sel = state.data.condition === c ? ' selected' : '';
+    html += '<div class="chip' + sel + '" onclick="selectCondition(' + JSON.stringify(c) + ')">' + c + '</div>';
+  });
+  html += '</div></div>';
+  html += '<div class="form-field" style="margin-bottom:0"><label class="form-label">Upload photos <span style="color:var(--muted);font-size:9px">(current state)</span></label>';
+  html += '<div class="photo-zone" onclick="simulateUpload()">';
+  html += '<div class="photo-zone-icon">📷</div>';
+  html += '<div class="photo-zone-title">Tap to upload photos</div>';
+  html += '<div class="photo-zone-sub">AI will analyze the current state of the room</div></div>';
+  html += '<div class="photo-previews" id="' + view + '-photo-previews">';
+  state.data.photos.forEach(function(p, i) {
+    html += '<div class="photo-preview">' + p + '<div class="photo-remove" onclick="removePhoto(' + i + ')">x</div></div>';
+  });
+  html += '</div></div>';
+  html += '</div>';
+  if (view === 'd') html += buildDNav();
+  return html;
+}
+
+function buildStep3(view) {
+  var pct = Math.round(((state.data.budget - 50) / (25000 - 50)) * 100);
+  var perItem = state.data.budget > 0 ? Math.round(state.data.budget / Math.max(state.data.scope.length, 1)) : 0;
+  var html = '<div style="display:flex;flex-direction:column;gap:18px">';
+  if (view === 'd') {
+    html += '<div><div style="font-family:\'Cinzel\',serif;font-size:22px;font-weight:600;color:var(--white);margin-bottom:6px">Budget &amp; Timeline</div>';
+    html += '<div style="font-size:13px;color:var(--muted)">Set your constraints</div></div>';
+  }
+  html += '<div class="form-field"><label class="form-label">Total Budget</label>';
+  html += '<div class="budget-slider-wrap">';
+  html += '<input type="range" class="budget-slider" id="' + view + '-budget-slider"';
+  html += ' min="50" max="25000" step="25" value="' + state.data.budget + '"';
+  html += ' style="--pct:' + pct + '%" oninput="updateBudget(this.value)">';
+  html += '</div>';
+  html += '<div class="budget-display">';
+  html += '<div><div class="budget-val" id="' + view + '-budget-display">' + fmtBudget(state.data.budget) + '</div>';
+  html += '<div class="budget-range">$50 &rarr; $25k</div></div>';
+  html += '<div style="text-align:right"><div style="font-size:10px;color:var(--muted);margin-bottom:3px">Per scope item</div>';
+  html += '<div style="font-size:13px;color:var(--soft);font-weight:500">~' + fmtBudget(perItem) + ' per task</div></div>';
+  html += '</div></div>';
+  html += '<div class="form-field" style="margin-bottom:0"><label class="form-label">Timeline</label>';
+  html += '<div class="timeline-opts">';
+  TIMELINES.forEach(function(t) {
+    var sel = state.data.timeline === t.id ? ' selected' : '';
+    html += '<div class="timeline-opt' + sel + '" onclick="selectTimeline(\'' + t.id + '\')">';
+    html += '<div class="to-icon">' + t.icon + '</div>';
+    html += '<div style="flex:1"><div class="to-title">' + t.title + '</div>';
+    html += '<div class="to-sub">' + t.sub + '</div></div>';
+    html += '<div class="to-badge ' + t.badgeCls + '">' + t.badge + '</div></div>';
+  });
+  html += '</div></div>';
+  html += '<div class="form-field" style="margin-bottom:0"><label class="form-label">Target Start Date</label>';
+  html += '<input type="date" class="form-input" id="' + view + '-start-date" value="' + state.data.startDate + '" onchange="state.data.startDate=this.value"></div>';
+  html += '</div>';
+  if (view === 'd') html += buildDNav();
+  return html;
+}
+
+function buildStep4(view) {
+  return '<div class="ai-gen-screen" id="' + view + '-gen-screen">'
+    + '<div class="ai-orb-lg" id="' + view + '-ai-orb"></div>'
+    + '<div><div class="gen-title">Foundation AI</div>'
+    + '<div style="font-size:12px;color:var(--muted);margin-top:4px;letter-spacing:0.04em">Building your blueprint...</div></div>'
+    + '<div class="gen-status" id="' + view + '-gen-status">Initializing...</div>'
+    + '<div class="gen-progress"><div class="gen-fill" id="' + view + '-gen-fill" style="width:0%"></div></div>'
+    + '<div class="gen-steps">'
+    + '<div class="gen-step" id="' + view + '-gs-1"><div class="gen-step-icon">o</div>Analyzing room &amp; scope</div>'
+    + '<div class="gen-step" id="' + view + '-gs-2"><div class="gen-step-icon">o</div>Researching task sequences</div>'
+    + '<div class="gen-step" id="' + view + '-gs-3"><div class="gen-step-icon">o</div>Estimating durations &amp; costs</div>'
+    + '<div class="gen-step" id="' + view + '-gs-4"><div class="gen-step-icon">o</div>Checking dependencies</div>'
+    + '<div class="gen-step" id="' + view + '-gs-5"><div class="gen-step-icon">o</div>Generating materials list</div>'
+    + '<div class="gen-step" id="' + view + '-gs-6"><div class="gen-step-icon">o</div>Finalizing blueprint</div>'
+    + '</div></div>';
+}
+
+function buildStep5(view) {
+  var plan = state.data.generatedPlan;
+  if (!plan) return '<div style="padding:20px;color:var(--muted)">Loading...</div>';
+  var totalTasks = 0, totalCost = 0, totalDays = 0;
+  plan.phases.forEach(function(p) {
+    totalTasks += p.tasks.length;
+    totalDays += (p.days || 0);
+    p.tasks.forEach(function(t) { totalCost += (t.cost || 0); });
+  });
+  var phaseColors = { demo:'var(--red-br)', frame:'#d4903a', finish:'var(--green-br)', inspect:'#7aaac8', plumbing:'#7aaac8', electrical:'#c8b47a', misc:'var(--soft)' };
+  var html = '<div style="display:flex;flex-direction:column;gap:16px">';
+  if (view === 'd') {
+    html += '<div><div style="font-family:\'Cinzel\',serif;font-size:22px;font-weight:600;color:var(--white);margin-bottom:6px">Your Blueprint</div>';
+    html += '<div style="font-size:13px;color:var(--muted)">Review, edit, then launch your project</div></div>';
+  }
+  html += '<div class="summary-bar">';
+  html += '<div class="sb-item"><div class="sb-val">' + totalTasks + '</div><div class="sb-lbl">Tasks</div></div>';
+  html += '<div class="sb-item"><div class="sb-val">' + fmtBudget(totalCost) + '</div><div class="sb-lbl">Est. Cost</div></div>';
+  html += '<div class="sb-item"><div class="sb-val">' + totalDays + 'd</div><div class="sb-lbl">Duration</div></div>';
+  html += '<div class="sb-item"><div class="sb-val">' + plan.phases.length + '</div><div class="sb-lbl">Phases</div></div>';
+  html += '</div>';
+  html += '<div style="background:var(--gold-dim);border:1px solid var(--border-warm);border-radius:var(--r-sm);padding:12px 14px;font-size:12px;color:var(--soft);line-height:1.55">';
+  html += '<span style="color:var(--gold);font-weight:500">Foundation AI: </span>' + escHtml(plan.aiNote);
+  html += '</div>';
+  plan.phases.forEach(function(phase, pi) {
+    var col = phaseColors[phase.id] || 'var(--soft)';
+    html += '<div class="result-phase" style="animation:fadeUp 0.3s ' + (pi * 0.08) + 's ease both">';
+    html += '<div class="result-phase-header" onclick="togglePhase(this)">';
+    html += '<div class="rph-dot" style="background:' + col + '"></div>';
+    html += '<div class="rph-name" style="color:' + col + '">' + escHtml(phase.name) + '</div>';
+    html += '<div class="rph-count">' + phase.tasks.length + ' tasks</div>';
+    html += '<div class="rph-dur" style="margin-left:8px">~' + (phase.days||0) + 'd</div>';
+    html += '<div class="rph-toggle">&#9660;</div></div>';
+    html += '<div class="result-tasks">';
+    phase.tasks.forEach(function(t, ti) {
+      html += '<div class="result-task" style="border-left-color:' + col + ';animation-delay:' + ((pi*0.08)+(ti*0.04)) + 's">';
+      html += '<div class="rt-num">' + (ti+1) + '</div>';
+      html += '<div class="rt-body"><div class="rt-name">' + escHtml(t.name) + '</div>';
+      html += '<div class="rt-meta">';
+      html += '<span class="rt-dur">' + escHtml(t.dur||'') + '</span>';
+      if (t.cost) html += '<span class="rt-cost">~' + fmtBudget(t.cost) + '</span>';
+      html += '<span class="rt-who">' + escHtml(t.who||'') + '</span>';
+      html += '</div>';
+      if (t.tip) html += '<div class="rt-tip">' + escHtml(t.tip) + '</div>';
+      html += '</div><div class="rt-edit">✏️</div></div>';
+    });
+    html += '</div></div>';
+  });
+  html += '<div style="display:flex;flex-direction:column;gap:8px;margin-top:4px">';
+  html += '<button class="btn-primary" onclick="saveProject()">🚀 Launch Project</button>';
+  html += '<button class="btn-secondary" onclick="goToStep(4)">Regenerate Blueprint</button>';
+  html += '</div></div>';
+  return html;
+}
+
+// ==================== RESOURCE HELPERS ====================
+function getSkillInfo(who, taskName) {
+  var name = (taskName || '').toLowerCase();
+  var isContractor = who === 'Contractor';
+  var label, cls, warnings;
+  if (isContractor) { label = 'Pro Required'; cls = 'skill-adv'; }
+  else if (name.indexOf('plumb') > -1 || name.indexOf('electric') > -1 || name.indexOf('struct') > -1) { label = 'Advanced'; cls = 'skill-adv'; }
+  else if (name.indexOf('tile') > -1 || name.indexOf('drywall') > -1 || name.indexOf('cabinet') > -1 || name.indexOf('vanity') > -1) { label = 'Intermediate'; cls = 'skill-med'; }
+  else { label = 'Beginner Friendly'; cls = 'skill-beg'; }
+  warnings = [];
+  if (name.indexOf('electric') > -1) warnings.push('Turn off breaker first');
+  if (name.indexOf('plumb') > -1 || name.indexOf('drain') > -1 || name.indexOf('sink') > -1) warnings.push('Shut off water supply');
+  if (name.indexOf('demo') > -1 || name.indexOf('remove') > -1) warnings.push('Wear eye protection');
+  if (name.indexOf('tile') > -1 && name.indexOf('cut') > -1) warnings.push('Wet saw required');
+  if (name.indexOf('grout') > -1 || name.indexOf('seal') > -1) warnings.push('Ventilate the area');
+  return { label: label, cls: cls, warnings: warnings };
+}
+
+function getTools(taskName, phaseId) {
+  var name = (taskName || '').toLowerCase();
+  var tools = [];
+  // Universal
+  tools.push({ name: 'Tape measure', req: false });
+  tools.push({ name: 'Pencil / marker', req: false });
+  // Demo
+  if (phaseId === 'demo' || name.indexOf('demo') > -1 || name.indexOf('remove') > -1) {
+    tools = [{ name: 'Pry bar', req: true }, { name: 'Hammer', req: true }, { name: 'Safety glasses', req: true }, { name: 'Gloves', req: true }, { name: 'Dumpster / bags', req: false }, { name: 'Utility knife', req: false }];
+  }
+  // Drywall / backer
+  if (name.indexOf('drywall') > -1 || name.indexOf('backer') > -1 || name.indexOf('board') > -1) {
+    tools = [{ name: 'Drywall screws', req: true }, { name: 'Screw gun', req: true }, { name: 'Jab saw', req: true }, { name: 'T-square', req: false }, { name: 'Joint compound', req: false }, { name: 'Corner bead', req: false }];
+  }
+  // Tile
+  if (name.indexOf('tile') > -1 || name.indexOf('backsplash') > -1) {
+    tools = [{ name: 'Wet tile saw', req: true }, { name: 'Notched trowel', req: true }, { name: 'Tile spacers', req: true }, { name: 'Level', req: true }, { name: 'Thinset mortar', req: true }, { name: 'Grout float', req: false }, { name: 'Tile nippers', req: false }];
+  }
+  // Grout / seal
+  if (name.indexOf('grout') > -1 || name.indexOf('seal') > -1) {
+    tools = [{ name: 'Grout float', req: true }, { name: 'Grout', req: true }, { name: 'Grout sealer', req: true }, { name: 'Sponge', req: false }, { name: 'Bucket', req: false }];
+  }
+  // Plumbing
+  if (name.indexOf('plumb') > -1 || name.indexOf('drain') > -1 || name.indexOf('sink') > -1 || name.indexOf('fixture') > -1) {
+    tools = [{ name: 'Pipe wrench', req: true }, { name: 'PEX cutter', req: false }, { name: 'Teflon tape', req: true }, { name: 'Adjustable wrench', req: true }, { name: 'Plumber putty', req: false }, { name: 'Bucket', req: false }];
+  }
+  // Cabinets / vanity
+  if (name.indexOf('cabinet') > -1 || name.indexOf('vanity') > -1 || name.indexOf('install') > -1) {
+    tools = [{ name: 'Level', req: true }, { name: 'Stud finder', req: true }, { name: 'Drill', req: true }, { name: 'Lag screws', req: true }, { name: 'Shims', req: false }, { name: 'Clamps', req: false }];
+  }
+  // Waterproof
+  if (name.indexOf('waterproof') > -1) {
+    tools = [{ name: 'RedGard / Kerdi', req: true }, { name: 'Paint roller', req: true }, { name: 'Paintbrush', req: true }, { name: 'Seam tape', req: true }, { name: 'Gloves', req: false }];
+  }
+  return tools;
+}
+
+function getYTQueries(taskName, phaseId) {
+  var name = (taskName || '').toLowerCase();
+  var queries = [];
+  queries.push({ label: 'How to ' + taskName + ' (beginner guide)', query: 'how to ' + taskName + ' DIY beginner' });
+  if (phaseId === 'demo' || name.indexOf('demo') > -1)        queries.push({ label: 'Bathroom demo tips and tricks', query: 'bathroom demo tile removal tips' });
+  if (name.indexOf('tile') > -1)                               queries.push({ label: 'Tile installation mistakes to avoid', query: 'tile installation common mistakes DIY' });
+  if (name.indexOf('grout') > -1)                              queries.push({ label: 'Pro grouting technique', query: 'how to grout tile like a pro' });
+  if (name.indexOf('waterproof') > -1)                         queries.push({ label: 'RedGard shower waterproofing', query: 'RedGard shower waterproofing application' });
+  if (name.indexOf('cabinet') > -1 || name.indexOf('vanity') > -1) queries.push({ label: 'Cabinet installation level & plumb', query: 'how to install bathroom vanity level' });
+  if (name.indexOf('plumb') > -1 || name.indexOf('drain') > -1)    queries.push({ label: 'Rough-in plumbing explained', query: 'bathroom rough in plumbing explained' });
+  if (name.indexOf('drywall') > -1 || name.indexOf('backer') > -1) queries.push({ label: 'Cement board installation', query: 'cement board backer board installation shower' });
+  return queries.slice(0, 3);
+}
+
+// ==================== TASK TOGGLE ====================
+var loadedHowTo = {};
+
+function toggleTask(taskId, taskName, phaseName) {
+  var res = document.getElementById(taskId + '-res');
+  var chev = document.getElementById(taskId + '-chev');
+  if (!res) return;
+  var isOpen = res.classList.contains('visible');
+  if (isOpen) {
+    res.classList.remove('visible');
+    res.style.display = 'none';
+    if (chev) chev.classList.remove('open');
+  } else {
+    res.style.display = 'block';
+    res.classList.add('visible');
+    if (chev) chev.classList.add('open');
+    if (!loadedHowTo[taskId]) {
+      loadHowTo(taskId, taskName, phaseName);
+    }
+  }
+}
+
+function loadHowTo(taskId, taskName, phaseName) {
+  var el = document.getElementById(taskId + '-howto');
+  if (!el) return;
+  el.innerHTML = '<div class="howto-loading"><div class="hdot"></div><div class="hdot"></div><div class="hdot"></div><span style="margin-left:6px;color:var(--muted);font-size:11px">Generating guide...</span></div>';
+  fetch('https://api.anthropic.com/v1/messages', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      model: 'claude-sonnet-4-20250514',
+      max_tokens: 1000,
+      system: 'You are a practical DIY home improvement guide for all project sizes. Respond ONLY with valid JSON — no markdown, no backticks. Format: {"steps":[{"num":1,"text":"instruction here"}]} with 3-6 clear steps. For simple tasks keep it to 3 steps. For complex tasks use up to 6. Each step under 30 words. Be specific and actionable.',
+      messages: [{ role: 'user', content: 'Give me a step-by-step DIY guide for: ' + taskName + ' (part of ' + phaseName + ' phase in a home renovation)' }]
+    })
+  })
+  .then(function(r) { return r.json(); })
+  .then(function(data) {
+    var text = (data.content && data.content[0] && data.content[0].text) ? data.content[0].text : '';
+    var clean = text.replace(/```json|```/g, '').trim();
+    var parsed = JSON.parse(clean);
+    var html = '';
+    parsed.steps.forEach(function(s) {
+      html += '<div class="howto-step">';
+      html += '<div class="howto-num">' + s.num + '</div>';
+      html += '<div class="howto-text">' + escHtml(s.text) + '</div>';
+      html += '</div>';
+    });
+    el.innerHTML = html;
+    loadedHowTo[taskId] = true;
+  })
+  .catch(function() {
+    el.innerHTML = getFallbackHowTo(taskName);
+    loadedHowTo[taskId] = true;
+  });
+}
+
+function getFallbackHowTo(taskName) {
+  var name = (taskName || '').toLowerCase();
+  var steps = [];
+  if (name.indexOf('tile') > -1) {
+    steps = ['Plan your layout and dry-fit tiles before applying any adhesive.','Mix thinset to peanut butter consistency — never too wet or too dry.','Back-butter each tile and press firmly, twisting slightly to set the bond.','Use spacers to maintain even grout joints throughout.','Check level every 3-4 tiles and adjust before thinset cures.','Allow 24 hours before grouting — do not walk on tiles.'];
+  } else if (name.indexOf('demo') > -1 || name.indexOf('remove') > -1) {
+    steps = ['Shut off all utilities (water, electricity) serving the work area.','Score along edges with a utility knife to avoid tearing adjacent surfaces.','Work from top to bottom — remove upper elements before lower ones.','Use a pry bar carefully to avoid damaging the subfloor or studs.','Sort debris as you go: trash, recyclable metal, reusable items.','Photograph everything before and after for your permit and records.'];
+  } else if (name.indexOf('grout') > -1) {
+    steps = ['Wait 24 hrs after tile is set before grouting.','Mix grout per instructions — never add extra water.','Press grout diagonally across tile surface with a float.','Remove excess grout with a damp sponge in circular motions.','Polish haze off with a dry cloth after 30 minutes.','Seal grout after 72 hours to protect from moisture.'];
+  } else {
+    steps = ['Read all product instructions before starting — follow them exactly.','Gather all tools and materials before you begin.','Measure twice, cut once — double-check every measurement.','Work methodically from one end to the other, do not skip steps.','Test fit before permanently attaching anything.','Clean up as you go to keep the work area safe.'];
+  }
+  var html = '';
+  steps.forEach(function(s, i) {
+    html += '<div class="howto-step"><div class="howto-num">' + (i+1) + '</div><div class="howto-text">' + escHtml(s) + '</div></div>';
+  });
+  return html;
+}
+
+function buildDNav() {
+  if (state.step === 4) return '';
+  if (state.step === 5) {
+    return '<div style="display:flex;gap:10px;margin-top:24px">'
+      + '<button class="btn-secondary" style="flex:1" onclick="goToStep(4)">Regenerate</button>'
+      + '<button class="btn-primary" style="flex:2" onclick="saveProject()">🚀 Launch Project</button></div>';
+  }
+  var backLabel = state.step === 1 ? 'Cancel' : 'Back';
+  var backAction = state.step === 1 ? 'cancelFlow()' : 'prevStep()';
+  var nextLabel = state.step === 3 ? 'Generate Blueprint' : 'Continue';
+  return '<div style="display:flex;gap:10px;margin-top:24px">'
+    + '<button class="btn-secondary" style="flex:1" onclick="' + backAction + '">' + backLabel + '</button>'
+    + '<button class="btn-primary" style="flex:2" onclick="nextStep()">' + nextLabel + '</button></div>';
+}
+
+// ==================== EVENTS ====================
+function attachEvents(view) {
+  var nameEl = document.getElementById(view + '-proj-name');
+  if (nameEl) nameEl.addEventListener('input', function(e) { state.data.projectName = e.target.value; });
+  var descEl = document.getElementById(view + '-description');
+  if (descEl) descEl.addEventListener('input', function(e) { state.data.description = e.target.value; });
+}
+
+function selectRoom(id) {
+  state.data.room = id;
+  document.querySelectorAll('.room-card').forEach(function(el) {
+    var oc = el.getAttribute('onclick') || '';
+    el.classList.toggle('selected', oc.indexOf("'" + id + "'") > -1);
+  });
+  renderDSummary();
+}
+
+function toggleScope(id) {
+  var idx = state.data.scope.indexOf(id);
+  if (idx > -1) state.data.scope.splice(idx, 1);
+  else state.data.scope.push(id);
+  document.querySelectorAll('.chip').forEach(function(el) {
+    var oc = el.getAttribute('onclick') || '';
+    if (oc.indexOf("'" + id + "'") > -1) el.classList.toggle('selected', state.data.scope.indexOf(id) > -1);
+  });
+  renderDSummary();
+}
+
+function selectCondition(val) {
+  state.data.condition = val;
+  document.querySelectorAll('.chip').forEach(function(el) {
+    if (el.textContent.trim() === val) el.classList.add('selected');
+    else if (CONDITIONS.indexOf(el.textContent.trim()) > -1) el.classList.remove('selected');
+  });
+}
+
+function updateBudget(val) {
+  state.data.budget = parseInt(val);
+  var pct = Math.round(((val - 50) / (25000 - 50)) * 100);
+  ['m', 'd'].forEach(function(v) {
+    var s = document.getElementById(v + '-budget-slider');
+    var d = document.getElementById(v + '-budget-display');
+    if (s) { s.value = val; s.style.setProperty('--pct', pct + '%'); }
+    if (d) d.textContent = fmtBudget(parseInt(val));
+  });
+  renderDSummary();
+}
+
+function selectTimeline(id) {
+  state.data.timeline = id;
+  document.querySelectorAll('.timeline-opt').forEach(function(el) {
+    var oc = el.getAttribute('onclick') || '';
+    el.classList.toggle('selected', oc.indexOf("'" + id + "'") > -1);
+  });
+  renderDSummary();
+}
+
+function simulateUpload() {
+  var emojis = ['<svg width="16" height="16" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round"><path d="M4 8h12l1.5 9H2.5z"/><path d="M7 8V5.5a3 3 0 016 0V8"/><line x1="10" y1="12" x2="10" y2="15"/></svg>','<svg width="18" height="18" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"><rect x="2.5" y="2.5" width="15" height="15" rx="1"/><line x1="2.5" y1="7" x2="17.5" y2="7"/><line x1="7" y1="7" x2="7" y2="17.5"/><line x1="10" y1="10" x2="15" y2="10"/><line x1="10" y1="13" x2="15" y2="13"/><line x1="10" y1="16" x2="13" y2="16"/></svg>','<svg width="18" height="18" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"><circle cx="10" cy="10" r="2.5"/><path d="M10 2v1.5M10 16.5V18M2 10h1.5M16.5 10H18M4.4 4.4l1.1 1.1M14.5 14.5l1.1 1.1M4.4 15.6l1.1-1.1M14.5 5.5l1.1-1.1"/></svg>','<svg width="18" height="18" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round"><path d="M10 2.5L17.5 7v6L10 17.5 2.5 13V7z"/><polyline points="2.5,7 10,11.5 17.5,7"/><line x1="10" y1="11.5" x2="10" y2="17.5"/></svg>','<svg width="18" height="18" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round"><path d="M2 9L10 2.5 18 9"/><path d="M4.5 7.5V17.5H8.5V13H11.5V17.5H15.5V7.5"/></svg>'];
+  state.data.photos.push(emojis[Math.floor(Math.random() * emojis.length)]);
+  refreshPhotos();
+}
+
+function removePhoto(i) {
+  state.data.photos.splice(i, 1);
+  refreshPhotos();
+}
+
+function refreshPhotos() {
+  ['m','d'].forEach(function(v) {
+    var el = document.getElementById(v + '-photo-previews');
+    if (!el) return;
+    var html = '';
+    state.data.photos.forEach(function(p, i) {
+      html += '<div class="photo-preview">' + p + '<div class="photo-remove" onclick="removePhoto(' + i + ')">x</div></div>';
+    });
+    el.innerHTML = html;
+  });
+}
+
+function togglePhase(header) {
+  var tasks = header.nextElementSibling;
+  var arrow = header.querySelector('.rph-toggle');
+  var isOpen = tasks.style.display !== 'none';
+  tasks.style.display = isOpen ? 'none' : 'flex';
+  if (arrow) arrow.style.transform = isOpen ? 'rotate(-90deg)' : '';
+}
+
+// ==================== NAVIGATION ====================
+function nextStep() { if (state.step < state.totalSteps) { state.step++; render(); if (state.step === 4) startGeneration(); } }
+function prevStep() { if (state.step > 1) { state.step--; render(); } }
+function goToStep(n) { state.step = n; render(); if (n === 4) startGeneration(); }
+function jumpToStep(n) { if (n <= state.step || n === state.step + 1) goToStep(n); }
+function cancelFlow() { if (confirm('Cancel new project? Inputs will be lost.')) showToast('Project cancelled'); }
+
+// ==================== AI GENERATION ====================
+function startGeneration() {
+  render();
+  var genSteps = [
+    { id:1, label:'Analyzing room & scope',       pct:15  },
+    { id:2, label:'Researching task sequences',   pct:30  },
+    { id:3, label:'Estimating durations & costs', pct:50  },
+    { id:4, label:'Checking dependencies',        pct:68  },
+    { id:5, label:'Generating materials list',    pct:85  },
+    { id:6, label:'Finalizing blueprint',         pct:100 }
+  ];
+  var i = 0;
+  function runStep() {
+    if (i >= genSteps.length) {
+      ['m','d'].forEach(function(v) {
+        var s = document.getElementById(v + '-gen-status');
+        if (s) s.textContent = 'Calling Foundation AI...';
+      });
+      callClaudeAPI().then(function(plan) {
+        state.data.generatedPlan = plan;
+        state.step = 5;
+        render();
+      }).catch(function() {
+        state.data.generatedPlan = getFallbackPlan();
+        state.step = 5;
+        render();
+      });
+      return;
+    }
+    var gs = genSteps[i];
+    ['m','d'].forEach(function(v) {
+      var statusEl = document.getElementById(v + '-gen-status');
+      var fillEl   = document.getElementById(v + '-gen-fill');
+      if (statusEl) statusEl.textContent = gs.label + '...';
+      if (fillEl)   fillEl.style.width   = gs.pct + '%';
+      for (var j = 1; j <= 6; j++) {
+        var stepEl = document.getElementById(v + '-gs-' + j);
+        if (!stepEl) continue;
+        stepEl.classList.remove('done','active');
+        if (j < gs.id) stepEl.classList.add('done');
+        if (j === gs.id) stepEl.classList.add('active');
+        var icon = stepEl.querySelector('.gen-step-icon');
+        if (icon) {
+          if (j < gs.id) icon.textContent = '✓';
+          else if (j === gs.id) icon.textContent = '◌';
+          else icon.textContent = 'o';
+        }
+      }
+    });
+    i++;
+    setTimeout(runStep, 600 + Math.random() * 400);
+  }
+  setTimeout(runStep, 300);
+}
+
+function callClaudeAPI() {
+  var prompt = 'Generate a home renovation blueprint.\n'
+    + 'Project: ' + (state.data.projectName || state.data.room + ' renovation') + '\n'
+    + 'Room: ' + state.data.room + '\n'
+    + 'Scope: ' + (state.data.scope.length > 0 ? state.data.scope.join(', ') : 'general improvement') + '\n'
+    + 'Description: ' + (state.data.description || 'Standard renovation') + '\n'
+    + 'Budget: $' + state.data.budget + '\n'
+    + 'Timeline: ' + state.data.timeline + '\n'
+    + 'Condition: ' + (state.data.condition || 'Unknown') + '\n'
+    + 'Photos uploaded: ' + state.data.photos.length + '\n\n'
+    + 'Create a realistic sequenced task list in logical phases.';
+
+  return fetch('https://api.anthropic.com/v1/messages', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      model: 'claude-sonnet-4-20250514',
+      max_tokens: 1000,
+      system: 'You are Foundation AI, a home improvement planning assistant for projects of ANY size — from a $20 caulk job to a full kitchen remodel. Respond ONLY with valid JSON, no markdown, no backticks. Structure: {"aiNote":"string","phases":[{"id":"string","name":"string","days":1,"tasks":[{"name":"string","dur":"30m","cost":15,"who":"DIY","tip":"optional string"}]}]}. Rules: scale phases and tasks to the actual project size — a touch-up job may have 1 phase and 2 tasks, a remodel may have 5 phases and 15 tasks. Use realistic USD costs. For small budgets under $500, keep all costs proportionally small. who = DIY, Contractor, or Either. Duration can be 15m, 30m, 1h, 2h, 4h, 1d, 2d etc.',
+      messages: [{ role: 'user', content: prompt }]
+    })
+  }).then(function(r) {
+    if (!r.ok) throw new Error('API error');
+    return r.json();
+  }).then(function(data) {
+    var text = (data.content && data.content[0] && data.content[0].text) ? data.content[0].text : '';
+    var clean = text.replace(/```json|```/g, '').trim();
+    return JSON.parse(clean);
+  });
+}
+
+function getFallbackPlan() {
+  var room = state.data.room || 'bathroom';
+  return {
+    aiNote: 'Here is your ' + room + ' plan for $' + state.data.budget + '. Work through tasks in order — each one sets up the next.',
+    phases: [
+      { id:'demo', name:'Demolition', days:2, tasks:[
+        { name:'Remove existing fixtures and fittings', dur:'3h', cost:0,   who:'DIY',        tip:'Shut off water and power before starting.' },
+        { name:'Demo tile and drywall',                 dur:'4h', cost:150, who:'DIY',        tip:'Rent a dumpster for debris or bag and haul yourself.' },
+        { name:'Haul debris and clean subfloor',        dur:'2h', cost:150, who:'DIY' }
+      ]},
+      { id:'frame', name:'Rough-In', days:4, tasks:[
+        { name:'Plumbing rough-in and drain relocation', dur:'1d', cost:800, who:'Contractor', tip:'Get at least 3 quotes. Drain relocation adds cost.' },
+        { name:'Electrical rough-in with GFCI outlets',  dur:'4h', cost:400, who:'Contractor' },
+        { name:'Install cement board backer',            dur:'3h', cost:180, who:'Either' }
+      ]},
+      { id:'finish', name:'Finishing', days:7, tasks:[
+        { name:'Waterproof shower area',         dur:'4h', cost:120,  who:'DIY',   tip:'RedGard or Schluter Kerdi, do not skip this step.' },
+        { name:'Set floor tile',                 dur:'1d', cost:600,  who:'Either' },
+        { name:'Set wall tile and shower surround', dur:'2d', cost:900, who:'Either' },
+        { name:'Grout and seal all tile',        dur:'4h', cost:80,   who:'DIY' },
+        { name:'Install vanity, fixtures, mirror', dur:'4h', cost:1200, who:'Either' }
+      ]},
+      { id:'inspect', name:'Inspection & Punchlist', days:2, tasks:[
+        { name:'Plumbing inspection sign-off',       dur:'1h', cost:150, who:'Contractor', tip:'Schedule at least 1 week ahead with your municipality.' },
+        { name:'Final walkthrough and touch-ups',    dur:'2h', cost:0,   who:'DIY' }
+      ]}
+    ]
+  };
+}
+
+// ==================== SAVE ====================
+function saveProject() {
+  showToast('Project launched! Opening Blueprint...');
+  setTimeout(function() { showToast('Kitchen Remodel added to your projects'); }, 2000);
+}
+
+// ==================== VIEW TOGGLE ====================
+function setView(mode) {
+  document.body.className = 'mode-' + mode;
+  document.getElementById('btn-mobile').classList.toggle('active', mode === 'mobile');
+  document.getElementById('btn-desktop').classList.toggle('active', mode === 'desktop');
+  render();
+}
+
+// ==================== UTILS ====================
+function fmtBudget(n) {
+  if (!n || n === 0) return '$0';
+  if (n < 1000) return '$' + n;
+  if (n < 10000) return '$' + (n / 1000).toFixed(1).replace(/\.0$/, '') + 'k';
+  return '$' + Math.round(n / 1000) + 'k';
+}
+
+function escHtml(str) {
+  if (!str) return '';
+  return String(str).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+
+function showToast(msg) {
+  var t = document.getElementById('toast');
+  if (!t) {
+    t = document.createElement('div');
+    t.id = 'toast';
+    t.style.cssText = 'position:fixed;bottom:100px;left:50%;transform:translateX(-50%);background:var(--raised);border:1px solid var(--border-warm);color:var(--white);font-size:12px;padding:10px 18px;border-radius:10px;z-index:99999;white-space:nowrap;opacity:0;transition:opacity 0.3s;box-shadow:0 8px 24px rgba(0,0,0,0.4);font-family:\'DM Sans\',sans-serif;';
+    document.body.appendChild(t);
+  }
+  t.innerHTML = msg;
+  t.style.opacity = '1';
+  setTimeout(function() { t.style.opacity = '0'; }, 3500);
+}
+
+window.addEventListener('load', render);
+</script>
+</body>
+</html>

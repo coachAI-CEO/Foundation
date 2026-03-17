@@ -1,0 +1,850 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<title>Foundation - Materials</title>
+<link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;500;600;700&family=DM+Sans:opsz,wght@9..40,300;9..40,400;9..40,500;9..40,600&display=swap" rel="stylesheet">
+<style>
+:root {
+  --void:#0b0b0c; --base:#111113; --card:#161618; --raised:#1c1c1f; --lift:#242428;
+  --border:rgba(255,255,255,0.055); --border-warm:rgba(210,185,130,0.22);
+  --gold:#d4b978; --gold-br:#ecd49a; --gold-dim:rgba(212,185,120,0.08);
+  --white:#ede9e3; --muted:#5c5850; --soft:#8a8478;
+  --green:#4e7a5e; --green-br:#72b08a; --green-dim:rgba(78,122,94,0.12);
+  --red-br:#cc8888; --red-dim:rgba(204,136,136,0.1);
+  --amber:#d4903a; --amber-dim:rgba(212,144,58,0.12);
+  --blue-br:#7aaac8; --blue-dim:rgba(122,170,200,0.1);
+  --orange:#c87941; --orange-dim:rgba(200,121,65,0.12);
+  --r:16px; --r-sm:10px;
+}
+*{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent;}
+html{font-size:16px;}
+body{background:#080809;color:var(--white);font-family:'DM Sans',sans-serif;overflow-x:hidden;}
+
+.atmo{position:fixed;inset:0;pointer-events:none;z-index:0;
+  background:
+    radial-gradient(ellipse 55% 35% at 50% -5%,rgba(212,185,120,0.045) 0%,transparent 60%),
+    radial-gradient(ellipse 30% 45% at 90% 65%,rgba(78,122,94,0.025) 0%,transparent 55%);}
+
+/* VIEW TOGGLE */
+.view-toggle{position:fixed;top:14px;left:50%;transform:translateX(-50%);z-index:9999;display:flex;align-items:center;background:rgba(11,11,12,0.92);border:1px solid var(--border-warm);border-radius:12px;padding:4px;backdrop-filter:blur(20px);box-shadow:0 8px 32px rgba(0,0,0,0.5);}
+.vbtn{display:flex;align-items:center;gap:6px;padding:7px 16px;border-radius:8px;font-family:'DM Sans',sans-serif;font-size:12px;font-weight:500;letter-spacing:0.05em;cursor:pointer;border:none;background:transparent;color:var(--muted);transition:all 0.2s;}
+.vbtn.active{background:var(--gold);color:#0b0b0c;font-weight:600;}
+.vdiv{width:1px;height:18px;background:var(--border);margin:0 2px;}
+
+/* MOBILE SHELL */
+body.mode-mobile{display:flex;justify-content:center;padding-top:60px;padding-bottom:40px;min-height:100vh;}
+body.mode-mobile .desktop-shell{display:none;}
+.mobile-shell{width:390px;border-radius:44px;overflow:hidden;box-shadow:0 0 0 10px #0d0d0f,0 0 0 12px #1e1e22,0 0 0 13px #0d0d0f,0 40px 100px rgba(0,0,0,0.9);background:var(--void);min-height:844px;flex-shrink:0;display:flex;flex-direction:column;}
+.mobile-shell::before{content:'';position:absolute;top:0;left:50%;transform:translateX(-50%);width:126px;height:34px;background:#0d0d0f;border-radius:0 0 22px 22px;z-index:99;pointer-events:none;}
+body.mode-desktop .mobile-shell{display:none;}
+
+/* DESKTOP */
+body.mode-desktop{display:block;min-height:100vh;}
+.desktop-shell{display:grid;grid-template-columns:64px 1fr;min-height:calc(100vh - 52px);margin-top:52px;}
+
+/* SHARED */
+.btn-primary{display:flex;align-items:center;justify-content:center;gap:7px;padding:10px 18px;border-radius:var(--r-sm);background:var(--gold);color:#0b0b0c;font-family:'DM Sans',sans-serif;font-size:13px;font-weight:600;border:none;cursor:pointer;transition:all 0.2s;white-space:nowrap;}
+.btn-primary:hover{background:var(--gold-br);}
+.btn-primary:active{transform:scale(0.97);}
+.btn-ghost{display:flex;align-items:center;gap:6px;padding:8px 13px;border-radius:8px;background:transparent;border:1px solid var(--border);color:var(--soft);font-family:'DM Sans',sans-serif;font-size:12px;font-weight:500;cursor:pointer;transition:all 0.18s;white-space:nowrap;}
+.btn-ghost:hover{border-color:var(--border-warm);color:var(--white);}
+
+/* SIDEBAR */
+.d-sidebar{background:var(--base);border-right:1px solid var(--border);display:flex;flex-direction:column;align-items:center;padding:20px 0;gap:4px;position:sticky;top:52px;height:calc(100vh - 52px);}
+.d-nav-item{width:40px;height:40px;border-radius:10px;display:flex;align-items:center;justify-content:center;cursor:pointer;transition:all 0.2s;color:var(--muted);position:relative;}
+.d-nav-item:hover{color:var(--white);background:var(--raised);}
+.d-nav-item.active{color:var(--gold);background:var(--gold-dim);}
+.d-nav-item.active::before{content:'';position:absolute;left:-1px;width:2px;height:18px;background:var(--gold);border-radius:0 2px 2px 0;}
+.d-tooltip{position:absolute;left:50px;background:var(--raised);border:1px solid var(--border);color:var(--white);font-size:10px;letter-spacing:0.08em;text-transform:uppercase;padding:5px 10px;border-radius:6px;white-space:nowrap;opacity:0;pointer-events:none;transition:opacity 0.15s;z-index:100;}
+.d-nav-item:hover .d-tooltip{opacity:1;}
+.d-sidebar-bot{margin-top:auto;display:flex;flex-direction:column;align-items:center;gap:8px;}
+.d-avatar{width:30px;height:30px;border-radius:50%;background:var(--gold-dim);border:1px solid var(--gold);display:flex;align-items:center;justify-content:center;font-size:9px;color:var(--gold);font-weight:700;cursor:pointer;}
+
+/* DESKTOP MAIN */
+.d-main{display:flex;flex-direction:column;}
+.d-topbar{padding:22px 32px 18px;display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid var(--border);background:var(--void);}
+.d-page-title{font-family:'Cinzel',serif;font-size:22px;font-weight:700;letter-spacing:0.1em;}
+.d-page-sub{font-size:11px;color:var(--muted);margin-top:2px;}
+.d-topbar-right{display:flex;align-items:center;gap:10px;}
+.d-layout{display:grid;grid-template-columns:1fr 300px;min-height:calc(100vh - 130px);}
+.d-list-col{border-right:1px solid var(--border);overflow-y:auto;max-height:calc(100vh - 130px);}
+.d-side-col{overflow-y:auto;max-height:calc(100vh - 130px);}
+
+/* MOBILE HEADER */
+.m-header{padding:44px 20px 0;flex-shrink:0;position:relative;}
+.m-page-title{font-family:'Cinzel',serif;font-size:20px;font-weight:700;letter-spacing:0.1em;}
+.m-page-sub{font-size:11px;color:var(--muted);margin-bottom:14px;}
+.m-scroll{flex:1;overflow-y:auto;padding:0 20px;scrollbar-width:thin;}
+.m-scroll
+
+/* MOBILE BOTTOM NAV */
+.m-bottom-nav{display:flex;align-items:center;justify-content:space-around;padding:8px 0 28px;border-top:1px solid var(--border);background:var(--void);flex-shrink:0;}
+.m-nav-item{display:flex;flex-direction:column;align-items:center;gap:3px;padding:6px 12px;cursor:pointer;}
+.m-nav-icon{display:flex;align-items:center;justify-content:center;color:var(--muted);}
+.m-nav-label{font-size:8px;text-transform:uppercase;letter-spacing:0.08em;color:var(--muted);}
+.m-nav-item.active .m-nav-label,.m-nav-item.active .m-nav-icon{color:var(--gold);}
+.m-fab{width:50px;height:50px;border-radius:50%;background:var(--gold);display:flex;align-items:center;justify-content:center;color:#0b0b0c;box-shadow:0 4px 20px rgba(212,185,120,0.35);cursor:pointer;border:none;}
+
+/* SEARCH */
+.search-bar{display:flex;align-items:center;gap:8px;background:var(--raised);border:1px solid var(--border);border-radius:var(--r-sm);padding:10px 14px;margin-bottom:12px;transition:border-color 0.2s;}
+.search-bar:focus-within{border-color:var(--border-warm);}
+.search-bar input{flex:1;background:transparent;border:none;outline:none;font-family:'DM Sans',sans-serif;font-size:13px;color:var(--white);}
+.search-bar input::placeholder{color:var(--muted);}
+
+/* FILTER TABS */
+.filter-row{display:flex;align-items:center;gap:8px;margin-bottom:16px;overflow-x:auto;scrollbar-width:none;}
+.filter-row
+.ftab{padding:6px 13px;border-radius:20px;font-size:11px;font-weight:500;cursor:pointer;border:1px solid var(--border);background:transparent;color:var(--muted);white-space:nowrap;transition:all 0.18s;font-family:'DM Sans',sans-serif;}
+.ftab:hover{border-color:var(--border-warm);color:var(--white);}
+.ftab.active{background:var(--gold-dim);border-color:var(--border-warm);color:var(--gold);}
+
+/* STATS BAR */
+.stats-bar{display:grid;grid-template-columns:repeat(4,1fr);background:var(--card);border:1px solid var(--border);border-radius:var(--r);overflow:hidden;margin-bottom:20px;}
+.stat-cell{padding:12px 14px;border-right:1px solid var(--border);text-align:center;}
+.stat-cell:last-child{border-right:none;}
+.stat-val{font-family:'Cinzel',serif;font-size:16px;font-weight:700;color:var(--white);}
+.stat-lbl{font-size:9px;text-transform:uppercase;letter-spacing:0.1em;color:var(--muted);margin-top:2px;}
+
+/* SOURCE BADGES */
+.src-badge{display:inline-flex;align-items:center;gap:5px;padding:3px 9px;border-radius:6px;font-size:10px;font-weight:600;letter-spacing:0.04em;}
+.src-amazon{background:rgba(255,153,0,0.12);color:#ff9900;border:1px solid rgba(255,153,0,0.2);}
+.src-hd{background:var(--orange-dim);color:var(--orange);border:1px solid rgba(200,121,65,0.2);}
+.src-lowes{background:var(--blue-dim);color:var(--blue-br);border:1px solid rgba(122,170,200,0.2);}
+.src-local{background:var(--green-dim);color:var(--green-br);border:1px solid rgba(78,122,94,0.2);}
+.src-online{background:var(--gold-dim);color:var(--gold);border:1px solid var(--border-warm);}
+.src-other{background:var(--raised);color:var(--soft);border:1px solid var(--border);}
+
+/* PRIORITY DOT */
+.pri-dot{width:8px;height:8px;border-radius:50%;flex-shrink:0;}
+.pri-urgent{background:var(--red-br);}
+.pri-needed{background:var(--amber);}
+.pri-planned{background:var(--blue-br);}
+.pri-optional{background:var(--muted);}
+
+/* SECTION HEADER */
+.section-hdr{display:flex;align-items:center;justify-content:space-between;padding:14px 20px 8px;border-bottom:1px solid var(--border);position:sticky;top:0;background:var(--void);z-index:10;}
+.section-title{font-family:'Cinzel',serif;font-size:10px;font-weight:600;letter-spacing:0.15em;text-transform:uppercase;color:var(--soft);display:flex;align-items:center;gap:8px;}
+.section-count{font-size:10px;color:var(--muted);}
+
+/* MATERIAL ITEM */
+.material-item{display:flex;align-items:flex-start;gap:12px;padding:13px 20px;border-bottom:1px solid var(--border);transition:background 0.15s;position:relative;cursor:default;}
+.material-item:hover{background:rgba(255,255,255,0.018);}
+.material-item.checked{opacity:0.45;}
+.material-item.checked .mi-name{text-decoration:line-through;color:var(--muted);}
+
+/* CHECKBOX */
+.mi-check{width:20px;height:20px;border-radius:6px;border:1px solid var(--border);display:flex;align-items:center;justify-content:center;cursor:pointer;transition:all 0.18s;flex-shrink:0;margin-top:1px;}
+.mi-check:hover{border-color:var(--gold);}
+.mi-check.done{background:var(--green-dim);border-color:rgba(78,122,94,0.4);}
+.mi-check.done svg{display:block;}
+.mi-check svg{display:none;}
+
+.mi-body{flex:1;min-width:0;}
+.mi-row1{display:flex;align-items:flex-start;justify-content:space-between;gap:8px;margin-bottom:5px;}
+.mi-name{font-size:13px;font-weight:500;color:var(--white);line-height:1.3;}
+.mi-price{font-family:'Cinzel',serif;font-size:13px;font-weight:600;color:var(--white);white-space:nowrap;flex-shrink:0;}
+.mi-price.est{color:var(--muted);}
+.mi-row2{display:flex;align-items:center;gap:7px;flex-wrap:wrap;}
+.mi-qty{font-size:11px;color:var(--muted);}
+.mi-project{font-size:10px;color:var(--muted);}
+.mi-actions{display:flex;gap:6px;margin-top:7px;}
+.mi-action-btn{display:flex;align-items:center;gap:4px;padding:4px 9px;border-radius:20px;font-size:10px;font-weight:500;border:1px solid var(--border);color:var(--muted);cursor:pointer;transition:all 0.15s;background:transparent;font-family:'DM Sans',sans-serif;text-decoration:none;}
+.mi-action-btn:hover{border-color:var(--border-warm);color:var(--white);}
+.mi-action-btn.buy{border-color:rgba(255,153,0,0.3);color:#ff9900;background:rgba(255,153,0,0.06);}
+.mi-action-btn.buy:hover{background:rgba(255,153,0,0.12);}
+.mi-del{position:absolute;right:14px;top:13px;width:24px;height:24px;border-radius:6px;display:flex;align-items:center;justify-content:center;color:var(--muted);cursor:pointer;opacity:0;transition:opacity 0.15s;background:transparent;border:none;}
+.material-item:hover .mi-del{opacity:1;}
+.mi-del:hover{color:var(--red-br);}
+
+/* NOTES INLINE */
+.mi-note{font-size:11px;color:var(--muted);font-style:italic;margin-top:4px;line-height:1.4;}
+
+/* QUICK ADD BAR */
+.quick-add-bar{display:flex;gap:8px;padding:12px 20px;border-bottom:1px solid var(--border);background:rgba(0,0,0,0.1);}
+.qa-input{flex:1;background:var(--raised);border:1px solid var(--border);border-radius:8px;padding:9px 13px;font-family:'DM Sans',sans-serif;font-size:13px;color:var(--white);outline:none;transition:border-color 0.18s;}
+.qa-input:focus{border-color:var(--border-warm);}
+.qa-input::placeholder{color:var(--muted);}
+.qa-input.small{width:80px;flex:none;}
+.qa-add{padding:9px 16px;border-radius:8px;background:var(--gold-dim);border:1px solid var(--border-warm);color:var(--gold);font-family:'DM Sans',sans-serif;font-size:12px;font-weight:600;cursor:pointer;transition:all 0.18s;white-space:nowrap;}
+.qa-add:hover{background:var(--gold);color:#0b0b0c;}
+
+/* SIDE PANEL */
+.side-section{padding:18px 20px;border-bottom:1px solid var(--border);}
+.side-title{font-family:'Cinzel',serif;font-size:10px;font-weight:600;letter-spacing:0.15em;text-transform:uppercase;color:var(--soft);margin-bottom:14px;}
+
+/* SPEND SUMMARY */
+.spend-row{display:flex;align-items:center;justify-content:space-between;padding:7px 0;border-bottom:1px solid var(--border);}
+.spend-row:last-child{border-bottom:none;}
+.spend-label{font-size:12px;color:var(--soft);}
+.spend-val{font-size:12px;font-weight:600;}
+
+/* SOURCE SUMMARY */
+.source-item{display:flex;align-items:center;gap:10px;padding:8px 0;border-bottom:1px solid var(--border);}
+.source-item:last-child{border-bottom:none;}
+.source-name{flex:1;font-size:12px;color:var(--white);}
+.source-count{font-size:11px;color:var(--muted);}
+.source-total{font-size:12px;font-weight:600;color:var(--white);}
+
+/* PROGRESS RING ON SIDE */
+.progress-summary{display:flex;align-items:center;gap:16px;padding:6px 0 14px;}
+.prog-ring-wrap{position:relative;width:64px;height:64px;flex-shrink:0;}
+.prog-ring-wrap svg{transform:rotate(-90deg);}
+.prog-ring-center{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;}
+.prog-ring-pct{font-family:'Cinzel',serif;font-size:14px;font-weight:700;color:var(--white);line-height:1;}
+.prog-ring-lbl{font-size:8px;color:var(--muted);text-transform:uppercase;letter-spacing:0.08em;}
+.prog-ring-stats{flex:1;}
+.prs-row{display:flex;align-items:center;justify-content:space-between;margin-bottom:5px;}
+.prs-label{font-size:11px;color:var(--muted);}
+.prs-val{font-size:12px;font-weight:600;color:var(--white);}
+
+/* MODAL */
+.modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,0.72);z-index:1000;display:flex;align-items:flex-end;justify-content:center;opacity:0;pointer-events:none;transition:opacity 0.25s;backdrop-filter:blur(4px);}
+.modal-overlay.open{opacity:1;pointer-events:all;}
+.modal-sheet{width:100%;max-width:520px;background:var(--base);border:1px solid var(--border);border-radius:20px 20px 0 0;padding:24px;transform:translateY(40px);transition:transform 0.3s cubic-bezier(0.2,0,0.1,1);}
+.modal-overlay.open .modal-sheet{transform:translateY(0);}
+.modal-handle{width:36px;height:3px;background:var(--border);border-radius:3px;margin:0 auto 20px;}
+.modal-title{font-family:'Cinzel',serif;font-size:16px;font-weight:600;letter-spacing:0.08em;margin-bottom:20px;}
+.mf-label{font-size:10px;font-weight:600;letter-spacing:0.1em;text-transform:uppercase;color:var(--muted);margin-bottom:5px;}
+.mf-input{width:100%;background:var(--card);border:1px solid var(--border);border-radius:var(--r-sm);padding:11px 14px;font-family:'DM Sans',sans-serif;font-size:14px;color:var(--white);outline:none;transition:border-color 0.18s;margin-bottom:12px;}
+.mf-input:focus{border-color:var(--border-warm);}
+.mf-input::placeholder{color:var(--muted);}
+select.mf-input{cursor:pointer;appearance:none;background-image:url("data:image/svg+xml,%3Csvg width='10' height='6' viewBox='0 0 10 6' fill='none' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M1 1l4 4 4-4' stroke='%235c5850' stroke-width='1.3' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 14px center;}
+select.mf-input option{background:var(--raised);}
+.mf-row{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:0;}
+.mf-row .mf-input{margin-bottom:0;}
+
+@keyframes fadeUp{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
+@keyframes checkPop{0%{transform:scale(0.6)}60%{transform:scale(1.15)}100%{transform:scale(1)}}
+
+/* ===== THEMED SCROLLBARS ===== */
+::-webkit-scrollbar { width: 4px; height: 4px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: rgba(212,185,120,0.18); border-radius: 4px; }
+::-webkit-scrollbar-thumb:hover { background: rgba(212,185,120,0.38); }
+::-webkit-scrollbar-corner { background: transparent; }
+* { scrollbar-width: thin; scrollbar-color: rgba(212,185,120,0.18) transparent; }
+</style>
+</head>
+<body class="mode-mobile">
+<div class="atmo"></div>
+
+<div class="view-toggle">
+  <button class="vbtn active" id="btn-mobile" onclick="setView('mobile')">
+    <svg width="11" height="11" viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"><rect x="3" y="1" width="8" height="12" rx="1.5"/><circle cx="7" cy="10.5" r="0.8" fill="currentColor" stroke="none"/></svg>
+    Mobile
+  </button>
+  <div class="vdiv"></div>
+  <button class="vbtn" id="btn-desktop" onclick="setView('desktop')">
+    <svg width="11" height="11" viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"><rect x="1" y="2" width="12" height="8" rx="1"/><line x1="4" y1="12" x2="10" y2="12"/><line x1="7" y1="10" x2="7" y2="12"/></svg>
+    Desktop
+  </button>
+</div>
+
+<!-- ==================== MOBILE ==================== -->
+<div class="mobile-shell" id="mobile-view">
+  <div class="m-header">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:4px;">
+      <div>
+        <div class="m-page-title">Shopping</div>
+        <div class="m-page-sub" id="m-sub">Loading...</div>
+      </div>
+      <button class="btn-primary" style="padding:9px 14px;font-size:12px" onclick="openModal()">
+        <svg width="11" height="11" viewBox="0 0 13 13" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"><line x1="6.5" y1="2" x2="6.5" y2="11"/><line x1="2" y1="6.5" x2="11" y2="6.5"/></svg>
+        Add Item
+      </button>
+    </div>
+    <div class="search-bar">
+      <svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="var(--muted)" stroke-width="1.3" stroke-linecap="round"><circle cx="6.5" cy="6.5" r="5"/><line x1="10" y1="10" x2="14" y2="14"/></svg>
+      <input type="text" placeholder="Search materials..." oninput="search(this.value)">
+    </div>
+    <div class="filter-row" id="m-filters"></div>
+    <!-- Mobile stats (compact) -->
+    <div class="stats-bar" id="m-stats" style="grid-template-columns:repeat(4,1fr);margin-bottom:14px;"></div>
+  </div>
+
+  <div class="m-scroll" id="m-list-wrap">
+    <div id="m-list" style="padding-bottom:20px"></div>
+  </div>
+
+  <div class="m-bottom-nav">
+    <div class="m-nav-item"><div class="m-nav-icon"><svg width="18" height="18" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round"><path d="M2 9L10 2.5 18 9"/><path d="M4.5 7.5V17.5H8.5V13H11.5V17.5H15.5V7.5"/></svg></div><div class="m-nav-label">Home</div></div>
+    <div class="m-nav-item"><div class="m-nav-icon"><svg width="18" height="18" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"><rect x="2" y="2" width="6.5" height="6.5" rx="1"/><rect x="11.5" y="2" width="6.5" height="6.5" rx="1"/><rect x="2" y="11.5" width="6.5" height="6.5" rx="1"/><rect x="11.5" y="11.5" width="6.5" height="6.5" rx="1"/></svg></div><div class="m-nav-label">Projects</div></div>
+    <div class="m-nav-item"><button class="m-fab" onclick="openModal()"><svg width="18" height="18" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><line x1="10" y1="3" x2="10" y2="17"/><line x1="3" y1="10" x2="17" y2="10"/></svg></button></div>
+    <div class="m-nav-item"><div class="m-nav-icon"><svg width="18" height="18" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round"><circle cx="10" cy="10" r="7.5"/><path d="M10 6.5v7M8 8.5c0-1.1.9-2 2-2s2 .9 2 2-.9 1.5-2 1.5-2 .4-2 1.5.9 2 2 2 2-.9 2-2"/></svg></div><div class="m-nav-label">Budget</div></div>
+    <div class="m-nav-item active"><div class="m-nav-icon"><svg width="18" height="18" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round"><path d="M10 2.5L17.5 7v6L10 17.5 2.5 13V7z"/><polyline points="2.5,7 10,11.5 17.5,7"/><line x1="10" y1="11.5" x2="10" y2="17.5"/></svg></div><div class="m-nav-label" style="color:var(--gold)">Shop</div></div>
+  </div>
+</div>
+
+<!-- ==================== DESKTOP ==================== -->
+<div class="desktop-shell" id="desktop-view">
+  <div class="d-sidebar">
+    <div style="margin-bottom:16px"><svg width="28" height="28" viewBox="0 0 34 34" fill="none"><circle cx="17" cy="17" r="15.5" stroke="#d4b978" stroke-width="0.7" opacity="0.55"/><path d="M17 3.5 L30.5 17 L17 30.5 L3.5 17 Z" stroke="#d4b978" stroke-width="0.7" fill="none"/><path d="M17 9.5 L24.5 17 L17 24.5 L9.5 17 Z" stroke="#d4b978" stroke-width="0.45" fill="rgba(212,185,120,0.06)"/><circle cx="17" cy="17" r="1.8" fill="#d4b978"/></svg></div>
+    <div class="d-nav-item"><svg width="18" height="18" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round"><path d="M2 9L10 2.5 18 9"/><path d="M4.5 7.5V17.5H8.5V13H11.5V17.5H15.5V7.5"/></svg><span class="d-tooltip">Command</span></div>
+    <div class="d-nav-item"><svg width="18" height="18" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"><rect x="2" y="2" width="6.5" height="6.5" rx="1"/><rect x="11.5" y="2" width="6.5" height="6.5" rx="1"/><rect x="2" y="11.5" width="6.5" height="6.5" rx="1"/><rect x="11.5" y="11.5" width="6.5" height="6.5" rx="1"/></svg><span class="d-tooltip">Projects</span></div>
+    <div class="d-nav-item"><svg width="18" height="18" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"><rect x="2.5" y="2.5" width="15" height="15" rx="1"/><line x1="2.5" y1="7" x2="17.5" y2="7"/><line x1="7" y1="7" x2="7" y2="17.5"/></svg><span class="d-tooltip">Blueprint</span></div>
+    <div class="d-nav-item"><svg width="18" height="18" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round"><circle cx="10" cy="10" r="7.5"/><path d="M10 6.5v7M8 8.5c0-1.1.9-2 2-2s2 .9 2 2-.9 1.5-2 1.5-2 .4-2 1.5.9 2 2 2 2-.9 2-2"/></svg><span class="d-tooltip">Budget</span></div>
+    <div class="d-nav-item active"><svg width="18" height="18" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round"><path d="M10 2.5L17.5 7v6L10 17.5 2.5 13V7z"/><polyline points="2.5,7 10,11.5 17.5,7"/><line x1="10" y1="11.5" x2="10" y2="17.5"/></svg><span class="d-tooltip">Materials</span></div>
+    <div class="d-nav-item"><svg width="18" height="18" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"><rect x="2.5" y="4" width="15" height="13.5" rx="1"/><line x1="2.5" y1="8.5" x2="17.5" y2="8.5"/><line x1="6.5" y1="2" x2="6.5" y2="6"/><line x1="13.5" y1="2" x2="13.5" y2="6"/></svg><span class="d-tooltip">Calendar</span></div>
+    <div class="d-nav-item"><svg width="18" height="18" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round"><path d="M10 2.5l2 4.5 5 .5-3.5 3.5 1 5L10 14l-4.5 2.5 1-5L3 8l5-.5z"/></svg><span class="d-tooltip">Brainstorm</span></div>
+    <div class="d-sidebar-bot">
+      <div class="d-nav-item"><svg width="18" height="18" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"><circle cx="10" cy="10" r="2.5"/><path d="M10 2v1.5M10 16.5V18M2 10h1.5M16.5 10H18M4.4 4.4l1.1 1.1M14.5 14.5l1.1 1.1M4.4 15.6l1.1-1.1M14.5 5.5l1.1-1.1"/></svg><span class="d-tooltip">Settings</span></div>
+      <div class="d-avatar">L+M</div>
+    </div>
+  </div>
+
+  <div class="d-main">
+    <div class="d-topbar">
+      <div>
+        <div class="d-page-title">Materials & Shopping</div>
+        <div class="d-page-sub" id="d-sub">Loading...</div>
+      </div>
+      <div class="d-topbar-right">
+        <div class="search-bar" style="margin-bottom:0;width:240px">
+          <svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="var(--muted)" stroke-width="1.3" stroke-linecap="round"><circle cx="6.5" cy="6.5" r="5"/><line x1="10" y1="10" x2="14" y2="14"/></svg>
+          <input type="text" placeholder="Search items..." oninput="search(this.value)">
+        </div>
+        <button class="btn-ghost" onclick="shareList()">
+          <svg width="13" height="13" viewBox="0 0 15 15" fill="none" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="3" r="1.5"/><circle cx="3" cy="7.5" r="1.5"/><circle cx="12" cy="12" r="1.5"/><line x1="10.6" y1="3.8" x2="4.4" y2="6.7"/><line x1="4.4" y1="8.3" x2="10.6" y2="11.2"/></svg>
+          Share List
+        </button>
+        <button class="btn-primary" onclick="openModal()">
+          <svg width="12" height="12" viewBox="0 0 13 13" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"><line x1="6.5" y1="2" x2="6.5" y2="11"/><line x1="2" y1="6.5" x2="11" y2="6.5"/></svg>
+          Add Item
+        </button>
+      </div>
+    </div>
+
+    <div class="d-layout">
+      <!-- LEFT: list -->
+      <div class="d-list-col">
+        <!-- Stats -->
+        <div style="padding:16px 20px 0">
+          <div class="stats-bar" id="d-stats"></div>
+          <div class="filter-row" id="d-filters"></div>
+        </div>
+        <!-- Quick add -->
+        <div class="quick-add-bar">
+          <input class="qa-input" id="qa-name" type="text" placeholder="Item name (e.g. Grout float, 2x4 studs)" onkeydown="qaKey(event)">
+          <input class="qa-input small" id="qa-price" type="number" placeholder="Est. $" min="0" step="0.01" onkeydown="qaKey(event)">
+          <select class="qa-input" id="qa-project" style="width:130px;flex:none;appearance:none">
+            <option value="kitchen">Kitchen</option>
+            <option value="fence">Fence</option>
+            <option value="hardware">Hardware</option>
+            <option value="garage">Garage</option>
+          </select>
+          <button class="qa-add" onclick="quickAdd()">Add</button>
+        </div>
+        <!-- List -->
+        <div id="d-list"></div>
+      </div>
+
+      <!-- RIGHT: side panel -->
+      <div class="d-side-col">
+        <div class="side-section">
+          <div class="side-title">List Progress</div>
+          <div class="progress-summary" id="d-progress-summary"></div>
+        </div>
+        <div class="side-section">
+          <div class="side-title">Est. Spend by Store</div>
+          <div id="d-source-summary"></div>
+        </div>
+        <div class="side-section">
+          <div class="side-title">Cost Summary</div>
+          <div id="d-spend-summary"></div>
+        </div>
+        <div class="side-section">
+          <div class="side-title">Run</div>
+          <div style="display:flex;flex-direction:column;gap:8px">
+            <button class="btn-ghost" style="width:100%;justify-content:center" onclick="openAmazon()">
+              <svg width="13" height="13" viewBox="0 0 15 15" fill="none" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round"><path d="M2 10v3a1 1 0 001 1h9a1 1 0 001-1v-3"/><line x1="7.5" y1="2" x2="7.5" y2="10"/><polyline points="4.5,7 7.5,10 10.5,7"/></svg>
+              Open Amazon items
+            </button>
+            <button class="btn-ghost" style="width:100%;justify-content:center" onclick="openHD()">
+              <svg width="13" height="13" viewBox="0 0 15 15" fill="none" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round"><path d="M2 10v3a1 1 0 001 1h9a1 1 0 001-1v-3"/><line x1="7.5" y1="2" x2="7.5" y2="10"/><polyline points="4.5,7 7.5,10 10.5,7"/></svg>
+              Open Home Depot items
+            </button>
+            <button class="btn-ghost" style="width:100%;justify-content:center" onclick="shareList()">
+              <svg width="13" height="13" viewBox="0 0 15 15" fill="none" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="3" r="1.5"/><circle cx="3" cy="7.5" r="1.5"/><circle cx="12" cy="12" r="1.5"/><line x1="10.6" y1="3.8" x2="4.4" y2="6.7"/><line x1="4.4" y1="8.3" x2="10.6" y2="11.2"/></svg>
+              Share full list
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ADD ITEM MODAL -->
+<div class="modal-overlay" id="modal" onclick="closeOutside(event)">
+  <div class="modal-sheet">
+    <div class="modal-handle"></div>
+    <div class="modal-title">Add Material</div>
+    <div class="mf-label">Item Name</div>
+    <input class="mf-input" id="mi-name" type="text" placeholder="e.g. Matte black cabinet pulls, 3in">
+    <div class="mf-row">
+      <div>
+        <div class="mf-label">Est. Price ($)</div>
+        <input class="mf-input" id="mi-price" type="number" placeholder="0.00" min="0" step="0.01">
+      </div>
+      <div>
+        <div class="mf-label">Qty</div>
+        <input class="mf-input" id="mi-qty" type="text" placeholder="e.g. 24 pulls, 2 bags">
+      </div>
+    </div>
+    <div class="mf-row" style="margin-bottom:12px">
+      <div>
+        <div class="mf-label">Project</div>
+        <select class="mf-input" id="mi-proj">
+          <option value="kitchen">Kitchen Remodel</option>
+          <option value="fence">Back Fence</option>
+          <option value="hardware">Cabinet Hardware</option>
+          <option value="garage">Garage Conversion</option>
+        </select>
+      </div>
+      <div>
+        <div class="mf-label">Source</div>
+        <select class="mf-input" id="mi-source">
+          <option value="amazon">Amazon</option>
+          <option value="hd">Home Depot</option>
+          <option value="lowes">Lowes</option>
+          <option value="local">Local Store</option>
+          <option value="online">Other Online</option>
+          <option value="other">Unknown</option>
+        </select>
+      </div>
+    </div>
+    <div class="mf-row" style="margin-bottom:12px">
+      <div>
+        <div class="mf-label">Priority</div>
+        <select class="mf-input" id="mi-priority">
+          <option value="urgent">Urgent - blocking work</option>
+          <option value="needed" selected>Needed - next phase</option>
+          <option value="planned">Planned - upcoming</option>
+          <option value="optional">Optional / Nice to have</option>
+        </select>
+      </div>
+      <div>
+        <div class="mf-label">Needed By</div>
+        <input class="mf-input" id="mi-by" type="text" placeholder="e.g. This weekend, Mar 15">
+      </div>
+    </div>
+    <div class="mf-label">Notes (optional)</div>
+    <input class="mf-input" id="mi-note" type="text" placeholder="SKU, size, color, link...">
+    <div style="display:flex;gap:10px;margin-top:4px">
+      <button class="btn-ghost" style="flex:1;justify-content:center" onclick="closeModal()">Cancel</button>
+      <button class="btn-primary" style="flex:2" onclick="addItem()">Add to List</button>
+    </div>
+  </div>
+</div>
+
+<script>
+var PROJECTS = {
+  kitchen:  { name:'Kitchen Remodel',   color:'#d4903a' },
+  fence:    { name:'Back Fence Repaint', color:'#7aaac8' },
+  hardware: { name:'Cabinet Hardware',   color:'#d4b978' },
+  garage:   { name:'Garage Conversion',  color:'#72b08a' }
+};
+
+var SOURCES = {
+  amazon: { label:'Amazon',     cls:'src-amazon' },
+  hd:     { label:'Home Depot', cls:'src-hd'     },
+  lowes:  { label:"Lowe's",     cls:'src-lowes'  },
+  local:  { label:'Local',      cls:'src-local'  },
+  online: { label:'Online',     cls:'src-online' },
+  other:  { label:'Other',      cls:'src-other'  }
+};
+
+var PRIORITY = {
+  urgent:   { label:'Urgent',   dot:'pri-urgent'   },
+  needed:   { label:'Needed',   dot:'pri-needed'   },
+  planned:  { label:'Planned',  dot:'pri-planned'  },
+  optional: { label:'Optional', dot:'pri-optional' }
+};
+
+var items = [
+  { id:1, name:'Matte black cabinet pulls 3in (24-pack)', price:94, qty:'24 pulls', proj:'hardware', source:'amazon', priority:'urgent', by:'This weekend', note:'ASIN B08XY... match existing hole spacing', done:false },
+  { id:2, name:'Grout float and margin trowel set', price:28, qty:'1 set', proj:'kitchen', source:'hd', priority:'urgent', by:'Mar 13', note:'For backsplash tile work', done:false },
+  { id:3, name:'Behr Marquee Interior Paint - Repose Gray 5gal', price:52, qty:'2 gallons', proj:'kitchen', source:'hd', priority:'needed', by:'Mar 18', note:'SW 7015 match or closest Behr', done:false },
+  { id:4, name:'Thinset mortar 50lb bags', price:22, qty:'4 bags', proj:'kitchen', source:'hd', priority:'urgent', by:'Mar 12', note:'Gray polymer-modified', done:false },
+  { id:5, name:'LED undercabinet strip lights 12ft', price:48, qty:'2 reels', proj:'kitchen', source:'amazon', priority:'needed', by:'Mar 20', note:'Warm white 2700K dimmable, check width', done:true },
+  { id:6, name:'Tile spacers 3/16in (500 pack)', price:8, qty:'500 count', proj:'kitchen', source:'hd', priority:'needed', by:'Mar 12', note:'', done:true },
+  { id:7, name:'Behr Solid Stain - Cordovan Brown 1gal', price:42, qty:'1 quart more needed', proj:'fence', source:'hd', priority:'needed', by:'Mar 16', note:'Already have 2qt, need 1 more quart', done:false },
+  { id:8, name:'Sanding sponges medium grit 6-pack', price:12, qty:'6-pack', proj:'fence', source:'hd', priority:'planned', by:'Mar 16', note:'', done:false },
+  { id:9, name:'Permit application - electrical panel', price:180, qty:'1 permit', proj:'kitchen', source:'local', priority:'urgent', by:'Filed', note:'City permit #2024-E-0182 approved', done:true },
+  { id:10, name:'Upper cabinet boxes IKEA SEKTION 30x30', price:640, qty:'8 boxes', proj:'kitchen', source:'local', priority:'planned', by:'Mar 25', note:'Order placed, delivery Mar 22', done:false },
+  { id:11, name:'Drawer slides soft-close 18in (10 pairs)', price:68, qty:'10 pairs', proj:'kitchen', source:'amazon', priority:'planned', by:'Mar 25', note:'Full extension, 100lb capacity', done:false },
+  { id:12, name:'Concrete board 3x5ft sheets', price:110, qty:'6 sheets', proj:'garage', source:'hd', priority:'optional', by:'Jul 2025', note:'For garage floor prep', done:false },
+  { id:13, name:'Waterproof caulk gun and silicone', price:24, qty:'2 cartridges + gun', proj:'fence', source:'local', priority:'optional', by:'After paint', note:'White and brown colors', done:false }
+];
+
+var searchQuery = '';
+var currentFilter = 'all';
+var nextId = 100;
+
+window.addEventListener('load', function() { renderAll(); });
+
+// ===== FILTER =====
+function setFilter(val, el, prefix) {
+  currentFilter = val;
+  document.querySelectorAll('.ftab').forEach(function(t) { t.classList.remove('active'); });
+  if (el) el.classList.add('active');
+  renderAll();
+}
+
+function search(q) { searchQuery = q.toLowerCase(); renderAll(); }
+
+function getFiltered() {
+  return items.filter(function(it) {
+    var matchProj = currentFilter === 'all' || it.proj === currentFilter || currentFilter === 'done' && it.done || currentFilter === 'pending' && !it.done;
+    var matchSearch = !searchQuery || it.name.toLowerCase().indexOf(searchQuery) > -1 || (it.note && it.note.toLowerCase().indexOf(searchQuery) > -1);
+    return matchProj && matchSearch;
+  });
+}
+
+// ===== RENDER ALL =====
+function renderAll() {
+  renderFilters('m');
+  renderFilters('d');
+  renderStats('m-stats');
+  renderStats('d-stats');
+  renderList('d-list', 'd');
+  renderList('m-list', 'm');
+  renderSidePanel();
+  updateSubs();
+}
+
+function updateSubs() {
+  var pending = items.filter(function(it) { return !it.done; });
+  var total = pending.reduce(function(a,it) { return a + (it.price || 0); }, 0);
+  var sub = items.filter(function(it) { return !it.done; }).length + ' items to buy \u2022 ' + fmtMoney(total) + ' est.';
+  var ds = document.getElementById('d-sub'); if (ds) ds.textContent = sub;
+  var ms = document.getElementById('m-sub'); if (ms) ms.textContent = sub;
+}
+
+// ===== FILTERS =====
+function renderFilters(prefix) {
+  var el = document.getElementById(prefix + '-filters');
+  if (!el) return;
+  var tabs = [
+    { id:'all',     label:'All' },
+    { id:'pending', label:'To Buy' },
+    { id:'done',    label:'Got It' },
+    { id:'kitchen', label:'Kitchen' },
+    { id:'fence',   label:'Fence' },
+    { id:'hardware',label:'Hardware' },
+    { id:'garage',  label:'Garage' }
+  ];
+  var html = '';
+  tabs.forEach(function(t) {
+    var active = currentFilter === t.id ? ' active' : '';
+    html += '<div class="ftab' + active + '" onclick="setFilter(\'' + t.id + '\',this,\'' + prefix + '\')">' + t.label + '</div>';
+  });
+  el.innerHTML = html;
+}
+
+// ===== STATS =====
+function renderStats(elId) {
+  var el = document.getElementById(elId);
+  if (!el) return;
+  var pending = items.filter(function(it) { return !it.done; });
+  var done = items.filter(function(it) { return it.done; });
+  var totalEst = pending.reduce(function(a,it) { return a + (it.price||0); }, 0);
+  var urgent = pending.filter(function(it) { return it.priority === 'urgent'; }).length;
+  var html = '';
+  var cells = [
+    { val: pending.length, lbl:'To Buy' },
+    { val: done.length,    lbl:'Acquired' },
+    { val: fmtMoney(totalEst), lbl:'Est. Cost' },
+    { val: urgent,         lbl:'Urgent' }
+  ];
+  cells.forEach(function(c) {
+    html += '<div class="stat-cell"><div class="stat-val">' + c.val + '</div><div class="stat-lbl">' + c.lbl + '</div></div>';
+  });
+  el.innerHTML = html;
+}
+
+// ===== MAIN LIST =====
+function renderList(elId, prefix) {
+  var el = document.getElementById(elId);
+  if (!el) return;
+  var filtered = getFiltered();
+  if (filtered.length === 0) {
+    el.innerHTML = '<div style="text-align:center;padding:40px 20px;color:var(--muted);font-size:13px">No items found.</div>';
+    return;
+  }
+
+  // Group by priority order
+  var order = ['urgent','needed','planned','optional'];
+  var groups = {};
+  order.forEach(function(p) { groups[p] = []; });
+  filtered.forEach(function(it) { (groups[it.priority] || groups['optional']).push(it); });
+
+  var html = '';
+  order.forEach(function(p) {
+    var grp = groups[p];
+    if (grp.length === 0) return;
+    var pri = PRIORITY[p];
+    var pendingCount = grp.filter(function(it) { return !it.done; }).length;
+    html += '<div class="section-hdr">';
+    html += '<div class="section-title"><div class="pri-dot ' + pri.dot + '"></div>' + pri.label + '</div>';
+    html += '<div class="section-count">' + pendingCount + ' of ' + grp.length + ' remaining</div>';
+    html += '</div>';
+    grp.forEach(function(it, i) {
+      html += buildItem(it, i, prefix);
+    });
+  });
+  el.innerHTML = html;
+}
+
+function buildItem(it, i, prefix) {
+  var src = SOURCES[it.source] || SOURCES['other'];
+  var proj = PROJECTS[it.proj];
+  var delay = (i * 0.03) + 's';
+  var doneCls = it.done ? ' checked' : '';
+
+  var h = '<div class="material-item' + doneCls + '" id="item-' + prefix + '-' + it.id + '" style="animation:fadeUp 0.25s ' + delay + ' ease both">';
+  // Checkbox
+  h += '<div class="mi-check' + (it.done ? ' done' : '') + '" onclick="toggleItem(' + it.id + ')">';
+  h += '<svg width="10" height="10" viewBox="0 0 12 12" fill="none" stroke="var(--green-br)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="2,6 5,9 10,3"/></svg>';
+  h += '</div>';
+  // Body
+  h += '<div class="mi-body">';
+  h += '<div class="mi-row1">';
+  h += '<div class="mi-name">' + esc(it.name) + '</div>';
+  if (it.price) h += '<div class="mi-price' + (it.done ? '' : '') + '">' + fmtMoney(it.price) + '</div>';
+  h += '</div>';
+  h += '<div class="mi-row2">';
+  if (it.qty) h += '<span class="mi-qty">' + esc(it.qty) + '</span>';
+  h += '<span class="src-badge ' + src.cls + '">' + src.label + '</span>';
+  if (proj) h += '<span style="display:inline-flex;align-items:center;gap:4px;font-size:10px;color:var(--muted)"><span style="width:5px;height:5px;border-radius:50%;background:' + proj.color + ';display:inline-block"></span>' + proj.name + '</span>';
+  if (it.by) h += '<span style="font-size:10px;color:var(--muted)">by ' + esc(it.by) + '</span>';
+  h += '</div>';
+  if (it.note) h += '<div class="mi-note">' + esc(it.note) + '</div>';
+  // Action buttons
+  if (!it.done) {
+    h += '<div class="mi-actions">';
+    if (it.source === 'amazon') {
+      h += '<a class="mi-action-btn buy" href="https://www.amazon.com/s?k=' + encodeURIComponent(it.name) + '" target="_blank">Buy on Amazon</a>';
+    } else if (it.source === 'hd') {
+      h += '<a class="mi-action-btn" href="https://www.homedepot.com/s/' + encodeURIComponent(it.name) + '" target="_blank" style="border-color:rgba(200,121,65,0.3);color:var(--orange)">Find at HD</a>';
+    } else if (it.source === 'lowes') {
+      h += '<a class="mi-action-btn" href="https://www.lowes.com/search?searchTerm=' + encodeURIComponent(it.name) + '" target="_blank" style="border-color:rgba(122,170,200,0.3);color:var(--blue-br)">Find at Lowe\'s</a>';
+    }
+    h += '<button class="mi-action-btn" onclick="markDone(' + it.id + ')">Mark got it</button>';
+    h += '</div>';
+  }
+  h += '</div>';
+  // Delete button
+  h += '<button class="mi-del" onclick="deleteItem(' + it.id + ')" title="Remove">';
+  h += '<svg width="12" height="12" viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"><line x1="3" y1="3" x2="11" y2="11"/><line x1="11" y1="3" x2="3" y2="11"/></svg>';
+  h += '</button>';
+  h += '</div>';
+  return h;
+}
+
+// ===== SIDE PANEL =====
+function renderSidePanel() {
+  renderProgressRing();
+  renderSourceSummary();
+  renderSpendSummary();
+}
+
+function renderProgressRing() {
+  var el = document.getElementById('d-progress-summary');
+  if (!el) return;
+  var done = items.filter(function(it) { return it.done; }).length;
+  var total = items.length;
+  var p = total > 0 ? Math.round((done/total)*100) : 0;
+  var r = 26; var circ = 2 * Math.PI * r;
+  var dash = (p / 100) * circ;
+  var html = '<div class="prog-ring-wrap">';
+  html += '<svg width="64" height="64" viewBox="0 0 64 64"><circle cx="32" cy="32" r="' + r + '" fill="none" stroke="var(--raised)" stroke-width="5"/><circle cx="32" cy="32" r="' + r + '" fill="none" stroke="var(--green-br)" stroke-width="5" stroke-dasharray="' + dash.toFixed(1) + ' ' + circ.toFixed(1) + '" stroke-linecap="round"/></svg>';
+  html += '<div class="prog-ring-center"><div class="prog-ring-pct">' + p + '%</div><div class="prog-ring-lbl">Done</div></div>';
+  html += '</div>';
+  html += '<div class="prog-ring-stats">';
+  html += '<div class="prs-row"><span class="prs-label">Acquired</span><span class="prs-val" style="color:var(--green-br)">' + done + ' items</span></div>';
+  html += '<div class="prs-row"><span class="prs-label">Remaining</span><span class="prs-val">' + (total - done) + ' items</span></div>';
+  html += '<div class="prs-row"><span class="prs-label">Total items</span><span class="prs-val">' + total + '</span></div>';
+  html += '</div>';
+  el.innerHTML = html;
+}
+
+function renderSourceSummary() {
+  var el = document.getElementById('d-source-summary');
+  if (!el) return;
+  var pending = items.filter(function(it) { return !it.done; });
+  var bySource = {};
+  pending.forEach(function(it) {
+    if (!bySource[it.source]) bySource[it.source] = { count:0, total:0 };
+    bySource[it.source].count++;
+    bySource[it.source].total += (it.price || 0);
+  });
+  var sorted = Object.keys(bySource).sort(function(a,b) { return bySource[b].total - bySource[a].total; });
+  if (sorted.length === 0) { el.innerHTML = '<div style="color:var(--muted);font-size:12px;padding:4px 0">All items acquired.</div>'; return; }
+  var html = '';
+  sorted.forEach(function(src) {
+    var s = SOURCES[src] || SOURCES['other'];
+    var d = bySource[src];
+    html += '<div class="source-item">';
+    html += '<span class="src-badge ' + s.cls + '" style="font-size:10px">' + s.label + '</span>';
+    html += '<span class="source-count">' + d.count + ' item' + (d.count !== 1 ? 's' : '') + '</span>';
+    html += '<span class="source-total">' + fmtMoney(d.total) + '</span>';
+    html += '</div>';
+  });
+  el.innerHTML = html;
+}
+
+function renderSpendSummary() {
+  var el = document.getElementById('d-spend-summary');
+  if (!el) return;
+  var pending = items.filter(function(it) { return !it.done; });
+  var acquired = items.filter(function(it) { return it.done; });
+  var pendingTotal = pending.reduce(function(a,it) { return a+(it.price||0); }, 0);
+  var acquiredTotal = acquired.reduce(function(a,it) { return a+(it.price||0); }, 0);
+  var grandTotal = items.reduce(function(a,it) { return a+(it.price||0); }, 0);
+  var rows = [
+    { label:'Still to buy', val:fmtMoney(pendingTotal), color:'var(--amber)' },
+    { label:'Already acquired', val:fmtMoney(acquiredTotal), color:'var(--green-br)' },
+    { label:'Grand total', val:fmtMoney(grandTotal), color:'var(--white)' }
+  ];
+  var html = '';
+  rows.forEach(function(r) {
+    html += '<div class="spend-row"><span class="spend-label">' + r.label + '</span><span class="spend-val" style="color:' + r.color + '">' + r.val + '</span></div>';
+  });
+  el.innerHTML = html;
+}
+
+// ===== ACTIONS =====
+function toggleItem(id) {
+  var it = items.find(function(i) { return i.id === id; });
+  if (!it) return;
+  it.done = !it.done;
+  renderAll();
+  if (it.done) showToast('Got it: ' + it.name.slice(0,40));
+}
+
+function markDone(id) { toggleItem(id); }
+
+function deleteItem(id) {
+  items = items.filter(function(i) { return i.id !== id; });
+  renderAll();
+}
+
+function quickAdd() {
+  var name = document.getElementById('qa-name').value.trim();
+  var price = parseFloat(document.getElementById('qa-price').value) || 0;
+  var proj = document.getElementById('qa-project').value;
+  if (!name) { document.getElementById('qa-name').focus(); return; }
+  items.unshift({ id: nextId++, name:name, price:price, qty:'', proj:proj, source:'other', priority:'needed', by:'', note:'', done:false });
+  document.getElementById('qa-name').value = '';
+  document.getElementById('qa-price').value = '';
+  renderAll();
+  showToast('Added: ' + name.slice(0,40));
+}
+
+function qaKey(e) { if (e.key === 'Enter') quickAdd(); }
+
+function addItem() {
+  var name = document.getElementById('mi-name').value.trim();
+  var price = parseFloat(document.getElementById('mi-price').value) || 0;
+  if (!name) { document.getElementById('mi-name').focus(); return; }
+  items.unshift({
+    id: nextId++,
+    name: name,
+    price: price,
+    qty: document.getElementById('mi-qty').value.trim(),
+    proj: document.getElementById('mi-proj').value,
+    source: document.getElementById('mi-source').value,
+    priority: document.getElementById('mi-priority').value,
+    by: document.getElementById('mi-by').value.trim(),
+    note: document.getElementById('mi-note').value.trim(),
+    done: false
+  });
+  document.getElementById('mi-name').value = '';
+  document.getElementById('mi-price').value = '';
+  document.getElementById('mi-qty').value = '';
+  document.getElementById('mi-by').value = '';
+  document.getElementById('mi-note').value = '';
+  closeModal();
+  renderAll();
+  showToast('Added to list');
+}
+
+function shareList() {
+  var pending = items.filter(function(it) { return !it.done; });
+  var text = 'Shopping List - Foundation\n\n';
+  var bySrc = {};
+  pending.forEach(function(it) {
+    if (!bySrc[it.source]) bySrc[it.source] = [];
+    bySrc[it.source].push(it);
+  });
+  Object.keys(bySrc).forEach(function(src) {
+    var s = SOURCES[src] || SOURCES['other'];
+    text += '-- ' + s.label + ' --\n';
+    bySrc[src].forEach(function(it) {
+      text += (it.done ? '[x]' : '[ ]') + ' ' + it.name;
+      if (it.qty) text += ' (' + it.qty + ')';
+      if (it.price) text += ' - ' + fmtMoney(it.price);
+      text += '\n';
+    });
+    text += '\n';
+  });
+  if (navigator.clipboard) {
+    navigator.clipboard.writeText(text).then(function() { showToast('List copied to clipboard'); });
+  } else {
+    showToast('Could not copy - try a different browser');
+  }
+}
+
+function openAmazon() {
+  var amz = items.filter(function(it) { return !it.done && it.source === 'amazon'; });
+  if (amz.length === 0) { showToast('No Amazon items pending'); return; }
+  amz.slice(0,3).forEach(function(it) { window.open('https://www.amazon.com/s?k=' + encodeURIComponent(it.name), '_blank'); });
+  if (amz.length > 3) showToast('Opened first 3 Amazon items');
+}
+
+function openHD() {
+  var hd = items.filter(function(it) { return !it.done && it.source === 'hd'; });
+  if (hd.length === 0) { showToast('No Home Depot items pending'); return; }
+  window.open('https://www.homedepot.com/s/' + encodeURIComponent(hd[0].name), '_blank');
+}
+
+// ===== MODAL =====
+function openModal() { document.getElementById('modal').classList.add('open'); document.getElementById('mi-name').focus(); }
+function closeModal() { document.getElementById('modal').classList.remove('open'); }
+function closeOutside(e) { if (e.target === document.getElementById('modal')) closeModal(); }
+
+// ===== VIEW TOGGLE =====
+function setView(mode) {
+  document.body.className = 'mode-' + mode;
+  document.getElementById('btn-mobile').classList.toggle('active', mode === 'mobile');
+  document.getElementById('btn-desktop').classList.toggle('active', mode === 'desktop');
+  renderAll();
+}
+
+// ===== UTILS =====
+function fmtMoney(n) {
+  if (!n && n !== 0) return '$0';
+  if (n < 1000) return '$' + Math.round(n);
+  if (n < 10000) return '$' + (n/1000).toFixed(1).replace(/\.0$/,'') + 'k';
+  return '$' + Math.round(n/1000) + 'k';
+}
+function esc(s) { return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+function showToast(msg) {
+  var t = document.getElementById('toast-el');
+  if (!t) {
+    t = document.createElement('div');
+    t.id = 'toast-el';
+    t.style.cssText = 'position:fixed;bottom:90px;left:50%;transform:translateX(-50%);background:var(--raised);border:1px solid var(--border-warm);color:var(--white);font-size:12px;padding:10px 20px;border-radius:10px;z-index:99999;white-space:nowrap;opacity:0;transition:opacity 0.25s;box-shadow:0 8px 24px rgba(0,0,0,0.5);font-family:\'DM Sans\',sans-serif;';
+    document.body.appendChild(t);
+  }
+  t.textContent = msg;
+  t.style.opacity = '1';
+  clearTimeout(t._t);
+  t._t = setTimeout(function() { t.style.opacity = '0'; }, 2400);
+}
+</script>
+</body>
+</html>

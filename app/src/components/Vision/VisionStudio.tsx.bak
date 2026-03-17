@@ -1,0 +1,625 @@
+"use client";
+
+import { useState, useMemo } from "react";
+import { useStore } from "@/lib/store";
+import { motion, AnimatePresence } from "framer-motion";
+import ReactMarkdown from "react-markdown";
+
+type Message = { role: "user" | "ai"; text: string };
+
+export default function VisionStudio() {
+    const { house } = useStore();
+    const [step, setStep] = useState<"start" | "generating" | "refining" | "finalized">("start");
+    const [description, setDescription] = useState("");
+    const [selectedFile, setSelectedFile] = useState<File | Blob | null>(null);
+    const [resultImages, setResultImages] = useState<string[]>(["/img/transformation-result.png", "/img/transformation-industrial.png", "/img/transformation-minimalist.png"]);
+    const [selectedOptionIndex, setSelectedOptionIndex] = useState(0);
+    const [isConverting, setIsConverting] = useState(false);
+    const [messages, setMessages] = useState<Message[]>([]);
+    const [chatInput, setChatInput] = useState("");
+    const [loading, setLoading] = useState(false);
+    const [fullScreenImage, setFullScreenImage] = useState<string | null>(null);
+    const [isGeneratingBlueprint, setIsGeneratingBlueprint] = useState(false);
+    const [blueprintData, setBlueprintData] = useState<any>(null);
+    const [liveEstimate, setLiveEstimate] = useState<any>(null);
+    const [isThinkingEstimate, setIsThinkingEstimate] = useState(false);
+
+    async function generateLiveEstimate(currentMessages: Message[]) {
+        setIsThinkingEstimate(true);
+        try {
+            const res = await fetch("/api/ai/blueprint", {
+                method: "POST",
+                headers: { 
+                    "Content-Type": "application/json",
+                    "x-api-key": typeof window !== "undefined" ? localStorage.getItem("gemini_api_key") || "" : ""
+                },
+                body: JSON.stringify({
+                    messages: currentMessages,
+                    context: `Vision Studio context. House: ${house.style}.`
+                })
+            });
+            const data = await res.json();
+            setLiveEstimate(data);
+        } catch (error) {
+            console.error("Failed to estimate", error);
+        } finally {
+            setIsThinkingEstimate(false);
+        }
+    }
+
+    // Create a stable URL for the selected photo
+    const photoUrl = useMemo(() => {
+        if (!selectedFile) return null;
+        try {
+            return URL.createObjectURL(selectedFile);
+        } catch (e) {
+            console.error("Failed to create object URL", e);
+            return null;
+        }
+    }, [selectedFile]);
+
+    const fileToBase64 = (file: Blob | File): Promise<string> => {
+        return new Promise((resolve, reject) => {
+            const reader = new FileReader();
+            reader.readAsDataURL(file);
+            reader.onload = () => {
+                const base64String = (reader.result as string).split(",")[1];
+                resolve(base64String);
+            };
+            reader.onerror = (error) => reject(error);
+        });
+    };
+
+    async function startGeneration() {
+        if (!selectedFile) {
+            document.getElementById("vision-upload")?.click();
+            return;
+        }
+        if (!description.trim()) return;
+        
+        setStep("generating");
+
+        try {
+            const base64 = await fileToBase64(selectedFile);
+            const res = await fetch("/api/ai", {
+                method: "POST",
+                headers: { 
+                    "Content-Type": "application/json",
+                    "x-api-key": typeof window !== "undefined" ? localStorage.getItem("gemini_api_key") || "" : ""
+                },
+                body: JSON.stringify({
+                    message: `Analyze this photo and my prompt: "${description}". Provide a professional design response that references specific elements in the photo (like the current lighting, walls, or furniture).`,
+                    image: base64,
+                    context: `Renovation Workspace. Style: ${house.style}. Tone: Elite Architect.`
+                })
+            });
+            const data = await res.json();
+            
+            console.log("✦ VISION STUDIO: Analysis Complete.");
+            console.log(`- Detected Prompt: ${description}`);
+
+            // Expanded keyword detection for more variety
+            const text = description.toLowerCase();
+            let images = ["/img/transformation-result.png", "/img/transformation-industrial.png", "/img/transformation-minimalist.png"];
+            let selectedType = "Live AI Render";
+
+            // If the AI returned generated images, use them!
+            if (data.generatedImages && data.generatedImages.length > 0) {
+                console.log(`✦ VISION STUDIO: Received ${data.generatedImages.length} True AI Image Generation(s)!`);
+                images = data.generatedImages.map((b64: string) => `data:image/jpeg;base64,${b64}`);
+                selectedType = "Custom Multimodal Generation";
+            } else if (data.generatedImage) {
+                console.log("✦ VISION STUDIO: Received 1 True AI Image Generation!");
+                images = [
+                    `data:image/jpeg;base64,${data.generatedImage}`,
+                    "/img/transformation-industrial.png",
+                    "/img/transformation-minimalist.png"
+                ];
+                selectedType = "Custom Multimodal Generation";
+            } else {
+                console.log("✦ VISION STUDIO: Running Style Matching (Fallback)...");
+                console.log(`- Prompt Text: "${text}"`);
+                if (text.includes("industrial") || text.includes("brick")) {
+                    images = ["/img/transformation-industrial.png", "/img/transformation-result.png", "/img/transformation-minimalist.png"];
+                    selectedType = "Industrial Loft";
+                } else if (text.includes("minimal") || text.includes("white")) {
+                    images = ["/img/transformation-minimalist.png", "/img/transformation-result.png", "/img/transformation-industrial.png"];
+                    selectedType = "Ultra Minimalist";
+                } else {
+                    images = ["/img/transformation-wall.png", "/img/transformation-result.png", "/img/transformation-minimalist.png"];
+                    selectedType = "Accent Wall Transformation";
+                }
+            }
+            
+            console.log(`- Final Selection: ${selectedType}`);
+
+            setResultImages(images);
+            setSelectedOptionIndex(0);
+            const updatedMessages: Message[] = [
+                { role: "user", text: description },
+                { role: "ai", text: data.reply || "I've analyzed your space. Let's discuss the proposed transformation." }
+            ];
+            setMessages(updatedMessages);
+            setStep("refining");
+            generateLiveEstimate(updatedMessages);
+        } catch (err) {
+            console.error("AI Analysis failed", err);
+            setStep("start");
+            alert("AI Analysis failed. Please check your API key.");
+        }
+    }
+
+    async function handleFileChange(e: React.ChangeEvent<HTMLInputElement>) {
+        const file = e.target.files?.[0] || null;
+        if (!file) return;
+
+        const isHeic = file.name.toLowerCase().endsWith(".heic") || file.type.includes("heic");
+        
+        if (isHeic) {
+            setIsConverting(true);
+            try {
+                // Dynamically import to avoid "window is not defined" during SSR
+                const heic2any = (await import("heic2any")).default;
+                
+                const result = await heic2any({
+                    blob: file,
+                    toType: "image/jpeg",
+                    quality: 0.8
+                });
+                // heic2any can return an array if multiple images in HEIC
+                const blob = Array.isArray(result) ? result[0] : result;
+                setSelectedFile(blob);
+            } catch (err) {
+                console.error("HEIC conversion failed", err);
+                alert("Failed to convert HEIC. Please try a JPG or PNG.");
+            } finally {
+                setIsConverting(false);
+            }
+        } else {
+            setSelectedFile(file);
+        }
+    }
+
+    async function sendChatMessage() {
+        if (!chatInput.trim()) return;
+        const userMsg = chatInput.trim();
+        const updatedMessages: Message[] = [...messages, { role: "user", text: userMsg }];
+        setMessages(updatedMessages);
+        setChatInput("");
+        setLoading(true);
+
+        try {
+            const res = await fetch("/api/ai", {
+                method: "POST",
+                headers: { 
+                    "Content-Type": "application/json",
+                    "x-api-key": typeof window !== "undefined" ? localStorage.getItem("gemini_api_key") || "" : ""
+                },
+                body: JSON.stringify({
+                    message: `User wants to refine a vision: ${userMsg}`,
+                    context: `Vision Studio context. House: ${house.style}. Tone: Professional designer.`
+                })
+            });
+            const data = await res.json();
+            const newArray: Message[] = [...updatedMessages, { role: "ai", text: data.reply || "I can adjust that. Let me update the render..." }];
+            setMessages(newArray);
+            
+            // Re-run estimate if new layout requested
+            generateLiveEstimate(newArray);
+        } catch {
+            setMessages(prev => [...prev, { role: "ai", text: "I'm having trouble sketching that right now. Let's try again." }]);
+        } finally {
+            setLoading(false);
+        }
+    }
+
+    async function generateBlueprint() {
+        setIsGeneratingBlueprint(true);
+        setStep("finalized");
+
+        try {
+            const res = await fetch("/api/ai/blueprint", {
+                method: "POST",
+                headers: { 
+                    "Content-Type": "application/json",
+                    "x-api-key": typeof window !== "undefined" ? localStorage.getItem("gemini_api_key") || "" : ""
+                },
+                body: JSON.stringify({
+                    messages: messages,
+                    context: `Vision Studio context. House: ${house.style}.`
+                })
+            });
+            const data = await res.json();
+            setBlueprintData(data);
+        } catch (error) {
+            console.error("Failed to generate blueprint", error);
+            setBlueprintData({ cost: "TBD", time: "TBD", items: [] });
+        } finally {
+            setIsGeneratingBlueprint(false);
+        }
+    }
+
+    return (
+        <div style={{ flex: 1, display: "flex", flexDirection: "column", overflow: "hidden" }}>
+            <header style={{ padding: "28px 32px 20px", borderBottom: "1px solid var(--border)", display: "flex", justifyContent: "space-between", alignItems: "center", background: "var(--void)", zIndex: 10 }}>
+                <div>
+                    <h1 style={{ fontFamily: "var(--font-cinzel)", fontSize: 22, fontWeight: 700, letterSpacing: "0.1em", color: "var(--white)" }}>Vision Studio</h1>
+                    <p style={{ fontSize: 11, color: "var(--muted)", marginTop: 3 }}>AI-Powered Space Transformation</p>
+                </div>
+                {step === "refining" && (
+                    <button className="btn-primary" onClick={generateBlueprint}>Generate Blueprint ✦</button>
+                )}
+            </header>
+
+            <div style={{ flex: 1, display: "flex", overflow: "hidden", position: "relative" }}>
+                
+                {/* ── Start State: Upload & Prompt ── */}
+                {step === "start" && (
+                    <div style={{ flex: 1, display: "flex", alignItems: "center", justifyContent: "center", padding: 40 }}>
+                        <div style={{ maxWidth: 500, width: "100%", textAlign: "center" }}>
+                            <div style={{ width: 80, height: 80, borderRadius: "50%", background: "var(--gold-dim)", border: "1px solid var(--border-warm)", display: "flex", alignItems: "center", justifyContent: "center", margin: "0 auto 24px" }}>
+                                <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="var(--gold)" strokeWidth="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4M7 10l5 5 5-5M12 15V3"/></svg>
+                            </div>
+                            <h2 style={{ fontFamily: "var(--font-cinzel)", fontSize: 24, marginBottom: 12 }}>Upload Your Space</h2>
+                            <p style={{ fontSize: 14, color: "var(--soft)", marginBottom: 32 }}>Upload a photo of your current room and tell the AI what you're dreaming of.</p>
+                            
+                            <div 
+                                onClick={() => document.getElementById("vision-upload")?.click()}
+                                style={{ 
+                                    background: "var(--card)", 
+                                    border: selectedFile ? "1px solid var(--gold)" : "1px dashed var(--border)", 
+                                    borderRadius: "var(--r)", 
+                                    padding: 40, 
+                                    marginBottom: 24, 
+                                    cursor: "pointer",
+                                    transition: "all 0.2s"
+                                }}>
+                                <input 
+                                    type="file" 
+                                    id="vision-upload" 
+                                    hidden 
+                                    accept="image/*"
+                                    onChange={handleFileChange} 
+                                />
+                                {isConverting ? (
+                                    <div style={{ color: "var(--gold)" }}>
+                                        <div style={{ display: "inline-block", width: 20, height: 20, border: "2px solid var(--gold)", borderTopColor: "transparent", borderRadius: "50%", animation: "spin 1s linear infinite", marginBottom: 12 }} />
+                                        <div style={{ fontSize: 13, fontWeight: 700 }}>Processing Image...</div>
+                                        <div style={{ fontSize: 10, opacity: 0.6 }}>Converting Apple format for browser support</div>
+                                    </div>
+                                ) : selectedFile ? (
+                                    <div style={{ color: "var(--gold)" }}>
+                                        <div style={{ fontSize: 13, fontWeight: 700, marginBottom: 4 }}>
+                                            {"name" in selectedFile ? selectedFile.name : "Optimized Space Photo"}
+                                        </div>
+                                        <div style={{ fontSize: 10, opacity: 0.6 }}>File ready for AI generation</div>
+                                    </div>
+                                ) : (
+                                    <span style={{ fontSize: 12, color: "var(--muted)" }}>Drop photo here or Click to select</span>
+                                )}
+                            </div>
+
+                            <textarea 
+                                className="field-input" 
+                                placeholder="E.g. I want to turn this dated 80s kitchen into a modern scandi space with light oak, matte black accents, and better storage."
+                                value={description}
+                                onChange={e => setDescription(e.target.value)}
+                                style={{ height: 120, resize: "none", marginBottom: 20 }}
+                            />
+
+                            <button className="btn-primary" style={{ width: "100%", padding: 16 }} onClick={startGeneration}>
+                                {selectedFile ? "Imagine Transformation ✦" : "Select Photo to Start"}
+                            </button>
+                        </div>
+                    </div>
+                )}
+
+                {/* ── Generating State ── */}
+                {step === "generating" && (
+                    <div style={{ flex: 1, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", position: "relative", padding: 40 }}>
+                        <div style={{ maxWidth: 800, width: "100%", position: "relative", borderRadius: 24, overflow: "hidden", border: "1px solid var(--gold-dim)", boxShadow: "0 20px 50px rgba(0,0,0,0.5)" }}>
+                            {photoUrl ? (
+                                <img 
+                                    src={photoUrl} 
+                                    alt="Original" 
+                                    style={{ width: "100%", height: "auto", display: "block" }} 
+                                />
+                            ) : (
+                                <div style={{ aspectRatio: "16/9", background: "var(--card)" }} />
+                            )}
+                            
+                            {/* Scanning Overlays */}
+                            <div className="vision-scan-line" style={{ position: "absolute", top: 0, left: 0, right: 0, height: 2, background: "var(--gold)", boxShadow: "0 0 15px var(--gold)", zIndex: 5 }} />
+                            <div style={{ position: "absolute", inset: 0, background: "rgba(11,11,12,0.6)", backdropFilter: "blur(2px)", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center" }}>
+                                <div className="house-pulse" style={{ width: 100, height: 100, borderRadius: "50%", background: "var(--gold-dim)", display: "flex", alignItems: "center", justifyContent: "center", marginBottom: 20 }}>
+                                     <svg width="32" height="32" viewBox="0 0 24 24" fill="var(--gold)"><path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5" /></svg>
+                                </div>
+                                <h2 style={{ fontFamily: "var(--font-cinzel)", fontSize: 18, letterSpacing: "0.2em", color: "var(--white)" }}>ANALYZING SPACE...</h2>
+                                <p style={{ fontSize: 11, color: "var(--gold)", marginTop: 8, textTransform: "uppercase", letterSpacing: "0.1em" }}>Sequencing material geometry</p>
+                            </div>
+                        </div>
+                    </div>
+                )}
+
+                {/* ── Refining State: Studio Lab ── */}
+                {step === "refining" && (
+                    <div style={{ flex: 1, display: "flex", flexDirection: "column", overflow: "hidden" }}>
+                        
+                        {/* Top: Image Canvas */}
+                        <div style={{ padding: 24, display: "grid", gridTemplateColumns: "1fr 1fr", gap: 16 }}>
+                            <div>
+                                <div style={{ fontSize: 10, color: "var(--muted)", textTransform: "uppercase", letterSpacing: "0.1em", marginBottom: 8 }}>Original Space</div>
+                                <div 
+                                    onClick={() => photoUrl && setFullScreenImage(photoUrl)}
+                                    style={{ 
+                                        height: 280, 
+                                        borderRadius: 12, 
+                                        border: "1px solid var(--border)", 
+                                        background: "var(--card)",
+                                        display: "flex",
+                                        alignItems: "center",
+                                        justifyContent: "center",
+                                        overflow: "hidden",
+                                        cursor: "pointer"
+                                    }}>
+                                    {photoUrl && <img src={photoUrl} alt="Original" style={{ width: "100%", height: "100%", objectFit: "contain", transition: "transform 0.2s" }} onMouseOver={e => e.currentTarget.style.transform = "scale(1.02)"} onMouseOut={e => e.currentTarget.style.transform = "scale(1)"} />}
+                                </div>
+                            </div>
+                            <div>
+                                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 8 }}>
+                                    <div style={{ fontSize: 10, color: "var(--gold)", textTransform: "uppercase", letterSpacing: "0.1em" }}>AI Transformation</div>
+                                    <button onClick={() => startGeneration()} className="btn-ghost" style={{ fontSize: 10, padding: "4px 8px" }}>Refresh Generations ✦</button>
+                                </div>
+                                <div 
+                                    onClick={() => setFullScreenImage(resultImages[selectedOptionIndex])}
+                                    style={{ 
+                                        height: 280, 
+                                        borderRadius: 12, 
+                                        border: "1px solid var(--gold)", 
+                                        background: "var(--card)",
+                                        boxShadow: "0 0 40px rgba(212,185,120,0.15)",
+                                        display: "flex",
+                                        alignItems: "center",
+                                        justifyContent: "center",
+                                        overflow: "hidden",
+                                        cursor: "pointer",
+                                        marginBottom: 12
+                                    }}>
+                                    <img src={resultImages[selectedOptionIndex]} alt="Transformation" style={{ width: "100%", height: "100%", objectFit: "contain", transition: "transform 0.2s" }} onMouseOver={e => e.currentTarget.style.transform = "scale(1.02)"} onMouseOut={e => e.currentTarget.style.transform = "scale(1)"} />
+                                </div>
+                                
+                                {/* 3 Thumbnail Options */}
+                                <div style={{ display: "flex", gap: 12 }}>
+                                    {resultImages.map((imgUrl, idx) => (
+                                        <div 
+                                            key={idx}
+                                            onClick={() => setSelectedOptionIndex(idx)}
+                                            style={{
+                                                flex: 1,
+                                                height: 60,
+                                                borderRadius: 8,
+                                                border: selectedOptionIndex === idx ? "2px solid var(--gold)" : "1px solid var(--border)",
+                                                opacity: selectedOptionIndex === idx ? 1 : 0.6,
+                                                cursor: "pointer",
+                                                overflow: "hidden",
+                                                transition: "all 0.2s"
+                                            }}
+                                            onMouseOver={e => { if (selectedOptionIndex !== idx) e.currentTarget.style.opacity = "0.9"; }}
+                                            onMouseOut={e => { if (selectedOptionIndex !== idx) e.currentTarget.style.opacity = "0.6"; }}
+                                        >
+                                            <img src={imgUrl} alt={`Option ${idx + 1}`} style={{ width: "100%", height: "100%", objectFit: "cover" }} />
+                                        </div>
+                                    ))}
+                                </div>
+                            </div>
+                        </div>
+
+                        {/* Bottom: Chat Panel + Live Estimate */}
+                        <div style={{ display: "grid", gridTemplateColumns: "2fr 1fr", borderTop: "1px solid var(--border)", flex: 1, overflow: "hidden" }}>
+                            
+                            {/* Left: Designer Chat */}
+                            <div style={{ borderRight: "1px solid var(--border)", display: "flex", flexDirection: "column", background: "var(--base)" }}>
+                                <div style={{ padding: "16px 24px", borderBottom: "1px solid var(--border)", background: "var(--void)" }}>
+                                    <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+                                        <div style={{ width: 30, height: 30, borderRadius: "50%", background: "var(--gold-dim)", border: "1px solid var(--border-warm)", display: "flex", alignItems: "center", justifyContent: "center" }}>
+                                            <svg width="14" height="14" viewBox="0 0 24 24" fill="var(--gold)"><path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5" /></svg>
+                                        </div>
+                                        <span style={{ fontSize: 12, fontWeight: 700, color: "var(--white)" }}>Design Assistant Overview</span>
+                                    </div>
+                                </div>
+                                
+                                <div style={{ flex: 1, overflowY: "auto", padding: 24, display: "flex", flexDirection: "column", gap: 24 }}>
+                                    {messages.map((m, i) => (
+                                        <div key={i} style={{ alignSelf: m.role === "user" ? "flex-end" : "flex-start", maxWidth: m.role === "user" ? "75%" : "100%" }}>
+                                            <div className="markdown-prose" style={{ 
+                                                background: m.role === "user" ? "var(--gold-dim)" : "var(--card)", 
+                                                padding: "16px 20px", 
+                                                borderRadius: m.role === "user" ? "16px 16px 2px 16px" : "2px 16px 16px 16px",
+                                                border: "1px solid var(--border)",
+                                                fontSize: 13,
+                                                lineHeight: 1.6,
+                                                color: m.role === "user" ? "var(--white)" : "var(--soft)",
+                                                overflowWrap: "anywhere"
+                                            }}>
+                                                {m.role === "user" ? (
+                                                    m.text
+                                                ) : (
+                                                    <ReactMarkdown>{m.text}</ReactMarkdown>
+                                                )}
+                                            </div>
+                                        </div>
+                                    ))}
+                                    {loading && <div style={{ fontSize: 11, color: "var(--muted)" }}><em>Assistant is typing...</em></div>}
+                                </div>
+
+                                <div style={{ padding: 20, borderTop: "1px solid var(--border)", background: "var(--void)", display: "flex", gap: 8 }}>
+                                    <input 
+                                        className="ai-input" 
+                                        placeholder="Discuss changes with the Assistant (e.g. Try walnut instead of oak)" 
+                                        value={chatInput}
+                                        onChange={e => setChatInput(e.target.value)}
+                                        onKeyDown={e => e.key === "Enter" && sendChatMessage()}
+                                    />
+                                    <button className="ai-send" onClick={sendChatMessage}>
+                                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><polyline points="22 2 11 13" /><polygon points="22 2 15 22 11 13 2 9 22 2" /></svg>
+                                    </button>
+                                </div>
+                            </div>
+
+                            {/* Right: Live Material Estimate */}
+                            <div style={{ padding: 24, overflowY: "auto", background: "var(--card)" }}>
+                                <h3 style={{ fontFamily: "var(--font-cinzel)", fontSize: 14, color: "var(--white)", marginBottom: 16 }}>Project Estimate</h3>
+                                
+                                {isThinkingEstimate ? (
+                                    <div style={{ display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", padding: 40, opacity: 0.5 }}>
+                                        <div style={{ display: "inline-block", width: 20, height: 20, border: "2px solid var(--gold)", borderTopColor: "transparent", borderRadius: "50%", animation: "spin 1s linear infinite", marginBottom: 12 }} />
+                                        <div style={{ fontSize: 10, color: "var(--gold)" }}>Analyzing materials & costs...</div>
+                                    </div>
+                                ) : liveEstimate ? (
+                                    <>
+                                        <div style={{ display: "flex", gap: 12, marginBottom: 20 }}>
+                                            <div style={{ flex: 1, background: "var(--raised)", padding: 12, borderRadius: 8 }}>
+                                                <div style={{ fontSize: 16, fontWeight: 700, color: "var(--gold)" }}>{liveEstimate.cost || "TBD"}</div>
+                                                <div style={{ fontSize: 9, color: "var(--muted)", textTransform: "uppercase" }}>Est. Budget</div>
+                                            </div>
+                                            <div style={{ flex: 1, background: "var(--raised)", padding: 12, borderRadius: 8 }}>
+                                                <div style={{ fontSize: 16, fontWeight: 700, color: "var(--white)" }}>{liveEstimate.time || "TBD"}</div>
+                                                <div style={{ fontSize: 9, color: "var(--muted)", textTransform: "uppercase" }}>Timeline</div>
+                                            </div>
+                                        </div>
+
+                                        <div style={{ fontSize: 10, color: "var(--muted)", textTransform: "uppercase", marginBottom: 8 }}>Materials Breakdown</div>
+                                        <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
+                                            {(liveEstimate.items || []).filter((i: any) => i.type !== "Task").map((item: any, idx: number) => (
+                                                <div key={idx} style={{ background: "var(--raised)", padding: "8px 12px", borderRadius: 8, fontSize: 11, color: "var(--soft)", display: "flex", gap: 8, alignItems: "center" }}>
+                                                    <span>{item.icon || "📦"}</span>
+                                                    <span>{item.label}</span>
+                                                </div>
+                                            ))}
+                                            {(liveEstimate.items || []).filter((i: any) => i.type !== "Task").length === 0 && (
+                                                <div style={{ fontSize: 11, color: "var(--muted)", fontStyle: "italic" }}>No specific materials identified yet.</div>
+                                            )}
+                                        </div>
+                                    </>
+                                ) : (
+                                    <div style={{ fontSize: 11, color: "var(--muted)", fontStyle: "italic" }}>Awaiting design analysis...</div>
+                                )}
+                            </div>
+                        </div>
+
+                    </div>
+                )}
+
+                {/* ── Finalized: Blueprint Summary ── */}
+                {step === "finalized" && (
+                    <div style={{ flex: 1, display: "flex", alignItems: "center", justifyContent: "center", padding: 40 }}>
+                        {isGeneratingBlueprint ? (
+                            <div style={{ textAlign: "center" }}>
+                                <div style={{ display: "inline-block", width: 40, height: 40, border: "3px solid var(--gold)", borderTopColor: "transparent", borderRadius: "50%", animation: "spin 1s linear infinite", marginBottom: 20 }} />
+                                <div style={{ fontFamily: "var(--font-cinzel)", color: "var(--gold)", letterSpacing: "0.2em", fontSize: 14 }}>DRAFTING BLUEPRINT...</div>
+                                <div style={{ fontSize: 11, color: "var(--muted)", marginTop: 8 }}>Extracting materials and estimating timeline</div>
+                            </div>
+                        ) : blueprintData ? (
+                            <motion.div initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} style={{ background: "var(--card)", border: "1px solid var(--border-warm)", borderRadius: 24, padding: 40, maxWidth: 600, width: "100%", textAlign: "center" }}>
+                                <div style={{ width: 80, height: 80, borderRadius: "50%", background: "var(--green-dim)", border: "1px solid var(--green-br)", display: "flex", alignItems: "center", justifyContent: "center", margin: "0 auto 24px" }}>
+                                    <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="var(--green-br)" strokeWidth="3"><polyline points="20 6 9 17 4 12" /></svg>
+                                </div>
+                                <h2 style={{ fontFamily: "var(--font-cinzel)", fontSize: 24, marginBottom: 8, color: "var(--white)" }}>Blueprint Ready</h2>
+                                <p style={{ fontSize: 14, color: "var(--soft)", marginBottom: 32 }}>AI has generated a sequenced task list, estimated costs, and a materials shopping list based on your vision.</p>
+                                
+                                <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 16, marginBottom: 32 }}>
+                                    <div style={{ background: "var(--raised)", padding: 16, borderRadius: 14 }}>
+                                        <div style={{ fontSize: 24, fontWeight: 700, color: "var(--gold)" }}>{blueprintData.cost || "TBD"}</div>
+                                        <div style={{ fontSize: 10, color: "var(--muted)", textTransform: "uppercase" }}>Estimated Cost</div>
+                                    </div>
+                                    <div style={{ background: "var(--raised)", padding: 16, borderRadius: 14 }}>
+                                        <div style={{ fontSize: 24, fontWeight: 700, color: "var(--white)" }}>{blueprintData.time || "TBD"}</div>
+                                        <div style={{ fontSize: 10, color: "var(--muted)", textTransform: "uppercase" }}>Estimated Time</div>
+                                    </div>
+                                </div>
+
+                                <div style={{ background: "var(--raised)", borderRadius: 16, padding: 20, textAlign: "left", marginBottom: 32 }}>
+                                    <div style={{ fontSize: 10, color: "var(--gold)", fontWeight: 700, letterSpacing: "0.1em", marginBottom: 12, textTransform: "uppercase" }}>Generated Blueprint Items</div>
+                                    <div style={{ display: "flex", flexDirection: "column", gap: 8, maxHeight: 200, overflowY: "auto" }}>
+                                        {(blueprintData.items || []).map((item: any, i: number) => (
+                                            <div key={i} style={{ display: "flex", alignItems: "center", gap: 10, fontSize: 12, color: "var(--white)", paddingBottom: 8, borderBottom: i < blueprintData.items.length - 1 ? "1px dashed var(--border)" : "none" }}>
+                                                <span style={{ opacity: 0.6 }}>{item.icon || "▪"}</span>
+                                                <span style={{ flex: 1 }}>{item.label}</span>
+                                                <span style={{ fontSize: 9, background: "rgba(255,255,255,0.05)", padding: "2px 6px", borderRadius: 4 }}>{item.type || "Item"}</span>
+                                            </div>
+                                        ))}
+                                    </div>
+                                </div>
+
+                                <div style={{ display: "flex", gap: 12 }}>
+                                    <button className="btn-ghost" style={{ flex: 1 }} onClick={() => setStep("refining")}>Return to Refinement</button>
+                                    <button className="btn-primary" style={{ flex: 1, padding: 16 }} onClick={() => window.location.href = "/projects"}>Save to Projects ✦</button>
+                                </div>
+                            </motion.div>
+                        ) : null}
+                    </div>
+                )}
+
+            </div>
+
+            {/* ── Full Screen Image Modal ── */}
+            <AnimatePresence>
+                {fullScreenImage && (
+                    <motion.div 
+                        initial={{ opacity: 0 }}
+                        animate={{ opacity: 1 }}
+                        exit={{ opacity: 0 }}
+                        onClick={() => setFullScreenImage(null)}
+                        style={{
+                            position: "fixed",
+                            inset: 0,
+                            background: "rgba(0,0,0,0.9)",
+                            backdropFilter: "blur(10px)",
+                            zIndex: 9999,
+                            display: "flex",
+                            alignItems: "center",
+                            justifyContent: "center",
+                            padding: 40,
+                            cursor: "zoom-out"
+                        }}
+                    >
+                        <button 
+                            onClick={() => setFullScreenImage(null)}
+                            style={{
+                                position: "absolute",
+                                top: 30,
+                                right: 30,
+                                background: "var(--void)",
+                                border: "1px solid var(--border)",
+                                borderRadius: "50%",
+                                width: 44,
+                                height: 44,
+                                display: "flex",
+                                alignItems: "center",
+                                justifyContent: "center",
+                                color: "var(--white)",
+                                cursor: "pointer",
+                                zIndex: 10000
+                            }}
+                        >
+                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M18 6L6 18M6 6l12 12" /></svg>
+                        </button>
+                        <motion.img 
+                            initial={{ scale: 0.9, opacity: 0 }}
+                            animate={{ scale: 1, opacity: 1 }}
+                            exit={{ scale: 0.9, opacity: 0 }}
+                            src={fullScreenImage} 
+                            style={{ 
+                                maxWidth: "100%", 
+                                maxHeight: "100%", 
+                                objectFit: "contain",
+                                borderRadius: 12,
+                                boxShadow: "0 0 50px rgba(0,0,0,0.5)"
+                            }} 
+                        />
+                    </motion.div>
+                )}
+            </AnimatePresence>
+        </div>
+    );
+}

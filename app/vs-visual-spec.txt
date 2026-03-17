@@ -1,0 +1,562 @@
+
+VISION STUDIO
+Visual Design Specification
+Foundation by Ascension  |  Screen 9
+
+All values are ground-truth extracted from foundation-with-vs.html
+
+1. Design Philosophy
+Vision Studio inherits Foundation's complete design system without introducing a single new token. Every color, font, radius, spacing unit, and animation reuses the existing Foundation CSS custom properties.
+Visual direction: precision instrument. The UI reads like calibrated equipment. Tight 2px corner radius on interactive elements (vs Foundation's 16px cards), rule lines at 1px, gold used sparingly as the single interactive accent. Against Foundation's warm obsidian surfaces it feels like a darkroom built inside the app.
+Rule: If a value cannot be expressed with an existing Foundation --token, it is wrong. There are no exceptions.
+
+2. Design Token Reference
+All tokens are defined in the Foundation :root block. Vision Studio uses exactly these nine:
+
+Surface Tokens
+Token
+Value
+Used in VS for
+--void
+#0b0b0c
+Divider handle pips, Calculate button color
+--card
+#161618
+Left panel, Right panel, Canvas header, Thumb strip
+--raised
+#1c1c1f
+Inputs, upload zone hover, progress track, budget bar track, loading overlay cells
+--gold-dim
+rgba(212,185,120,0.08)
+Upload zone background, section label decorative lines
+--border
+rgba(255,255,255,0.055)
+Column separators, brief item rows, thumb borders, chat border-top
+--border-warm
+rgba(210,185,130,0.22)
+Upload zone dashed border, active variant label border
+
+Accent Tokens
+Token
+Value
+Used in VS for
+--gold
+#d4b978
+Canvas divider (1px line + handle), active thumb border, Calculate btn bg, chat send btn, active thread dot, render label, budget number animation target, blueprint button border/text
+--gold-br
+#ecd49a
+Calculate btn hover, chat send btn hover
+--amber
+#d4903a
+Budget fill bar
+--green-br
+#72b08a
+Thread dot done state, live badge live state, blueprint locked border/text
+
+Text Tokens
+Token
+Value
+Used in VS for
+--white
+#ede9e3
+Budget number, render label text when active, canvas metadata values
+--muted
+#5c5850
+Section labels, metadata labels, upload hint, status text idle, live badge standby
+--soft
+#8a8478
+Section header labels with ::after line, brief item text, chat timestamp
+
+Radius Tokens
+Token
+Value
+Used in VS for
+--r
+16px
+Upload zone, canvas side panels, fullscreen image, mobile active variant image, blueprint button
+--r-sm
+10px
+Prompt textarea, chat input, calculate button, send button, thumbnails, brief blocks, estimate breakdown cells
+
+3. Typography
+Font
+Usage in VS
+Size
+Weight
+Letter-spacing
+Cinzel (serif)
+VS panel header in topbar
+20px (d-page-title)
+700
+0.1em
+Cinzel (serif)
+Budget number in estimate panel
+32px desktop / 28px mobile
+700
+0.04em
+Cinzel (serif)
+Generate Blueprint button
+14px
+600
+0.18em
+DM Sans
+All body text, labels, descriptions
+12-13px
+400-500
+0.02-0.06em
+DM Sans
+Section labels, metadata
+8-9px + uppercase
+400-600
+0.14-0.22em
+DM Sans
+Code-style readouts (engine name, variant N/3)
+10-11px
+400
+0.1em
+
+Cinzel is used only in these three places. All other text uses DM Sans. Do not extend Cinzel usage.
+
+4. Layout Dimensions
+Desktop Three-Column Grid
+The VS desktop view fills Foundation's d-screen-content area. The three-column grid has these exact widths:
+
+grid-template-columns: 360px 1fr 300px
+
+Left column:   360px  -- Input panel + Architectural Brief chat
+Center column: flex-1 -- Lab Canvas (split view + thumbnail strip)
+Right column:  300px  -- Live Estimate panel
+
+Column separators: border-right/left 1px solid var(--border)
+Column height: 100% of d-screen-content (fills below Foundation topbar)
+
+Canvas Internal Structure
+Canvas top area (flex: 1):
+  Original panel (flex: 1)  +  1px gold divider  +  Render panel (flex: 1)
+
+Thumbnail strip (flex-shrink: 0):
+  height: 80px
+  background: var(--card)
+  border-top: 1px solid var(--border)
+  gap: 9px, padding: 0 18px
+
+Left Panel Internal Structure
+Upload + Prompt section (flex-shrink: 0):
+  padding: 18px
+  border-bottom: 1px solid var(--border)
+
+  Upload zone: min-height 88px
+  Prompt textarea: 4 rows (72px min-height)
+  Thread dots row: margin-bottom 10px
+  Calculate button: width 100%, padding 11px
+
+Brief chat section (flex: 1, overflow-y: auto):
+  Section label: padding 12px 18px 0
+  Messages area: padding 12px 18px, gap 12px
+  Chat input row: padding 12px 18px, border-top 1px solid var(--border)
+
+Right Panel Internal Structure
+Header: padding 14px 18px, border-bottom 1px solid var(--border)
+
+Budget display: padding 16px 18px, border-bottom 1px solid var(--border)
+  Budget number: Cinzel 32px
+  Budget bar: height 2px, margin 10px 0
+  Breakdown grid: 2-column, gap 7px
+
+Shopping list: flex: 1, overflow-y: auto
+  Section header: padding 10px 18px 6px
+  Each item: padding 8px 18px
+
+Blueprint button area: padding 14px 18px, border-top 1px solid var(--border)
+
+There are no intermediate breakpoints. The layout is binary: 3-column desktop (> 768px) or single-column mobile phone shell (<= 768px). This matches Foundation's established pattern.
+
+5. Component Specs
+5.1 Upload Zone
+State
+background
+border
+padding
+Notes
+Empty
+var(--gold-dim)
+1px dashed var(--border-warm)
+16px
+cursor: pointer, min-height: 88px, border-radius: var(--r)
+Hover
+rgba(212,185,120,0.12)
+1px dashed var(--gold)
+16px
+transition: all 0.25s — border-color and background animate together
+Has image
+none
+1px solid var(--border)
+0
+Preview img fills zone: w 100%, h 88px, object-fit cover, border-radius var(--r-sm)
+
+5.2 Prompt Textarea
+Property
+Value
+background
+var(--raised)
+border
+1px solid var(--border)
+border-radius
+var(--r-sm)
+padding
+10px 12px
+font / size / color
+DM Sans 12px / var(--white)
+line-height
+1.6
+caret-color
+var(--gold)
+resize
+none
+focus border
+var(--gold) — onfocus/onblur handlers in prototype, :focus in production
+placeholder color
+var(--muted)
+char count position
+absolute, bottom 8px right 10px, 9px DM Sans, color var(--muted)
+
+5.3 Thread Status Dots
+Property
+Value
+Dot size
+22px wide x 5px tall
+border-radius
+1px
+gap between dots
+3px
+Idle background
+var(--raised)
+Running background
+var(--gold) — transition: background 0.3s
+Done background
+var(--green-br) — held 2500ms then reverts to var(--raised)
+Thread activation stagger
++400ms per thread (threads 0, 1, 2 activate at 0ms, 400ms, 800ms)
+Label
+"Parallel Threads" — DM Sans 9px, uppercase, color var(--muted), letter-spacing 0.1em
+
+5.4 Calculate Button
+State
+background
+color
+text
+Notes
+Idle
+var(--gold)
+var(--void)
+Calculate - Generate 3 Variants
+Uses Foundation .btn-primary class
+Generating
+var(--raised)
+var(--muted)
+Analyzing spatial geometry...
+disabled attribute set, cursor: not-allowed
+Done
+var(--gold)
+var(--void)
+Recalculate
+Re-enabled after all variants complete
+Hover (idle/done)
+var(--gold-br)
+var(--void)
+—
+Shimmer: ::before slides L-R, transition 0.5s
+
+Shimmer effect: ::before pseudo-element, position absolute inset 0, background linear-gradient(90deg, transparent, rgba(255,255,255,0.15), transparent), transform: translateX(-100%) to translateX(100%), transition: transform 0.5s.
+
+5.5 Lab Canvas — Split View
+Element
+Spec
+Container background
+var(--raised)
+Original side label
+8px DM Sans uppercase, color var(--muted), bg rgba(11,11,13,0.85), border 1px solid var(--border), border-radius var(--r-sm), padding 3px 9px, backdrop-filter blur(4px)
+Render side label
+Same as Original but: border-color var(--gold), color var(--gold). Text: "Variant N / 3"
+Canvas images
+width 100%, height 100%, object-fit cover, cursor zoom-in, :hover scale(1.01), transition: transform 0.4s ease
+Gold divider line
+width 1px, background var(--gold), cursor col-resize
+Divider handle
+position absolute centered, 18px x 36px, background var(--gold), border-radius 2px
+Divider handle pips
+3x pips, each 5px x 1px, background var(--void), gap 3px
+Empty state container
+flex 1, centered column, gap 14px, color var(--muted)
+Empty state icon box
+56x56px, border 1px solid var(--border), border-radius var(--r), centered camera SVG in gold at 30% opacity
+
+5.6 Generation Loading Overlay
+Positioned absolute over the render side. Shows while variants are generating.
+
+Property
+Value
+background
+rgba(11,11,13,0.75)
+Grid layout
+3x3 cells, grid-template-columns: repeat(3, 8px), gap 4px
+Each cell
+8px x 8px square, border: 1px solid var(--gold)
+Cell animation
+@keyframes vsLoadCell: 0%/100% transparent opacity 0.4, 50% gold opacity 1
+Cell stagger delays
+0s, 0.1s, 0.2s, 0.15s, 0.25s, 0.35s, 0.3s, 0.4s, 0.5s (row by row)
+Loading text
+9px DM Sans, letter-spacing 0.18em, uppercase, color var(--gold)
+
+5.7 Progress Bar
+Property
+Value
+Position
+Between canvas header and split view — height 2px, flex-shrink 0
+Track background
+var(--raised)
+Fill background
+var(--gold)
+Fill animation
+width: 0% -> ~85% during generation (setInterval 350ms, +random*7)
+On complete
+width: 100%, then cleared after 1000ms delay
+Transition
+width 0.4s ease
+Glow trailing edge
+::after: width 40px, position absolute right, gradient transparent -> rgba(212,145,74,0.6)
+
+5.8 Thumbnail Strip
+Property
+Value
+Strip container
+height 80px, bg var(--card), border-top 1px solid var(--border), padding 0 18px, gap 9px, overflow-x auto, scrollbar-width none
+Thumbnail size
+height 58px, aspect-ratio 16/10
+Default border
+1px solid var(--border)
+Active border
+1px solid var(--gold)
+Hover
+border-color var(--border-warm), transform translateY(-2px), transition all 0.2s
+Border-radius
+var(--r-sm)
+Loading state
+bg var(--raised), 14x14 spinner (border 1px solid var(--border), border-top-color var(--gold), animation spin 0.8s linear infinite)
+Number badge
+position absolute bottom 4px right 5px, 8px DM Sans, bg rgba(0,0,0,0.6), padding 1px 5px, border-radius 1px
+
+5.9 Architectural Brief Chat Messages
+Element
+Spec
+Message container class
+.vs-chat-msg: display flex, gap 8px, animation fadeUp 0.22s ease both
+AI avatar
+22x22px circle, bg var(--gold-dim), border 1px solid var(--border-warm), "AI" text 8px DM Sans bold gold
+AI name label
+8px DM Sans, letter-spacing 0.12em, uppercase, color var(--gold), margin-bottom 5px
+Timestamp
+9px DM Sans, color var(--muted), margin-top 5px, letter-spacing 0.06em
+User avatar
+22x22px circle, bg var(--raised), border 1px solid var(--border), "You" text 8px DM Sans, color var(--muted)
+Brief block container
+.vs-brief-block: bg var(--raised), border 1px solid var(--border), border-radius var(--r-sm), padding 10px 12px, margin-top 7px
+Brief block label
+.vs-brief-label: 8px DM Sans, letter-spacing 0.18em, uppercase, color var(--gold), margin-bottom 7px
+Brief item row
+.vs-brief-item: display flex, gap 7px, padding 4px 0, border-bottom 1px solid var(--border), 10px DM Sans, color var(--soft), line-height 1.5
+Brief item number
+.vs-brief-num: color var(--gold), min-width 18px, 9px DM Sans
+Last brief item
+border-bottom: none
+
+5.10 Live Estimate Panel
+Element
+State / Spec
+Panel header
+"Live Estimate" — Cinzel 14px weight 600, letter-spacing 0.14em
+Live dot — standby
+5x5px circle, bg var(--muted), no animation
+Live dot — processing
+5x5px circle, bg var(--gold), animation pulseDot 2s ease-in-out infinite
+Live dot — live
+5x5px circle, bg var(--green-br), animation pulseDot 2s ease-in-out infinite
+Live text — standby
+"Standby" — 8px uppercase, color var(--muted)
+Live text — processing
+"Processing..." — 8px uppercase, color var(--gold)
+Live text — live
+"Live" — 8px uppercase, color var(--green-br)
+Budget number
+Cinzel 32px weight 700, color var(--white). Animates from $0 to total: 1200ms desktop / 1000ms mobile, cubic ease-out (1-pow(1-p,3))
+Budget bar track
+height 2px, bg var(--raised), border-radius 1px
+Budget bar fill
+bg var(--amber), transition: width 1s ease, 200ms delay, animates to 68%
+Breakdown grid
+display grid, grid-template-columns 1fr 1fr, gap 7px
+Breakdown cell
+bg var(--raised), border 1px solid var(--border), border-radius var(--r-sm), padding 7px 9px
+Materials value
+color var(--gold) — all others color var(--white)
+Shopping list item
+display flex, justify-content space-between, padding 8px 18px, border-bottom 1px solid var(--border)
+Item hover
+background var(--raised) on hover
+Checkbox unchecked
+13x13px, border 1px solid var(--border), border-radius 2px, cursor pointer
+Checkbox checked
+bg var(--gold), border-color var(--gold), checkmark: 6x4px, border-left+bottom 1.5px void, rotate -45deg translateY(-1px)
+Item price
+color var(--gold)
+
+5.11 Generate Blueprint Button
+State
+background
+border
+color
+Notes
+Default
+transparent
+1px solid var(--gold)
+var(--gold)
+Cinzel 14px weight 600, uppercase, letter-spacing 0.18em, border-radius var(--r-sm)
+Hover
+var(--gold) fills from bottom up
+1px solid var(--gold)
+var(--void)
+::before fills translateY(100%)->translateY(0), transition 0.3s cubic-bezier(0.4, 0, 0.2, 1)
+Locked (Blueprint Saved)
+var(--green-dim)
+1px solid var(--green-br)
+var(--green-br)
+Text: "Blueprint Saved". cursor: default. No hover effect.
+
+Subtitle below button: "Locks estimate - Creates project folder" — 9px DM Sans, color var(--muted), text-align center, margin-top 7px, letter-spacing 0.08em.
+
+5.12 Fullscreen Overlay
+Property
+Value
+Position / coverage
+position fixed, inset 0, z-index 8000 (below Foundation modals at 9000+)
+Background
+rgba(0,0,0,0.92)
+Backdrop filter
+blur(8px)
+Image constraints
+max-width 90vw, max-height 90vh, object-fit contain, border-radius var(--r)
+Close button position
+position absolute, top 20px, right 20px
+Close button style
+bg transparent, border 1px solid var(--border), color var(--muted), DM Sans 11px, padding 6px 14px, border-radius var(--r-sm)
+Close button hover
+border-color var(--border-warm), color var(--white)
+Dismiss triggers
+Click outside image (overlay click), Escape key
+
+6. Animations
+Name
+Definition
+Applied to
+vsLoadCell
+0%,100%: transparent opacity 0.4 | 50%: var(--gold) opacity 1
+9 loading grid cells, staggered delays 0s-0.5s
+vsTypingBounce
+0%,100%: opacity 0.3 scaleY(0.6) | 50%: opacity 1 scaleY(1)
+Brief typing indicator dots (3 dots, staggered 0.2s)
+fadeUp
+0: opacity 0 translateY(6px) | 100: opacity 1 translateY(0)
+Chat messages (.vs-chat-msg), brief blocks entering
+pulseDot
+0%,100%: shadow 0 | 70%: shadow 6px rgba fades out
+Live dot in estimate panel
+spin
+100%: rotate(360deg)
+Thumbnail loading spinners
+pulseDot (Foundation)
+Same Foundation keyframe
+AI live dot in brief chat header
+
+Timing Reference
+Action
+Duration
+Easing
+Budget number count-up (desktop)
+1200ms
+cubic ease-out: 1-pow(1-p,3)
+Budget number count-up (mobile)
+1000ms
+cubic ease-out: 1-pow(1-p,3)
+Budget bar fill
+1s + 200ms delay
+ease
+Progress bar updates
+every 350ms
+linear (setInterval)
+Progress bar complete clear
+1000ms delay
+instant clear
+Divider drag response
+None / instant
+CSS transform, no layout reflow
+Thumbnail hover lift
+0.2s
+ease (all properties)
+Variant image swap
+0.4s
+ease (transform scale on hover)
+Chat message appear
+0.22s
+ease both (fadeUp)
+Brief block appear
+0.25s per block + stagger
+ease both (fadeUp)
+Blueprint hover fill
+0.3s
+cubic-bezier(0.4, 0, 0.2, 1)
+Thread dot to gold
+0.3s
+ease (background transition)
+Upload zone hover
+0.25s
+ease (all: border + bg)
+
+7. Visual Consistency Checklist
+Before shipping, verify all items on this list. Failing any item is a visual regression.
+
+Tokens
+	•	All borders use var(--border) or var(--border-warm) only — zero hardcoded rgba values in VS components
+	•	All text colors use var(--white), var(--muted), var(--soft) — no hardcoded hex text colors
+	•	All gold is var(--gold) or var(--gold-br) — no hardcoded #d4b978 or #ecd49a
+	•	All radius is var(--r) or var(--r-sm) — no custom 4px, 8px, or 12px values
+	•	No new CSS custom properties introduced. VS uses zero variables not already in Foundation :root
+
+Layout
+	•	Desktop three columns: exactly 360px | flex-1 | 300px — not 350/320 or any other value
+	•	Thumbnail strip: exactly 80px height — not 72px or 88px
+	•	Thumbnail size: exactly 58px tall, aspect-ratio 16/10 — not 60px or 16/9
+	•	Canvas divider: exactly 1px wide — not 2px or a border
+	•	Divider handle: exactly 18x36px — not 20x40px
+
+Components
+	•	Upload zone dashed border — border-style must be dashed, not solid
+	•	Active thumbnail: border-color var(--gold) — no box-shadow, no glow effect
+	•	Calculate button disabled: bg var(--raised), not var(--card) or var(--lift)
+	•	Progress bar fill: var(--gold), track: var(--raised) — not var(--border)
+	•	Budget bar fill: var(--amber) — not var(--gold) — these are different colors
+	•	Blueprint button hover fills from bottom via ::before translateY — not fade, not background transition
+	•	Fullscreen uses backdrop-filter blur(8px) — not a solid or gradient background
+
+Typography
+	•	Cinzel in exactly three places: VS panel header, budget number, blueprint button text
+	•	DM Sans everywhere else in VS — no Cinzel on labels, chat, estimates, metadata
+	•	Section labels: 9px minimum — never 8px for labels with text, only for metadata badges
+	•	Brief block labels: exactly 8px, letter-spacing 0.18em, uppercase, var(--gold)
+
+Animation
+	•	Chat messages enter with fadeUp 0.22s — not just opacity fade
+	•	Fullscreen has backdrop-filter blur — test in Chrome, it must blur the content behind
+	•	Thread dots animate in staggered order (0 -> 1 -> 2) not simultaneously
+	•	Budget number animates from zero — does not snap to final value on render
+	•	Scrollbars: scrollbar-width thin, scrollbar-color rgba(212,185,120,0.18) transparent on all VS overflow panels

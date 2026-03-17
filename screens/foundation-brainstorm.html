@@ -1,0 +1,785 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<title>Foundation — Brainstorm</title>
+<link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;500;600;700&family=DM+Sans:opsz,wght@9..40,300;9..40,400;9..40,500;9..40,600&display=swap" rel="stylesheet">
+<style>
+:root {
+  --void:#0b0b0c; --base:#111113; --card:#161618; --raised:#1c1c1f; --lift:#242428;
+  --border:rgba(255,255,255,0.055); --border-warm:rgba(210,185,130,0.22);
+  --gold:#d4b978; --gold-br:#ecd49a; --gold-dim:rgba(212,185,120,0.08);
+  --white:#ede9e3; --muted:#5c5850; --soft:#8a8478;
+  --green:#4e7a5e; --green-br:#72b08a; --green-dim:rgba(78,122,94,0.12);
+  --red-br:#cc8888; --red-dim:rgba(204,136,136,0.1);
+  --amber:#d4903a; --amber-dim:rgba(212,144,58,0.12);
+  --blue-br:#7aaac8; --blue-dim:rgba(122,170,200,0.1);
+  --purple:#a07ac8; --purple-dim:rgba(160,122,200,0.1);
+  --r:16px; --r-sm:10px;
+}
+*{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent;}
+html,body{height:100%;}
+body{background:#080809;color:var(--white);font-family:'DM Sans',sans-serif;overflow:hidden;}
+
+.atmo{position:fixed;inset:0;pointer-events:none;z-index:0;
+  background:
+    radial-gradient(ellipse 55% 35% at 30% 0%,rgba(160,122,200,0.04) 0%,transparent 60%),
+    radial-gradient(ellipse 40% 50% at 85% 60%,rgba(212,185,120,0.04) 0%,transparent 55%),
+    radial-gradient(ellipse 30% 40% at 10% 90%,rgba(78,122,94,0.025) 0%,transparent 50%);}
+
+/* VIEW TOGGLE */
+.view-toggle{position:fixed;top:14px;left:50%;transform:translateX(-50%);z-index:9999;display:flex;align-items:center;background:rgba(11,11,12,0.92);border:1px solid var(--border-warm);border-radius:12px;padding:4px;backdrop-filter:blur(20px);box-shadow:0 8px 32px rgba(0,0,0,0.5);}
+.vbtn{display:flex;align-items:center;gap:6px;padding:7px 16px;border-radius:8px;font-family:'DM Sans',sans-serif;font-size:12px;font-weight:500;letter-spacing:0.05em;cursor:pointer;border:none;background:transparent;color:var(--muted);transition:all 0.2s;}
+.vbtn.active{background:var(--gold);color:#0b0b0c;font-weight:600;}
+.vdiv{width:1px;height:18px;background:var(--border);margin:0 2px;}
+
+/* ===== MOBILE SHELL ===== */
+body.mode-mobile{overflow:auto;display:flex;justify-content:center;padding-top:60px;padding-bottom:40px;}
+body.mode-mobile .desktop-shell{display:none;}
+.mobile-shell{width:390px;border-radius:44px;overflow:hidden;box-shadow:0 0 0 10px #0d0d0f,0 0 0 12px #1e1e22,0 0 0 13px #0d0d0f,0 40px 100px rgba(0,0,0,0.9);background:var(--void);min-height:844px;position:relative;flex-shrink:0;display:flex;flex-direction:column;}
+.mobile-shell::before{content:'';position:absolute;top:0;left:50%;transform:translateX(-50%);width:126px;height:34px;background:#0d0d0f;border-radius:0 0 22px 22px;z-index:99;pointer-events:none;}
+body.mode-desktop .mobile-shell{display:none;}
+
+/* ===== DESKTOP SHELL ===== */
+body.mode-desktop{overflow:hidden;display:block;padding:0;}
+.desktop-shell{display:grid;grid-template-columns:64px 1fr;height:100vh;padding-top:52px;}
+
+/* SHARED BUTTONS */
+.btn-primary{display:flex;align-items:center;justify-content:center;gap:7px;padding:10px 18px;border-radius:var(--r-sm);background:var(--gold);color:#0b0b0c;font-family:'DM Sans',sans-serif;font-size:13px;font-weight:600;border:none;cursor:pointer;transition:all 0.2s;letter-spacing:0.02em;white-space:nowrap;}
+.btn-primary:hover{background:var(--gold-br);}
+.btn-primary:active{transform:scale(0.97);}
+.btn-ghost{display:flex;align-items:center;gap:6px;padding:8px 13px;border-radius:8px;background:transparent;border:1px solid var(--border);color:var(--soft);font-family:'DM Sans',sans-serif;font-size:12px;font-weight:500;cursor:pointer;transition:all 0.18s;white-space:nowrap;}
+.btn-ghost:hover{border-color:var(--border-warm);color:var(--white);}
+.btn-icon{width:32px;height:32px;border-radius:8px;background:transparent;border:1px solid var(--border);color:var(--muted);display:flex;align-items:center;justify-content:center;cursor:pointer;transition:all 0.18s;}
+.btn-icon:hover{border-color:var(--border-warm);color:var(--white);}
+
+/* ===== DESKTOP SIDEBAR ===== */
+.d-sidebar{background:var(--base);border-right:1px solid var(--border);display:flex;flex-direction:column;align-items:center;padding:16px 0;gap:4px;position:sticky;top:52px;height:calc(100vh - 52px);}
+.d-nav-item{width:40px;height:40px;border-radius:10px;display:flex;align-items:center;justify-content:center;cursor:pointer;transition:all 0.2s;color:var(--muted);position:relative;}
+.d-nav-item:hover{color:var(--white);background:var(--raised);}
+.d-nav-item.active{color:var(--gold);background:var(--gold-dim);}
+.d-nav-item.active::before{content:'';position:absolute;left:-1px;width:2px;height:18px;background:var(--gold);border-radius:0 2px 2px 0;}
+.d-tooltip{position:absolute;left:50px;background:var(--raised);border:1px solid var(--border);color:var(--white);font-size:10px;letter-spacing:0.08em;text-transform:uppercase;padding:5px 10px;border-radius:6px;white-space:nowrap;opacity:0;pointer-events:none;transition:opacity 0.15s;z-index:100;}
+.d-nav-item:hover .d-tooltip{opacity:1;}
+.d-sidebar-bot{margin-top:auto;display:flex;flex-direction:column;align-items:center;gap:8px;}
+.d-avatar{width:30px;height:30px;border-radius:50%;background:var(--gold-dim);border:1px solid var(--gold);display:flex;align-items:center;justify-content:center;font-size:9px;color:var(--gold);font-weight:700;letter-spacing:0.04em;cursor:pointer;}
+
+/* ===== DESKTOP MAIN ===== */
+.d-main{display:grid;grid-template-rows:auto 1fr;overflow:hidden;height:calc(100vh - 52px);}
+.d-topbar{padding:18px 28px 14px;display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid var(--border);flex-shrink:0;}
+.d-topbar-left{display:flex;flex-direction:column;gap:2px;}
+.d-page-title{font-family:'Cinzel',serif;font-size:20px;font-weight:700;letter-spacing:0.1em;color:var(--white);}
+.d-page-sub{font-size:11px;color:var(--muted);}
+.d-topbar-right{display:flex;align-items:center;gap:8px;}
+
+/* ===== DESKTOP 3-PANEL LAYOUT ===== */
+.d-panels{display:grid;grid-template-columns:1fr 340px;gap:0;overflow:hidden;height:100%;}
+.d-left{display:grid;grid-template-rows:1fr 240px;border-right:1px solid var(--border);overflow:hidden;}
+.d-right{display:flex;flex-direction:column;overflow:hidden;}
+
+/* ===== PANEL HEADERS ===== */
+.panel-hdr{display:flex;align-items:center;justify-content:space-between;padding:12px 18px;border-bottom:1px solid var(--border);flex-shrink:0;}
+.panel-title{font-family:'Cinzel',serif;font-size:11px;font-weight:600;letter-spacing:0.12em;text-transform:uppercase;color:var(--soft);display:flex;align-items:center;gap:8px;}
+.panel-title-dot{width:5px;height:5px;border-radius:50%;}
+.panel-actions{display:flex;align-items:center;gap:6px;}
+
+/* ===== NOTEPAD ===== */
+.notepad-wrap{flex:1;overflow:hidden;display:flex;flex-direction:column;position:relative;}
+.notepad-meta{display:flex;align-items:center;justify-content:space-between;padding:8px 18px;border-bottom:1px solid rgba(255,255,255,0.03);flex-shrink:0;}
+.notepad-project-tag{display:flex;align-items:center;gap:6px;font-size:11px;color:var(--muted);}
+.notepad-project-tag select{background:transparent;border:none;outline:none;color:var(--soft);font-family:'DM Sans',sans-serif;font-size:11px;cursor:pointer;}
+.notepad-project-tag select option{background:var(--raised);color:var(--white);}
+.notepad-wordcount{font-size:10px;color:var(--muted);}
+.notepad-textarea{flex:1;width:100%;background:transparent;border:none;outline:none;resize:none;font-family:'DM Sans',sans-serif;font-size:14px;line-height:1.75;color:var(--white);padding:20px 22px;caret-color:var(--gold);}
+.notepad-textarea::placeholder{color:var(--muted);}
+.notepad-toolbar{display:flex;align-items:center;gap:6px;padding:10px 16px;border-top:1px solid var(--border);flex-shrink:0;background:var(--void);}
+.ntb-btn{padding:5px 10px;border-radius:6px;font-size:10px;font-weight:500;letter-spacing:0.05em;color:var(--muted);border:1px solid transparent;cursor:pointer;background:transparent;transition:all 0.15s;font-family:'DM Sans',sans-serif;}
+.ntb-btn:hover{color:var(--white);border-color:var(--border);}
+.ntb-btn.active{color:var(--gold);border-color:var(--border-warm);background:var(--gold-dim);}
+.ntb-sep{width:1px;height:14px;background:var(--border);margin:0 2px;}
+.ntb-spacer{flex:1;}
+
+/* ===== AI FEEDBACK PANEL ===== */
+.ai-panel{display:flex;flex-direction:column;overflow:hidden;border-top:1px solid var(--border);}
+.ai-input-area{padding:14px 18px;border-top:1px solid var(--border);flex-shrink:0;background:rgba(0,0,0,0.15);}
+.ai-input-row{display:flex;align-items:flex-end;gap:8px;}
+.ai-textarea{flex:1;background:var(--raised);border:1px solid var(--border);border-radius:10px;padding:10px 14px;font-family:'DM Sans',sans-serif;font-size:13px;color:var(--white);resize:none;outline:none;min-height:40px;max-height:100px;line-height:1.5;transition:border-color 0.2s;caret-color:var(--gold);}
+.ai-textarea:focus{border-color:var(--border-warm);}
+.ai-textarea::placeholder{color:var(--muted);}
+.ai-send-btn{width:36px;height:36px;border-radius:9px;background:var(--gold);border:none;cursor:pointer;display:flex;align-items:center;justify-content:center;color:#0b0b0c;transition:all 0.18s;flex-shrink:0;}
+.ai-send-btn:hover{background:var(--gold-br);}
+.ai-send-btn:active{transform:scale(0.94);}
+.ai-send-btn:disabled{background:var(--muted);cursor:not-allowed;opacity:0.5;}
+.ai-messages{flex:1;overflow-y:auto;padding:14px 18px;display:flex;flex-direction:column;gap:12px;scrollbar-width:thin;scrollbar-color:var(--border) transparent;}
+.ai-msg{display:flex;gap:10px;animation:fadeUp 0.25s ease both;}
+.ai-msg-avatar{width:24px;height:24px;border-radius:50%;flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:9px;font-weight:700;letter-spacing:0.05em;margin-top:2px;}
+.ai-msg-avatar.user-av{background:var(--raised);border:1px solid var(--border);color:var(--soft);}
+.ai-msg-avatar.ai-av{background:var(--gold-dim);border:1px solid var(--border-warm);color:var(--gold);}
+.ai-msg-bubble{flex:1;}
+.ai-msg-name{font-size:9px;font-weight:600;letter-spacing:0.1em;text-transform:uppercase;margin-bottom:5px;}
+.ai-msg-name.user-name{color:var(--muted);}
+.ai-msg-name.ai-name{color:var(--gold);}
+.ai-msg-text{font-size:13px;line-height:1.65;color:var(--white);}
+.ai-msg-text p{margin-bottom:6px;}
+.ai-msg-text p:last-child{margin-bottom:0;}
+.ai-msg-text strong{color:var(--gold-br);font-weight:600;}
+.ai-msg-time{font-size:9px;color:var(--muted);margin-top:5px;}
+.ai-typing{display:flex;align-items:center;gap:4px;padding:4px 0;}
+.ai-typing-dot{width:5px;height:5px;border-radius:50%;background:var(--gold);opacity:0.4;animation:typingPulse 1.2s infinite;}
+.ai-typing-dot:nth-child(2){animation-delay:0.2s;}
+.ai-typing-dot:nth-child(3){animation-delay:0.4s;}
+.ai-quick-prompts{display:flex;gap:6px;flex-wrap:wrap;padding:8px 18px 0;}
+.ai-quick{padding:5px 10px;border-radius:20px;font-size:10px;border:1px solid var(--border);color:var(--muted);cursor:pointer;transition:all 0.15s;background:transparent;font-family:'DM Sans',sans-serif;white-space:nowrap;}
+.ai-quick:hover{border-color:var(--border-warm);color:var(--white);}
+
+/* ===== LOG PANEL ===== */
+.log-panel{flex:1;overflow-y:auto;padding:12px 18px;display:flex;flex-direction:column;gap:6px;scrollbar-width:thin;scrollbar-color:var(--border) transparent;}
+.log-entry{display:flex;gap:10px;padding:8px 10px;border-radius:8px;background:transparent;border:1px solid transparent;transition:all 0.15s;cursor:default;animation:fadeUp 0.2s ease both;}
+.log-entry:hover{background:var(--raised);border-color:var(--border);}
+.log-time{font-size:9px;color:var(--muted);font-variant-numeric:tabular-nums;letter-spacing:0.04em;flex-shrink:0;padding-top:2px;min-width:38px;}
+.log-dot{width:6px;height:6px;border-radius:50%;flex-shrink:0;margin-top:5px;}
+.log-text{font-size:12px;line-height:1.5;color:var(--soft);flex:1;}
+.log-text strong{color:var(--white);font-weight:500;}
+.log-tag{display:inline-flex;align-items:center;padding:2px 7px;border-radius:10px;font-size:9px;font-weight:600;letter-spacing:0.07em;text-transform:uppercase;margin-left:6px;}
+.lt-note{background:var(--blue-dim);color:var(--blue-br);}
+.lt-ai{background:var(--gold-dim);color:var(--gold);}
+.lt-insight{background:var(--purple-dim);color:var(--purple);}
+.lt-action{background:var(--green-dim);color:var(--green-br);}
+.log-add-bar{display:flex;align-items:center;gap:8px;padding:10px 18px;border-top:1px solid var(--border);flex-shrink:0;}
+.log-add-input{flex:1;background:transparent;border:none;outline:none;font-family:'DM Sans',sans-serif;font-size:12px;color:var(--white);caret-color:var(--gold);}
+.log-add-input::placeholder{color:var(--muted);}
+
+/* ===== MOBILE LAYOUT ===== */
+.m-header{padding:40px 20px 0;flex-shrink:0;}
+.m-page-title{font-family:'Cinzel',serif;font-size:20px;font-weight:700;letter-spacing:0.1em;color:var(--white);}
+.m-page-sub{font-size:11px;color:var(--muted);margin-bottom:12px;}
+.m-tabs{display:flex;gap:0;background:var(--card);border:1px solid var(--border);border-radius:var(--r-sm);overflow:hidden;margin-bottom:16px;}
+.m-tab{flex:1;padding:10px 8px;text-align:center;font-size:11px;font-weight:500;color:var(--muted);cursor:pointer;transition:all 0.18s;border-right:1px solid var(--border);display:flex;align-items:center;justify-content:center;gap:5px;}
+.m-tab:last-child{border-right:none;}
+.m-tab.active{color:var(--gold);background:var(--gold-dim);}
+.m-panels{flex:1;display:flex;flex-direction:column;overflow:hidden;}
+.m-panel{display:none;flex:1;flex-direction:column;overflow:hidden;}
+.m-panel.active{display:flex;}
+
+/* ===== MOBILE BOTTOM NAV ===== */
+.m-bottom-nav{display:flex;align-items:center;justify-content:space-around;padding:8px 0 28px;border-top:1px solid var(--border);background:var(--void);flex-shrink:0;position:sticky;bottom:0;}
+.m-nav-item{display:flex;flex-direction:column;align-items:center;gap:3px;padding:6px 12px;cursor:pointer;}
+.m-nav-icon{display:flex;align-items:center;justify-content:center;color:var(--muted);}
+.m-nav-label{font-size:8px;text-transform:uppercase;letter-spacing:0.08em;color:var(--muted);}
+.m-nav-item.active .m-nav-label{color:var(--gold);}
+.m-nav-item.active .m-nav-icon{color:var(--gold);}
+.m-fab{width:50px;height:50px;border-radius:50%;background:var(--gold);display:flex;align-items:center;justify-content:center;color:#0b0b0c;box-shadow:0 4px 20px rgba(212,185,120,0.35);cursor:pointer;transition:all 0.2s;border:none;}
+.m-fab:hover{background:var(--gold-br);transform:scale(1.05);}
+
+/* ===== AI INSIGHT CARDS ===== */
+.insight-card{background:var(--raised);border:1px solid var(--border);border-radius:var(--r-sm);padding:12px 14px;margin-bottom:8px;}
+.insight-card.gold{border-color:var(--border-warm);background:var(--gold-dim);}
+.insight-card.purple{border-color:rgba(160,122,200,0.2);background:var(--purple-dim);}
+.insight-card.green{border-color:rgba(78,122,94,0.2);background:var(--green-dim);}
+.insight-label{font-size:9px;font-weight:600;letter-spacing:0.1em;text-transform:uppercase;margin-bottom:6px;display:flex;align-items:center;gap:6px;}
+.insight-text{font-size:12px;line-height:1.6;color:var(--white);}
+.insight-actions{display:flex;gap:6px;margin-top:10px;flex-wrap:wrap;}
+.insight-action{padding:4px 10px;border-radius:20px;font-size:10px;border:1px solid var(--border);color:var(--soft);cursor:pointer;transition:all 0.15s;background:transparent;font-family:'DM Sans',sans-serif;}
+.insight-action:hover{border-color:var(--border-warm);color:var(--white);}
+
+/* ===== DECORATIVE GRID LINES ===== */
+.grid-lines{position:fixed;inset:0;pointer-events:none;z-index:0;opacity:0.018;
+  background-image:linear-gradient(var(--gold) 1px,transparent 1px),linear-gradient(90deg,var(--gold) 1px,transparent 1px);
+  background-size:40px 40px;}
+
+@keyframes fadeUp{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:translateY(0)}}
+@keyframes typingPulse{0%,100%{opacity:0.3;transform:scale(0.8)}50%{opacity:1;transform:scale(1)}}
+@keyframes shimmer{0%{opacity:0.4}50%{opacity:0.8}100%{opacity:0.4}}
+
+/* ===== THEMED SCROLLBARS ===== */
+::-webkit-scrollbar { width: 4px; height: 4px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: rgba(212,185,120,0.18); border-radius: 4px; }
+::-webkit-scrollbar-thumb:hover { background: rgba(212,185,120,0.38); }
+::-webkit-scrollbar-corner { background: transparent; }
+* { scrollbar-width: thin; scrollbar-color: rgba(212,185,120,0.18) transparent; }
+</style>
+</head>
+<body class="mode-desktop">
+<div class="atmo"></div>
+<div class="grid-lines"></div>
+
+<div class="view-toggle">
+  <button class="vbtn" id="btn-mobile" onclick="setView('mobile')">
+    <svg width="12" height="12" viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"><rect x="3" y="1" width="8" height="12" rx="1.5"/><circle cx="7" cy="10.5" r="0.8" fill="currentColor" stroke="none"/></svg>
+    Mobile
+  </button>
+  <div class="vdiv"></div>
+  <button class="vbtn active" id="btn-desktop" onclick="setView('desktop')">
+    <svg width="12" height="12" viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"><rect x="1" y="2" width="12" height="8" rx="1"/><line x1="4" y1="12" x2="10" y2="12"/><line x1="7" y1="10" x2="7" y2="12"/></svg>
+    Desktop
+  </button>
+</div>
+
+<!-- ============================================================ MOBILE -->
+<div class="mobile-shell" id="mobile-view">
+  <div class="m-header">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:4px;">
+      <div>
+        <div class="m-page-title">Brainstorm</div>
+        <div class="m-page-sub">Kitchen Remodel</div>
+      </div>
+      <div style="display:flex;gap:6px">
+        <button class="btn-ghost" style="padding:7px 11px;font-size:11px" onclick="saveNote()">Save</button>
+        <button class="btn-primary" style="padding:7px 11px;font-size:11px" onclick="sendToAI_m()">Ask AI</button>
+      </div>
+    </div>
+    <!-- 3-tab switcher -->
+    <div class="m-tabs">
+      <div class="m-tab active" id="mt-note" onclick="mTab('note')">
+        <svg width="12" height="12" viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"><rect x="2" y="1.5" width="10" height="11" rx="1"/><line x1="4.5" y1="5" x2="9.5" y2="5"/><line x1="4.5" y1="7.5" x2="9.5" y2="7.5"/><line x1="4.5" y1="10" x2="7" y2="10"/></svg>
+        Notes
+      </div>
+      <div class="m-tab" id="mt-ai" onclick="mTab('ai')">
+        <svg width="12" height="12" viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round"><path d="M7 1.5l1.4 3.1 3.5.35-2.45 2.45.7 3.5L7 9.3l-3.15 1.55.7-3.5L2.1 4.95l3.5-.35z"/></svg>
+        AI Coach
+      </div>
+      <div class="m-tab" id="mt-log" onclick="mTab('log')">
+        <svg width="12" height="12" viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"><line x1="2" y1="3" x2="12" y2="3"/><line x1="2" y1="6" x2="12" y2="6"/><line x1="2" y1="9" x2="9" y2="9"/><line x1="2" y1="12" x2="7" y2="12"/></svg>
+        Log
+      </div>
+    </div>
+  </div>
+
+  <div class="m-panels">
+    <!-- MOBILE: NOTES -->
+    <div class="m-panel active" id="mp-note">
+      <textarea class="notepad-textarea" id="m-notepad" placeholder="Start typing your ideas... What are you trying to figure out? What's the vision? Don't edit yourself — this is your thinking space." oninput="updateWordCount(this,'m-wc')"></textarea>
+      <div style="display:flex;align-items:center;justify-content:space-between;padding:8px 16px;border-top:1px solid var(--border);background:var(--void);">
+        <div style="display:flex;gap:5px">
+          <button class="ntb-btn" onclick="insertTag('[IDEA]')">Idea</button>
+          <button class="ntb-btn" onclick="insertTag('[?]')">Question</button>
+          <button class="ntb-btn" onclick="insertTag('[COST]')">Cost</button>
+          <button class="ntb-btn" onclick="insertTag('[DO]')">Action</button>
+        </div>
+        <div style="font-size:10px;color:var(--muted)" id="m-wc">0 words</div>
+      </div>
+    </div>
+
+    <!-- MOBILE: AI -->
+    <div class="m-panel" id="mp-ai">
+      <div class="ai-quick-prompts" id="m-quick-prompts">
+        <button class="ai-quick" onclick="quickPrompt('Analyze my notes and give me a priority order')">Prioritize</button>
+        <button class="ai-quick" onclick="quickPrompt('What am I missing or haven\'t considered?')">Gaps?</button>
+        <button class="ai-quick" onclick="quickPrompt('What is a realistic budget estimate for this?')">Budget check</button>
+        <button class="ai-quick" onclick="quickPrompt('What should I do first this weekend?')">Weekend plan</button>
+      </div>
+      <div class="ai-messages" id="m-ai-messages" style="flex:1;padding:12px 16px;"></div>
+      <div class="ai-input-area" style="padding:10px 14px;">
+        <div class="ai-input-row">
+          <textarea class="ai-textarea" id="m-ai-input" rows="1" placeholder="Ask anything about your project..." onkeydown="handleAIKey(event,'m')"></textarea>
+          <button class="ai-send-btn" id="m-ai-send" onclick="sendToAI('m')">
+            <svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><line x1="14" y1="2" x2="2" y2="8"/><line x1="14" y1="2" x2="9" y2="14"/><line x1="2" y1="8" x2="9" y2="14"/></svg>
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- MOBILE: LOG -->
+    <div class="m-panel" id="mp-log">
+      <div class="log-panel" id="m-log-list" style="flex:1;"></div>
+      <div class="log-add-bar" style="background:var(--void);">
+        <svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="var(--muted)" stroke-width="1.3" stroke-linecap="round"><line x1="8" y1="2" x2="8" y2="14"/><line x1="2" y1="8" x2="14" y2="8"/></svg>
+        <input class="log-add-input" placeholder="Add a note to the log..." onkeydown="addLogEntry(event,'m')">
+      </div>
+    </div>
+  </div>
+
+  <!-- Bottom nav -->
+  <div class="m-bottom-nav">
+    <div class="m-nav-item"><div class="m-nav-icon"><svg width="18" height="18" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round"><path d="M2 9L10 2.5 18 9"/><path d="M4.5 7.5V17.5H8.5V13H11.5V17.5H15.5V7.5"/></svg></div><div class="m-nav-label">Home</div></div>
+    <div class="m-nav-item"><div class="m-nav-icon"><svg width="18" height="18" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"><rect x="2" y="2" width="6.5" height="6.5" rx="1"/><rect x="11.5" y="2" width="6.5" height="6.5" rx="1"/><rect x="2" y="11.5" width="6.5" height="6.5" rx="1"/><rect x="11.5" y="11.5" width="6.5" height="6.5" rx="1"/></svg></div><div class="m-nav-label">Projects</div></div>
+    <div class="m-nav-item"><button class="m-fab"><svg width="18" height="18" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><line x1="10" y1="3" x2="10" y2="17"/><line x1="3" y1="10" x2="17" y2="10"/></svg></button></div>
+    <div class="m-nav-item active"><div class="m-nav-icon"><svg width="18" height="18" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round"><path d="M10 2.5l2 4.5 5 .5-3.5 3.5 1 5L10 14l-4.5 2.5 1-5L3 8l5-.5z"/></svg></div><div class="m-nav-label" style="color:var(--gold)">Think</div></div>
+    <div class="m-nav-item"><div class="m-nav-icon"><svg width="18" height="18" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"><circle cx="10" cy="10" r="7.5"/><path d="M10 6.5v7M8 8.5c0-1.1.9-2 2-2s2 .9 2 2-.9 1.5-2 1.5-2 .4-2 1.5.9 2 2 2 2-.9 2-2"/></svg></div><div class="m-nav-label">Budget</div></div>
+  </div>
+</div>
+
+<!-- ============================================================ DESKTOP -->
+<div class="desktop-shell" id="desktop-view">
+  <!-- Sidebar -->
+  <div class="d-sidebar">
+    <div style="margin-bottom:16px;">
+      <svg width="28" height="28" viewBox="0 0 34 34" fill="none">
+        <circle cx="17" cy="17" r="15.5" stroke="#d4b978" stroke-width="0.7" opacity="0.55"/>
+        <path d="M17 3.5 L30.5 17 L17 30.5 L3.5 17 Z" stroke="#d4b978" stroke-width="0.7" fill="none"/>
+        <path d="M17 9.5 L24.5 17 L17 24.5 L9.5 17 Z" stroke="#d4b978" stroke-width="0.45" fill="rgba(212,185,120,0.06)"/>
+        <circle cx="17" cy="17" r="1.8" fill="#d4b978"/>
+      </svg>
+    </div>
+    <div class="d-nav-item"><svg width="18" height="18" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round"><path d="M2 9L10 2.5 18 9"/><path d="M4.5 7.5V17.5H8.5V13H11.5V17.5H15.5V7.5"/></svg><span class="d-tooltip">Command</span></div>
+    <div class="d-nav-item"><svg width="18" height="18" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"><rect x="2" y="2" width="6.5" height="6.5" rx="1"/><rect x="11.5" y="2" width="6.5" height="6.5" rx="1"/><rect x="2" y="11.5" width="6.5" height="6.5" rx="1"/><rect x="11.5" y="11.5" width="6.5" height="6.5" rx="1"/></svg><span class="d-tooltip">Projects</span></div>
+    <div class="d-nav-item"><svg width="18" height="18" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"><rect x="2.5" y="2.5" width="15" height="15" rx="1"/><line x1="2.5" y1="7" x2="17.5" y2="7"/><line x1="7" y1="7" x2="7" y2="17.5"/><line x1="10" y1="10" x2="15" y2="10"/><line x1="10" y1="13" x2="15" y2="13"/></svg><span class="d-tooltip">Blueprint</span></div>
+    <div class="d-nav-item"><svg width="18" height="18" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round"><circle cx="10" cy="10" r="7.5"/><path d="M10 6.5v7M8 8.5c0-1.1.9-2 2-2s2 .9 2 2-.9 1.5-2 1.5-2 .4-2 1.5.9 2 2 2 2-.9 2-2"/></svg><span class="d-tooltip">Budget</span></div>
+    <div class="d-nav-item"><svg width="18" height="18" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round"><path d="M10 2.5L17.5 7v6L10 17.5 2.5 13V7z"/><polyline points="2.5,7 10,11.5 17.5,7"/><line x1="10" y1="11.5" x2="10" y2="17.5"/></svg><span class="d-tooltip">Materials</span></div>
+    <div class="d-nav-item active"><svg width="18" height="18" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round"><path d="M10 2.5l2 4.5 5 .5-3.5 3.5 1 5L10 14l-4.5 2.5 1-5L3 8l5-.5z"/></svg><span class="d-tooltip">Brainstorm</span></div>
+    <div class="d-nav-item"><svg width="18" height="18" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round"><circle cx="10" cy="10" r="7.5"/><circle cx="10" cy="10" r="2.5"/><line x1="10" y1="2.5" x2="10" y2="7.5"/><line x1="10" y1="12.5" x2="10" y2="17.5"/><line x1="2.5" y1="10" x2="7.5" y2="10"/><line x1="12.5" y1="10" x2="17.5" y2="10"/></svg><span class="d-tooltip">House Memory</span></div>
+    <div class="d-sidebar-bot">
+      <div class="d-nav-item"><svg width="18" height="18" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"><circle cx="10" cy="10" r="2.5"/><path d="M10 2v1.5M10 16.5V18M2 10h1.5M16.5 10H18M4.4 4.4l1.1 1.1M14.5 14.5l1.1 1.1M4.4 15.6l1.1-1.1M14.5 5.5l1.1-1.1"/></svg><span class="d-tooltip">Settings</span></div>
+      <div class="d-avatar">L+M</div>
+    </div>
+  </div>
+
+  <!-- Main -->
+  <div class="d-main">
+    <div class="d-topbar">
+      <div class="d-topbar-left">
+        <div class="d-page-title">Brainstorm</div>
+        <div class="d-page-sub">
+          Project: 
+          <select id="d-project-select" style="background:transparent;border:none;outline:none;color:var(--gold);font-family:'DM Sans',sans-serif;font-size:11px;cursor:pointer;" onchange="projectChanged(this.value)">
+            <option value="kitchen">Kitchen Remodel</option>
+            <option value="fence">Back Fence Repaint</option>
+            <option value="hardware">Cabinet Hardware Swap</option>
+            <option value="garage">Garage Conversion</option>
+            <option value="general">General / No Project</option>
+          </select>
+        </div>
+      </div>
+      <div class="d-topbar-right">
+        <button class="btn-ghost" onclick="clearAll()">
+          <svg width="13" height="13" viewBox="0 0 15 15" fill="none" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"><line x1="3" y1="3" x2="12" y2="12"/><line x1="12" y1="3" x2="3" y2="12"/></svg>
+          Clear
+        </button>
+        <button class="btn-ghost" onclick="exportSession()">
+          <svg width="13" height="13" viewBox="0 0 15 15" fill="none" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round"><path d="M2 10v3a1 1 0 001 1h9a1 1 0 001-1v-3"/><line x1="7.5" y1="2" x2="7.5" y2="10"/><polyline points="4.5,7 7.5,10 10.5,7"/></svg>
+          Export
+        </button>
+        <button class="btn-ghost" onclick="saveNote()">
+          <svg width="13" height="13" viewBox="0 0 15 15" fill="none" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round"><path d="M2 2h8l3 3v8a1 1 0 01-1 1H2a1 1 0 01-1-1V3a1 1 0 011-1z"/><rect x="4" y="8" width="7" height="5"/><rect x="4" y="1" width="5" height="3"/></svg>
+          Save
+        </button>
+        <button class="btn-primary" onclick="analyzeNotes()">
+          <svg width="13" height="13" viewBox="0 0 15 15" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M7.5 1.5l1.4 3.1 3.5.35-2.45 2.45.7 3.5L7.5 9.3l-3.15 1.55.7-3.5L2.6 4.95l3.5-.35z"/></svg>
+          Analyze Notes
+        </button>
+      </div>
+    </div>
+
+    <!-- 3-panel grid -->
+    <div class="d-panels">
+      <!-- LEFT: Notepad + AI input -->
+      <div class="d-left">
+
+        <!-- NOTEPAD -->
+        <div class="notepad-wrap">
+          <div class="panel-hdr">
+            <div class="panel-title">
+              <div class="panel-title-dot" style="background:var(--blue-br)"></div>
+              Open Notepad
+            </div>
+            <div class="panel-actions">
+              <span id="d-wc" style="font-size:10px;color:var(--muted)">0 words</span>
+              <div class="ntb-sep"></div>
+              <button class="ntb-btn" onclick="insertTagD('[IDEA]')">Idea</button>
+              <button class="ntb-btn" onclick="insertTagD('[?]')">Question</button>
+              <button class="ntb-btn" onclick="insertTagD('[COST]')">Cost</button>
+              <button class="ntb-btn" onclick="insertTagD('[DO]')">Action</button>
+              <button class="ntb-btn" onclick="insertTagD('[BLOCKED]')">Blocked</button>
+            </div>
+          </div>
+          <textarea class="notepad-textarea" id="d-notepad"
+            placeholder="Start dumping your thoughts here. No format required.
+
+[IDEA] Use open shelving to save $800 on upper cabinets
+[?] Do we need a permit for moving that wall?
+[COST] Countertops — quartz vs laminate gap is maybe $1,200
+[DO] Call Lowe's about backsplash tile lead time
+
+The AI will read your notes when you hit Analyze Notes."
+            oninput="updateWordCount(this,'d-wc')"></textarea>
+        </div>
+
+        <!-- AI CHAT PANEL (bottom of left col) -->
+        <div class="ai-panel">
+          <div class="panel-hdr">
+            <div class="panel-title">
+              <div class="panel-title-dot" style="background:var(--gold)"></div>
+              AI Coach
+            </div>
+            <div class="panel-actions">
+              <button class="ai-quick" onclick="quickPrompt('Prioritize the items in my notes by impact')">Prioritize</button>
+              <button class="ai-quick" onclick="quickPrompt('What am I missing or haven\'t considered?')">Gaps?</button>
+              <button class="ai-quick" onclick="quickPrompt('Give me a weekend-only action plan from my notes')">Weekend plan</button>
+              <button class="ai-quick" onclick="quickPrompt('What is a realistic total cost estimate?')">Cost check</button>
+            </div>
+          </div>
+          <div class="ai-messages" id="d-ai-messages"></div>
+          <div class="ai-input-area">
+            <div class="ai-input-row">
+              <textarea class="ai-textarea" id="d-ai-input" rows="1"
+                placeholder="Ask about your project, get feedback on your notes, or think out loud..."
+                onkeydown="handleAIKey(event,'d')"></textarea>
+              <button class="ai-send-btn" id="d-ai-send" onclick="sendToAI('d')">
+                <svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><line x1="14" y1="2" x2="2" y2="8"/><line x1="14" y1="2" x2="9" y2="14"/><line x1="2" y1="8" x2="9" y2="14"/></svg>
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- RIGHT: Activity Log -->
+      <div class="d-right">
+        <div class="panel-hdr">
+          <div class="panel-title">
+            <div class="panel-title-dot" style="background:var(--green-br)"></div>
+            Session Log
+          </div>
+          <div class="panel-actions">
+            <button class="btn-icon" title="Clear log" onclick="clearLog()">
+              <svg width="12" height="12" viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"><line x1="3" y1="3" x2="11" y2="11"/><line x1="11" y1="3" x2="3" y2="11"/></svg>
+            </button>
+          </div>
+        </div>
+        <div class="log-panel" id="d-log-list"></div>
+        <div class="log-add-bar">
+          <svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="var(--muted)" stroke-width="1.3" stroke-linecap="round"><line x1="8" y1="2" x2="8" y2="14"/><line x1="2" y1="8" x2="14" y2="8"/></svg>
+          <input class="log-add-input" id="d-log-input" placeholder="Add observation, decision, or note..." onkeydown="addLogEntry(event,'d')">
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+var currentProject = 'Kitchen Remodel';
+var aiHistory = [];
+var logEntries = [];
+var savedNoteText = '';
+
+// ===== INIT =====
+window.addEventListener('load', function() {
+  addLog('Session started', 'action');
+  addLog('Project: ' + currentProject, 'note');
+  renderLog('d');
+  renderLog('m');
+  initAIWelcome();
+  autoGrow(document.getElementById('d-ai-input'));
+  autoGrow(document.getElementById('m-ai-input'));
+});
+
+function initAIWelcome() {
+  var welcome = {
+    role: 'ai',
+    text: 'Ready to help you think through ' + currentProject + '. Paste your ideas into the notepad and hit Analyze Notes, or just ask me anything. I can help with scope, costs, sequencing, or just thinking out loud.',
+    time: now()
+  };
+  aiHistory.push(welcome);
+  renderMessages('d');
+  renderMessages('m');
+}
+
+// ===== VIEW TOGGLE =====
+function setView(mode) {
+  document.body.className = 'mode-' + mode;
+  document.getElementById('btn-mobile').classList.toggle('active', mode === 'mobile');
+  document.getElementById('btn-desktop').classList.toggle('active', mode === 'desktop');
+}
+
+// ===== MOBILE TABS =====
+function mTab(tab) {
+  ['note','ai','log'].forEach(function(t) {
+    document.getElementById('mt-' + t).classList.toggle('active', t === tab);
+    document.getElementById('mp-' + t).classList.toggle('active', t === tab);
+  });
+}
+
+// ===== WORD COUNT =====
+function updateWordCount(el, id) {
+  var words = el.value.trim() ? el.value.trim().split(/\s+/).length : 0;
+  var wc = document.getElementById(id);
+  if (wc) wc.textContent = words + (words === 1 ? ' word' : ' words');
+}
+
+// ===== TAG INSERT =====
+function insertTagD(tag) { insertAtCursor('d-notepad', ' ' + tag + ' '); }
+function insertTag(tag) { insertAtCursor('m-notepad', ' ' + tag + ' '); }
+function insertAtCursor(id, text) {
+  var el = document.getElementById(id);
+  if (!el) return;
+  var s = el.selectionStart, e = el.selectionEnd;
+  el.value = el.value.slice(0, s) + text + el.value.slice(e);
+  el.selectionStart = el.selectionEnd = s + text.length;
+  el.focus();
+  updateWordCount(el, id === 'd-notepad' ? 'd-wc' : 'm-wc');
+}
+
+// ===== AUTO-GROW TEXTAREA =====
+function autoGrow(el) {
+  if (!el) return;
+  el.addEventListener('input', function() {
+    this.style.height = 'auto';
+    this.style.height = Math.min(this.scrollHeight, 100) + 'px';
+  });
+}
+
+// ===== AI SEND =====
+function handleAIKey(e, prefix) {
+  if (e.key === 'Enter' && !e.shiftKey) {
+    e.preventDefault();
+    sendToAI(prefix);
+  }
+}
+
+function quickPrompt(text) {
+  var inp = document.getElementById('d-ai-input');
+  if (inp) inp.value = text;
+  sendToAI('d');
+}
+
+function sendToAI_m() { mTab('ai'); }
+
+async function sendToAI(prefix) {
+  var inputId = prefix + '-ai-input';
+  var sendId = prefix + '-ai-send';
+  var el = document.getElementById(inputId);
+  var sendBtn = document.getElementById(sendId);
+  if (!el) return;
+  var text = el.value.trim();
+  if (!text) return;
+
+  el.value = '';
+  el.style.height = 'auto';
+  if (sendBtn) sendBtn.disabled = true;
+
+  // Add user message
+  aiHistory.push({ role: 'user', text: text, time: now() });
+  renderMessages('d');
+  renderMessages('m');
+  addLog('Asked AI: ' + text.slice(0, 55) + (text.length > 55 ? '...' : ''), 'ai');
+  renderLog('d');
+  renderLog('m');
+
+  // Scroll to bottom
+  scrollAI('d');
+  scrollAI('m');
+
+  // Get notepad context
+  var notepadD = document.getElementById('d-notepad');
+  var notepadM = document.getElementById('m-notepad');
+  var noteContext = (notepadD && notepadD.value.trim()) ? notepadD.value.trim() : (notepadM && notepadM.value.trim() ? notepadM.value.trim() : '');
+
+  // Build context-aware system prompt
+  var systemPrompt = 'You are Foundation AI, a practical home improvement planning coach. ' +
+    'The user is working on: ' + currentProject + '. ' +
+    (noteContext ? 'Their current brainstorm notes: ---\n' + noteContext + '\n---\n' : '') +
+    'Be direct, practical, and specific. Use dollar amounts and time estimates when relevant. ' +
+    'Format responses clearly, use line breaks between key points. Keep responses focused and under 200 words. ' +
+    'When making lists, keep them short (3-5 items max). Reference their notes when relevant.';
+
+  // Add typing indicator
+  aiHistory.push({ role: 'typing', time: now() });
+  renderMessages('d');
+  renderMessages('m');
+  scrollAI('d');
+  scrollAI('m');
+
+  try {
+    var msgs = [{ role: 'user', content: systemPrompt + '\n\nUser asks: ' + text }];
+
+    var resp = await fetch('https://api.anthropic.com/v1/messages', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        model: 'claude-sonnet-4-20250514',
+        max_tokens: 1000,
+        messages: msgs
+      })
+    });
+
+    var data = await resp.json();
+    var reply = (data.content && data.content[0] && data.content[0].text) ? data.content[0].text : 'Something went wrong. Try again.';
+
+    // Remove typing, add real response
+    aiHistory = aiHistory.filter(function(m) { return m.role !== 'typing'; });
+    aiHistory.push({ role: 'ai', text: reply, time: now() });
+    addLog('AI responded with insight', 'insight');
+
+  } catch(err) {
+    aiHistory = aiHistory.filter(function(m) { return m.role !== 'typing'; });
+    aiHistory.push({ role: 'ai', text: 'Could not connect to AI. Check your network and try again.', time: now() });
+  }
+
+  renderMessages('d');
+  renderMessages('m');
+  scrollAI('d');
+  scrollAI('m');
+  renderLog('d');
+  renderLog('m');
+  if (sendBtn) sendBtn.disabled = false;
+}
+
+// ===== ANALYZE NOTES =====
+async function analyzeNotes() {
+  var notepad = document.getElementById('d-notepad');
+  var notes = notepad ? notepad.value.trim() : '';
+  if (!notes) {
+    var el = document.getElementById('d-ai-input');
+    if (el) el.value = 'I have not written any notes yet. What should I think about for my ' + currentProject + ' project?';
+    sendToAI('d');
+    return;
+  }
+  var el = document.getElementById('d-ai-input');
+  if (el) el.value = 'Please analyze my brainstorm notes above. Give me: 1) Top 3 priorities, 2) Anything I might be missing, 3) One thing I can do this weekend to move forward.';
+  sendToAI('d');
+}
+
+// ===== RENDER AI MESSAGES =====
+function renderMessages(prefix) {
+  var el = document.getElementById(prefix + '-ai-messages');
+  if (!el) return;
+  var html = '';
+  aiHistory.forEach(function(msg, i) {
+    if (msg.role === 'typing') {
+      html += '<div class="ai-msg" style="animation-delay:0s"><div class="ai-msg-avatar ai-av">AI</div><div class="ai-msg-bubble"><div class="ai-msg-name ai-name">Foundation AI</div><div class="ai-typing"><div class="ai-typing-dot"></div><div class="ai-typing-dot"></div><div class="ai-typing-dot"></div></div></div></div>';
+    } else if (msg.role === 'ai') {
+      var formatted = formatAIText(msg.text);
+      html += '<div class="ai-msg" style="animation-delay:' + (i * 0.03) + 's"><div class="ai-msg-avatar ai-av">AI</div><div class="ai-msg-bubble"><div class="ai-msg-name ai-name">Foundation AI</div><div class="ai-msg-text">' + formatted + '</div><div class="ai-msg-time">' + msg.time + '</div></div></div>';
+    } else if (msg.role === 'user') {
+      html += '<div class="ai-msg" style="animation-delay:' + (i * 0.03) + 's"><div class="ai-msg-avatar user-av">You</div><div class="ai-msg-bubble"><div class="ai-msg-name user-name">You</div><div class="ai-msg-text">' + esc(msg.text) + '</div><div class="ai-msg-time">' + msg.time + '</div></div></div>';
+    }
+  });
+  el.innerHTML = html;
+}
+
+function formatAIText(text) {
+  // Bold **text**
+  text = text.replace(/\*\*([^*]+)\*\*/g, '<strong>$1</strong>');
+  // Numbered lists
+  text = text.replace(/^\d+\)\s+(.+)$/gm, '<p style="padding-left:12px;border-left:2px solid var(--border-warm);margin-left:2px">$1</p>');
+  // Bullet points
+  text = text.replace(/^[-*]\s+(.+)$/gm, '<p style="padding-left:12px">&#8250; $1</p>');
+  // Line breaks to paragraphs
+  text = text.split('\n\n').map(function(p) { return '<p>' + p.replace(/\n/g, '<br>') + '</p>'; }).join('');
+  return text;
+}
+
+function scrollAI(prefix) {
+  setTimeout(function() {
+    var el = document.getElementById(prefix + '-ai-messages');
+    if (el) el.scrollTop = el.scrollHeight;
+  }, 50);
+}
+
+// ===== LOG =====
+function addLog(text, type, skipRender) {
+  logEntries.unshift({ text: text, type: type || 'note', time: now() });
+  if (!skipRender) {
+    renderLog('d');
+    renderLog('m');
+  }
+}
+
+function renderLog(prefix) {
+  var el = document.getElementById(prefix + '-log-list');
+  if (!el) return;
+  if (logEntries.length === 0) {
+    el.innerHTML = '<div style="text-align:center;padding:32px 16px;color:var(--muted);font-size:12px">Activity will appear here as you work</div>';
+    return;
+  }
+  var html = '';
+  var typeColors = { note: 'var(--blue-br)', ai: 'var(--gold)', insight: 'var(--purple)', action: 'var(--green-br)' };
+  var typeLabels = { note: 'Note', ai: 'AI', insight: 'Insight', action: 'Action' };
+  logEntries.forEach(function(entry, i) {
+    var color = typeColors[entry.type] || 'var(--muted)';
+    var label = typeLabels[entry.type] || 'Note';
+    html += '<div class="log-entry" style="animation-delay:' + (i * 0.02) + 's">';
+    html += '<div class="log-time">' + entry.time + '</div>';
+    html += '<div class="log-dot" style="background:' + color + ';margin-top:6px"></div>';
+    html += '<div class="log-text"><strong>' + esc(entry.text) + '</strong><span class="log-tag lt-' + entry.type + '">' + label + '</span></div>';
+    html += '</div>';
+  });
+  el.innerHTML = html;
+}
+
+function addLogEntry(e, prefix) {
+  if (e.key !== 'Enter') return;
+  var inputId = prefix === 'd' ? 'd-log-input' : null;
+  var el = inputId ? document.getElementById(inputId) : e.target;
+  if (!el || !el.value.trim()) return;
+  addLog(el.value.trim(), 'note');
+  el.value = '';
+}
+
+function clearLog() {
+  logEntries = [];
+  renderLog('d');
+  renderLog('m');
+}
+
+// ===== PROJECT CHANGE =====
+function projectChanged(val) {
+  var labels = { kitchen: 'Kitchen Remodel', fence: 'Back Fence Repaint', hardware: 'Cabinet Hardware Swap', garage: 'Garage Conversion', general: 'General Brainstorm' };
+  currentProject = labels[val] || val;
+  addLog('Switched to project: ' + currentProject, 'action');
+}
+
+// ===== SAVE / EXPORT / CLEAR =====
+function saveNote() {
+  var notepad = document.getElementById('d-notepad') || document.getElementById('m-notepad');
+  if (!notepad || !notepad.value.trim()) { showToast('Nothing to save yet'); return; }
+  savedNoteText = notepad.value;
+  addLog('Notes saved (' + (savedNoteText.trim().split(/\s+/).length) + ' words)', 'action');
+  showToast('Notes saved');
+}
+
+function exportSession() {
+  var notepad = document.getElementById('d-notepad');
+  var notes = notepad ? notepad.value : '';
+  var aiConvo = aiHistory.filter(function(m) { return m.role !== 'typing'; }).map(function(m) {
+    return (m.role === 'user' ? 'YOU: ' : 'AI: ') + m.text;
+  }).join('\n\n');
+  var log = logEntries.map(function(e) { return '[' + e.time + '] ' + e.text; }).join('\n');
+  var full = '=== FOUNDATION BRAINSTORM SESSION ===\nProject: ' + currentProject + '\nDate: ' + new Date().toLocaleDateString() + '\n\n=== NOTES ===\n' + notes + '\n\n=== AI CONVERSATION ===\n' + aiConvo + '\n\n=== SESSION LOG ===\n' + log;
+  var blob = new Blob([full], { type: 'text/plain' });
+  var a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = 'brainstorm-' + currentProject.toLowerCase().replace(/\s+/g, '-') + '-' + new Date().toISOString().slice(0,10) + '.txt';
+  a.click();
+  addLog('Session exported', 'action');
+  showToast('Session exported');
+}
+
+function clearAll() {
+  if (!confirm('Clear notepad and AI conversation?')) return;
+  var d = document.getElementById('d-notepad'); if (d) d.value = '';
+  var m = document.getElementById('m-notepad'); if (m) m.value = '';
+  aiHistory = [];
+  updateWordCount(document.getElementById('d-notepad') || {value:''}, 'd-wc');
+  initAIWelcome();
+  addLog('Session cleared', 'action');
+  showToast('Cleared');
+}
+
+// ===== UTILS =====
+function now() {
+  var d = new Date();
+  return d.getHours().toString().padStart(2,'0') + ':' + d.getMinutes().toString().padStart(2,'0');
+}
+
+function esc(str) {
+  return String(str).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+
+function showToast(msg) {
+  var t = document.getElementById('toast-el');
+  if (!t) {
+    t = document.createElement('div');
+    t.id = 'toast-el';
+    t.style.cssText = 'position:fixed;bottom:80px;left:50%;transform:translateX(-50%);background:var(--raised);border:1px solid var(--border-warm);color:var(--white);font-size:12px;padding:9px 18px;border-radius:10px;z-index:99999;white-space:nowrap;opacity:0;transition:opacity 0.25s;box-shadow:0 8px 24px rgba(0,0,0,0.4);font-family:\'DM Sans\',sans-serif;';
+    document.body.appendChild(t);
+  }
+  t.textContent = msg;
+  t.style.opacity = '1';
+  clearTimeout(t._timer);
+  t._timer = setTimeout(function() { t.style.opacity = '0'; }, 2400);
+}
+</script>
+</body>
+</html>

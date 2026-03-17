@@ -1,0 +1,1042 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<title>Foundation — Blueprint</title>
+<link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;500;600;700&family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,600;1,9..40,300&display=swap" rel="stylesheet">
+<style>
+/* ===================== TOKENS ===================== */
+:root {
+  --void: #0b0b0c;
+  --base: #111113;
+  --card: #161618;
+  --raised: #1c1c1f;
+  --lift: #242428;
+  --border: rgba(255,255,255,0.055);
+  --border-warm: rgba(210,185,130,0.2);
+  --gold: #d4b978;
+  --gold-br: #ecd49a;
+  --gold-dim: rgba(212,185,120,0.08);
+  --gold-glow: rgba(212,185,120,0.15);
+  --white: #ede9e3;
+  --muted: #5c5850;
+  --soft: #8a8478;
+  --green: #4e7a5e;
+  --green-br: #72b08a;
+  --green-dim: rgba(78,122,94,0.12);
+  --amber: #b07a38;
+  --amber-dim: rgba(176,122,56,0.12);
+  --red: #7a4e4e;
+  --red-br: #cc8888;
+  --red-dim: rgba(122,78,78,0.12);
+  --blue: #4a6a8a;
+  --blue-br: #7aaac8;
+  --blue-dim: rgba(74,106,138,0.12);
+  --r: 14px;
+  --r-sm: 9px;
+}
+
+* { margin:0; padding:0; box-sizing:border-box; -webkit-tap-highlight-color:transparent; }
+html { font-size:16px; }
+body { background:#080809; color:var(--white); font-family:'DM Sans',sans-serif; font-weight:400; min-height:100vh; overflow-x:hidden; }
+
+/* Atmospheric background */
+.atmo {
+  position:fixed; inset:0; pointer-events:none; z-index:0;
+  background:
+    radial-gradient(ellipse 70% 45% at 50% -5%, rgba(212,185,120,0.055) 0%, transparent 65%),
+    radial-gradient(ellipse 40% 55% at 90% 60%, rgba(78,122,94,0.025) 0%, transparent 55%),
+    radial-gradient(ellipse 30% 40% at 5% 90%, rgba(74,106,138,0.02) 0%, transparent 50%);
+}
+
+/* Subtle grid */
+.grid-bg {
+  position:fixed; inset:0; pointer-events:none; z-index:0;
+  background-image: linear-gradient(rgba(255,255,255,0.008) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.008) 1px, transparent 1px);
+  background-size: 48px 48px;
+}
+
+/* ===================== VIEW TOGGLE ===================== */
+.view-toggle {
+  position:fixed; top:18px; left:50%; transform:translateX(-50%);
+  z-index:9999; display:flex; align-items:center; gap:0;
+  background:rgba(11,11,12,0.92); border:1px solid var(--border-warm);
+  border-radius:12px; padding:4px; backdrop-filter:blur(20px);
+  box-shadow:0 8px 32px rgba(0,0,0,0.5);
+}
+.vbtn {
+  display:flex; align-items:center; gap:6px; padding:7px 16px;
+  border-radius:8px; font-family:'DM Sans',sans-serif; font-size:12px;
+  font-weight:500; letter-spacing:0.05em; cursor:pointer; border:none;
+  background:transparent; color:var(--muted); transition:all 0.2s;
+}
+.vbtn.active { background:var(--gold); color:#0b0b0c; font-weight:600; }
+.vdivider { width:1px; height:18px; background:var(--border); margin:0 2px; }
+
+/* ===================== LAYOUT WRAPPER ===================== */
+.page { min-height:100vh; display:flex; align-items:flex-start; justify-content:center; padding-top:76px; position:relative; z-index:1; }
+
+/* ===================== MOBILE SHELL ===================== */
+body.mode-mobile .page { background:#080809; }
+body.mode-mobile .mobile-shell {
+  width:390px; border-radius:44px; overflow:hidden;
+  box-shadow: 0 0 0 10px #0d0d0f, 0 0 0 12px #1e1e22, 0 0 0 13px #0d0d0f, 0 40px 100px rgba(0,0,0,0.9);
+  background:var(--void); min-height:844px; position:relative; flex-shrink:0;
+  padding-bottom:76px;
+}
+body.mode-mobile .mobile-shell::before {
+  content:''; position:absolute; top:0; left:50%; transform:translateX(-50%);
+  width:126px; height:34px; background:#0d0d0f; border-radius:0 0 22px 22px; z-index:999;
+}
+body.mode-desktop .mobile-shell { display:none; }
+
+/* ===================== DESKTOP SHELL ===================== */
+body.mode-mobile .desktop-shell { display:none; }
+body.mode-desktop .page { padding:76px 0 0; align-items:stretch; display:block; }
+body.mode-desktop .desktop-shell {
+  display:grid;
+  grid-template-columns:64px 1fr 300px;
+  grid-template-rows:auto 1fr;
+  min-height:calc(100vh - 76px);
+}
+
+/* ===================== SHARED COMPONENTS ===================== */
+
+/* Section title */
+.sec-title { font-family:'Cinzel',serif; font-size:10px; font-weight:500; letter-spacing:0.22em; text-transform:uppercase; color:var(--gold); }
+
+/* Cinzel headings */
+.cinzel { font-family:'Cinzel',serif; }
+
+/* Icon button */
+.icon-btn { width:34px; height:34px; border-radius:9px; background:var(--card); border:1px solid var(--border); display:flex; align-items:center; justify-content:center; font-size:14px; cursor:pointer; transition:all 0.18s; flex-shrink:0; }
+.icon-btn:hover { border-color:var(--border-warm); }
+
+/* Phase pills */
+.phase-pill {
+  display:inline-flex; align-items:center; gap:5px;
+  font-size:9px; font-weight:600; letter-spacing:0.08em; text-transform:uppercase;
+  padding:3px 9px; border-radius:20px; cursor:pointer; transition:all 0.18s; white-space:nowrap;
+}
+.pp-all    { background:var(--gold-dim);   color:var(--gold);    border:1px solid var(--border-warm); }
+.pp-demo   { background:var(--red-dim);    color:var(--red-br);  border:1px solid rgba(122,78,78,0.2); }
+.pp-frame  { background:var(--amber-dim);  color:#d4903a;        border:1px solid rgba(176,122,56,0.2); }
+.pp-finish { background:var(--green-dim);  color:var(--green-br);border:1px solid rgba(78,122,94,0.2); }
+.pp-inspect{ background:var(--blue-dim);   color:var(--blue-br); border:1px solid rgba(74,106,138,0.2); }
+.phase-pill.active { opacity:1; }
+.phase-pill:not(.active) { opacity:0.45; }
+
+/* Task card — the core unit */
+.task-card {
+  background:var(--card); border:1px solid var(--border);
+  border-radius:var(--r); padding:14px 14px 12px;
+  cursor:grab; transition:all 0.18s;
+  position:relative; overflow:hidden; user-select:none;
+}
+.task-card:hover { border-color:var(--border-warm); transform:translateY(-1px); box-shadow:0 6px 24px rgba(0,0,0,0.3); }
+.task-card.dragging { opacity:0.4; transform:scale(0.97); cursor:grabbing; }
+.task-card.drag-over { border-color:var(--gold); box-shadow:0 0 0 1px var(--gold); }
+.task-card.completed { opacity:0.5; }
+.task-card.completed .task-name { text-decoration:line-through; color:var(--muted); }
+
+/* Left accent bar by phase */
+.task-card::before {
+  content:''; position:absolute; left:0; top:12px; bottom:12px;
+  width:2px; border-radius:0 2px 2px 0;
+}
+.tc-demo::before   { background:var(--red-br); }
+.tc-frame::before  { background:#d4903a; }
+.tc-finish::before { background:var(--green-br); }
+.tc-inspect::before{ background:var(--blue-br); }
+
+.task-top { display:flex; align-items:flex-start; gap:10px; margin-bottom:8px; }
+.task-drag-handle { color:var(--muted); font-size:13px; cursor:grab; padding-top:1px; flex-shrink:0; }
+.task-check {
+  width:18px; height:18px; border-radius:5px; border:1.5px solid var(--border);
+  display:flex; align-items:center; justify-content:center; font-size:9px;
+  cursor:pointer; transition:all 0.15s; flex-shrink:0; margin-top:1px;
+}
+.task-card.completed .task-check { background:var(--green); border-color:var(--green); color:#fff; }
+.task-name { flex:1; font-size:13px; font-weight:500; color:var(--white); line-height:1.35; }
+.task-actions { display:flex; gap:6px; opacity:0; transition:opacity 0.15s; }
+.task-card:hover .task-actions { opacity:1; }
+.task-action-btn { font-size:12px; cursor:pointer; padding:3px; color:var(--muted); transition:color 0.15s; }
+.task-action-btn:hover { color:var(--white); }
+
+.task-meta { display:flex; align-items:center; gap:8px; flex-wrap:wrap; margin-left:28px; }
+.task-tag {
+  font-size:9px; font-weight:600; letter-spacing:0.07em; text-transform:uppercase;
+  padding:2px 7px; border-radius:4px;
+}
+.tt-demo   { background:var(--red-dim);   color:var(--red-br); }
+.tt-frame  { background:var(--amber-dim); color:#d4903a; }
+.tt-finish { background:var(--green-dim); color:var(--green-br); }
+.tt-inspect{ background:var(--blue-dim);  color:var(--blue-br); }
+
+.task-dur { font-size:10px; color:var(--muted); display:flex; align-items:center; gap:3px; }
+.task-owner { width:18px; height:18px; border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:7px; font-weight:700; }
+.to-a { background:rgba(212,185,120,0.15); color:var(--gold); }
+.to-b { background:rgba(78,122,94,0.2); color:var(--green-br); }
+.to-both { background:var(--raised); color:var(--soft); font-size:7px; }
+
+.task-deps { margin-top:8px; margin-left:28px; display:flex; align-items:center; gap:5px; }
+.dep-label { font-size:9px; color:var(--muted); letter-spacing:0.04em; }
+.dep-chip { font-size:9px; background:var(--raised); border:1px solid var(--border); color:var(--soft); padding:1px 7px; border-radius:20px; }
+
+/* Drop zone */
+.drop-zone {
+  height:3px; border-radius:3px; transition:all 0.15s;
+  margin:2px 0; background:transparent;
+}
+.drop-zone.active { height:40px; background:var(--gold-dim); border:1px dashed rgba(212,185,120,0.2); border-radius:var(--r-sm); }
+
+/* Phase group header */
+.phase-group { margin-bottom:4px; }
+.phase-group-header {
+  display:flex; align-items:center; gap:10px;
+  padding:10px 0 8px; cursor:pointer; user-select:none;
+}
+.phase-group-arrow { font-size:10px; color:var(--muted); transition:transform 0.2s; }
+.phase-group-arrow.collapsed { transform:rotate(-90deg); }
+.phase-group-title { font-family:'Cinzel',serif; font-size:11px; letter-spacing:0.15em; text-transform:uppercase; }
+.phase-group-count { font-size:10px; color:var(--muted); }
+.phase-group-bar { flex:1; height:1px; background:var(--border); }
+.phase-group-pct { font-size:10px; font-weight:500; }
+.phase-tasks { display:flex; flex-direction:column; gap:6px; transition:all 0.2s; }
+.phase-tasks.collapsed { display:none; }
+
+/* Progress summary bar */
+.blueprint-progress {
+  background:var(--card); border:1px solid var(--border); border-radius:var(--r);
+  padding:14px 16px; position:relative; overflow:hidden;
+}
+.blueprint-progress::before {
+  content:''; position:absolute; inset:0;
+  background:linear-gradient(135deg,rgba(212,185,120,0.04) 0%, transparent 50%);
+  pointer-events:none;
+}
+.bp-top { display:flex; align-items:center; justify-content:space-between; margin-bottom:12px; }
+.bp-project-name { font-family:'Cinzel',serif; font-size:15px; font-weight:600; color:var(--white); }
+.bp-project-sub { font-size:10px; color:var(--muted); margin-top:2px; letter-spacing:0.03em; }
+.bp-stats { display:flex; gap:16px; }
+.bp-stat { text-align:center; }
+.bp-stat-val { font-family:'Cinzel',serif; font-size:18px; font-weight:600; color:var(--white); }
+.bp-stat-lbl { font-size:9px; color:var(--muted); letter-spacing:0.08em; text-transform:uppercase; margin-top:1px; }
+.bp-bar { height:4px; background:var(--raised); border-radius:4px; overflow:hidden; }
+.bp-fill { height:100%; border-radius:4px; background:linear-gradient(90deg,var(--gold),var(--gold-br)); transition:width 1.2s ease; }
+.bp-phases-row { display:flex; gap:6px; margin-top:10px; flex-wrap:wrap; }
+.bp-phase-mini { display:flex; align-items:center; gap:5px; font-size:10px; color:var(--soft); }
+.bp-phase-dot { width:7px; height:7px; border-radius:50%; }
+
+/* AI Generate button */
+.ai-generate-btn {
+  display:flex; align-items:center; gap:8px; width:100%;
+  background:linear-gradient(135deg, rgba(212,185,120,0.1), rgba(212,185,120,0.06));
+  border:1px solid var(--border-warm); border-radius:var(--r); padding:12px 16px;
+  cursor:pointer; transition:all 0.2s; position:relative; overflow:hidden;
+}
+.ai-generate-btn::after {
+  content:''; position:absolute; inset:0;
+  background:linear-gradient(90deg, transparent, rgba(212,185,120,0.06), transparent);
+  transform:translateX(-100%); transition:transform 0.6s ease;
+}
+.ai-generate-btn:hover::after { transform:translateX(100%); }
+.ai-generate-btn:hover { border-color:var(--gold); box-shadow:0 0 20px rgba(212,185,120,0.1); }
+.ai-orb-sm { width:26px; height:26px; border-radius:50%; background:radial-gradient(circle at 35% 35%, var(--gold-br), var(--gold)); box-shadow:0 0 10px rgba(212,185,120,0.4); flex-shrink:0; animation:breathe 3s ease-in-out infinite; }
+@keyframes breathe { 0%,100%{box-shadow:0 0 10px rgba(212,185,120,0.3)} 50%{box-shadow:0 0 20px rgba(212,185,120,0.6)} }
+.ai-btn-text .title { font-family:'Cinzel',serif; font-size:12px; letter-spacing:0.1em; color:var(--gold); }
+.ai-btn-text .sub { font-size:10px; color:var(--muted); margin-top:1px; }
+.ai-btn-arrow { margin-left:auto; color:var(--gold); font-size:14px; }
+
+/* Add task button */
+.add-task-btn {
+  display:flex; align-items:center; gap:8px;
+  background:transparent; border:1px dashed rgba(255,255,255,0.07);
+  border-radius:var(--r-sm); padding:10px 14px; cursor:pointer;
+  font-size:12px; color:var(--muted); transition:all 0.2s; width:100%;
+}
+.add-task-btn:hover { border-color:var(--border-warm); color:var(--gold); background:var(--gold-dim); }
+
+/* ===================== MOBILE SPECIFIC ===================== */
+.m-header { padding:14px 20px 0; display:flex; align-items:center; justify-content:space-between; }
+.brand-row { display:flex; align-items:center; gap:8px; }
+.brand-mark-sm { width:28px; height:28px; }
+.brand-name { font-family:'Cinzel',serif; font-size:12px; font-weight:600; letter-spacing:0.15em; color:var(--gold); }
+.brand-sub  { font-size:8px; letter-spacing:0.18em; text-transform:uppercase; color:var(--muted); margin-top:1px; }
+
+.m-back-bar {
+  margin:12px 20px 0; display:flex; align-items:center; gap:10px;
+  padding:10px 14px; background:var(--card); border:1px solid var(--border);
+  border-radius:11px; cursor:pointer; transition:all 0.18s;
+}
+.m-back-bar:hover { border-color:var(--border-warm); }
+.m-back-arrow { font-size:14px; color:var(--muted); }
+.m-back-label { font-size:11px; color:var(--muted); letter-spacing:0.04em; }
+.m-back-project { font-size:13px; font-weight:500; color:var(--white); margin-left:auto; }
+.m-back-phase { font-size:10px; color:var(--gold); }
+
+.m-scroll { overflow-y:auto; padding:16px 20px; display:flex; flex-direction:column; gap:16px; -webkit-overflow-scrolling:touch; scrollbar-width:none; }
+.m-scroll
+
+/* Phase filter pills horizontal scroll */
+.phase-filter-scroll { display:flex; gap:7px; overflow-x:auto; margin:0 -20px; padding:0 20px; scrollbar-width:none; -webkit-overflow-scrolling:touch; }
+.phase-filter-scroll
+
+/* Mobile bottom nav */
+.m-nav {
+  position:absolute; bottom:0; left:0; right:0;
+  background:rgba(11,11,12,0.95); backdrop-filter:blur(20px);
+  border-top:1px solid var(--border); padding:10px 0 18px;
+  display:flex; align-items:center; justify-content:space-around; z-index:200;
+}
+.nav-tab { display:flex; flex-direction:column; align-items:center; gap:4px; cursor:pointer; padding:4px 12px; border-radius:10px; transition:all 0.15s; position:relative; }
+.nav-tab:hover { background:var(--raised); }
+.nav-icon  { font-size:18px; line-height:1; }
+.nav-label { font-size:9px; letter-spacing:0.06em; text-transform:uppercase; font-weight:500; color:var(--muted); transition:color 0.15s; }
+.nav-tab.active .nav-label { color:var(--gold); }
+.nav-tab.active .nav-icon  { filter:drop-shadow(0 0 4px rgba(212,185,120,0.5)); }
+.nav-tab.active::before { content:''; position:absolute; top:-10px; left:50%; transform:translateX(-50%); width:24px; height:2px; background:var(--gold); border-radius:0 0 3px 3px; }
+.nav-fab { width:48px; height:48px; border-radius:50%; background:var(--gold); display:flex; align-items:center; justify-content:center; font-size:22px; color:#0b0b0c; font-weight:700; cursor:pointer; box-shadow:0 0 20px rgba(212,185,120,0.3),0 4px 16px rgba(0,0,0,0.4); transition:all 0.15s; margin-top:-10px; border:3px solid var(--void); flex-shrink:0; }
+.nav-fab:hover { background:var(--gold-br); transform:scale(1.05); }
+
+/* ===================== DESKTOP SPECIFIC ===================== */
+.d-sidebar {
+  grid-row:1/-1; background:var(--base); border-right:1px solid var(--border);
+  display:flex; flex-direction:column; align-items:center; padding:20px 0; gap:6px;
+  position:sticky; top:76px; height:calc(100vh - 76px); z-index:10;
+}
+.d-logo { width:30px; height:30px; margin-bottom:20px; }
+.d-nav-item { width:40px; height:40px; border-radius:10px; display:flex; align-items:center; justify-content:center; cursor:pointer; transition:all 0.2s; color:var(--muted); font-size:17px; position:relative; }
+.d-nav-item:hover { color:var(--white); background:var(--raised); }
+.d-nav-item.active { color:var(--gold); background:var(--gold-dim); }
+.d-nav-item.active::before { content:''; position:absolute; left:-1px; width:2px; height:18px; background:var(--gold); border-radius:0 2px 2px 0; }
+.d-tooltip { position:absolute; left:50px; background:var(--raised); border:1px solid var(--border); color:var(--white); font-size:10px; letter-spacing:0.08em; text-transform:uppercase; padding:5px 10px; border-radius:6px; white-space:nowrap; opacity:0; pointer-events:none; transition:opacity 0.15s; }
+.d-nav-item:hover .d-tooltip { opacity:1; }
+.d-sidebar-bot { margin-top:auto; display:flex; flex-direction:column; align-items:center; gap:8px; }
+.d-avatar { width:30px; height:30px; border-radius:50%; background:var(--gold-dim); border:1px solid var(--gold); display:flex; align-items:center; justify-content:center; font-size:9px; color:var(--gold); font-weight:700; cursor:pointer; }
+
+.d-topbar {
+  grid-column:2/-1; padding:20px 24px 0;
+  display:flex; align-items:center; justify-content:space-between;
+  animation:fadeDown 0.5s ease both;
+}
+.d-breadcrumb { display:flex; align-items:center; gap:8px; }
+.d-breadcrumb .bc-back { font-size:12px; color:var(--muted); cursor:pointer; transition:color 0.15s; letter-spacing:0.04em; }
+.d-breadcrumb .bc-back:hover { color:var(--gold); }
+.d-breadcrumb .bc-sep { color:var(--muted); font-size:11px; }
+.d-breadcrumb .bc-current { font-family:'Cinzel',serif; font-size:13px; letter-spacing:0.1em; color:var(--white); }
+.d-topbar-right { display:flex; gap:10px; align-items:center; }
+.btn { display:flex; align-items:center; gap:6px; padding:7px 14px; border-radius:8px; font-family:'DM Sans',sans-serif; font-size:11px; font-weight:500; letter-spacing:0.05em; cursor:pointer; border:none; transition:all 0.2s; }
+.btn-ghost { background:transparent; border:1px solid var(--border); color:var(--soft); }
+.btn-ghost:hover { border-color:var(--border-warm); color:var(--white); }
+.btn-gold { background:var(--gold); color:#0b0b0c; font-weight:600; }
+.btn-gold:hover { background:var(--gold-br); }
+
+/* Desktop two-column content */
+.d-content { padding:22px 22px 40px 24px; display:flex; flex-direction:column; gap:20px; overflow-y:auto; animation:fadeUp 0.5s 0.05s ease both; }
+.d-right-panel { border-left:1px solid var(--border); padding:22px 18px; display:flex; flex-direction:column; gap:18px; overflow-y:auto; background:linear-gradient(180deg,rgba(212,185,120,0.015) 0%,transparent 30%); animation:slideIn 0.5s 0.1s ease both; }
+
+/* Phase filter desktop */
+.d-phase-filters { display:flex; gap:7px; flex-wrap:wrap; }
+
+/* Desktop task list */
+.d-task-list { display:flex; flex-direction:column; gap:5px; }
+
+/* Gantt mini strip — desktop only */
+.gantt-mini {
+  background:var(--card); border:1px solid var(--border); border-radius:var(--r); padding:16px; overflow:hidden;
+}
+.gantt-header { display:flex; justify-content:space-between; margin-bottom:12px; align-items:center; }
+.gantt-months { display:flex; gap:0; flex:1; margin-left:120px; }
+.gantt-month { flex:1; font-size:9px; letter-spacing:0.1em; text-transform:uppercase; color:var(--muted); text-align:center; }
+.gantt-rows { display:flex; flex-direction:column; gap:5px; }
+.gantt-row { display:flex; align-items:center; gap:0; }
+.gantt-label { width:120px; font-size:11px; color:var(--soft); flex-shrink:0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; padding-right:8px; }
+.gantt-track { flex:1; height:20px; background:var(--raised); border-radius:4px; position:relative; overflow:hidden; }
+.gantt-bar { position:absolute; height:100%; border-radius:4px; display:flex; align-items:center; padding:0 6px; font-size:9px; font-weight:600; letter-spacing:0.04em; white-space:nowrap; overflow:hidden; transition:all 0.3s; }
+.gb-demo   { background:rgba(122,78,78,0.35); color:var(--red-br); }
+.gb-frame  { background:rgba(176,122,56,0.35); color:#d4903a; }
+.gb-finish { background:rgba(78,122,94,0.35); color:var(--green-br); }
+.gb-inspect{ background:rgba(74,106,138,0.35); color:var(--blue-br); }
+.gantt-today { position:absolute; top:0; bottom:0; width:1px; background:var(--gold); opacity:0.5; }
+
+/* Right panel cards */
+.rp-card { background:var(--card); border:1px solid var(--border); border-radius:var(--r); padding:14px; }
+.rp-card-title { font-family:'Cinzel',serif; font-size:10px; letter-spacing:0.18em; text-transform:uppercase; color:var(--gold); margin-bottom:12px; }
+
+/* Decision flag */
+.decision-item { display:flex; align-items:flex-start; gap:10px; padding:10px 0; border-bottom:1px solid var(--border); }
+.decision-item:last-child { border-bottom:none; }
+.d-flag { width:28px; height:28px; border-radius:8px; display:flex; align-items:center; justify-content:center; font-size:14px; flex-shrink:0; }
+.df-urgent { background:rgba(122,78,78,0.15); }
+.df-normal { background:var(--gold-dim); }
+.decision-body { flex:1; }
+.decision-body h4 { font-size:12px; font-weight:500; color:var(--white); margin-bottom:2px; }
+.decision-body p { font-size:10px; color:var(--muted); }
+.decision-due { font-size:9px; color:var(--red-br); font-weight:600; letter-spacing:0.04em; margin-top:3px; }
+
+/* Notes area */
+.notes-textarea {
+  width:100%; background:var(--raised); border:1px solid var(--border); border-radius:var(--r-sm);
+  padding:10px 12px; color:var(--white); font-family:'DM Sans',sans-serif; font-size:12px;
+  font-weight:300; line-height:1.5; outline:none; resize:none; transition:border-color 0.2s;
+  min-height:80px;
+}
+.notes-textarea::placeholder { color:var(--muted); }
+.notes-textarea:focus { border-color:var(--border-warm); }
+
+/* Animations */
+@keyframes fadeDown { from{opacity:0;transform:translateY(-10px)} to{opacity:1;transform:translateY(0)} }
+@keyframes fadeUp   { from{opacity:0;transform:translateY(14px)}  to{opacity:1;transform:translateY(0)} }
+@keyframes slideIn  { from{opacity:0;transform:translateX(20px)}  to{opacity:1;transform:translateX(0)} }
+@keyframes shimmer  { 0%{transform:translateX(-100%)} 100%{transform:translateX(100%)} }
+
+/* Scrollbar */
+
+/* ===== THEMED SCROLLBARS ===== */
+::-webkit-scrollbar { width: 4px; height: 4px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: rgba(212,185,120,0.18); border-radius: 4px; }
+::-webkit-scrollbar-thumb:hover { background: rgba(212,185,120,0.38); }
+::-webkit-scrollbar-corner { background: transparent; }
+* { scrollbar-width: thin; scrollbar-color: rgba(212,185,120,0.18) transparent; }
+</style>
+</head>
+<body class="mode-mobile">
+
+<div class="atmo"></div>
+<div class="grid-bg"></div>
+
+<!-- VIEW TOGGLE -->
+<div class="view-toggle">
+  <button class="vbtn active" id="btn-mobile" onclick="setView('mobile')">📱 Mobile</button>
+  <div class="vdivider"></div>
+  <button class="vbtn" id="btn-desktop" onclick="setView('desktop')">🖥️ Desktop</button>
+</div>
+
+<div class="page">
+
+<!-- ========================================================
+     MOBILE VIEW
+     ======================================================== -->
+<div class="mobile-shell" id="mobile-view">
+
+  <!-- Header -->
+  <div class="m-header" style="padding-top:38px">
+    <div class="brand-row">
+      <div class="brand-mark-sm">
+        <svg width="28" height="28" viewBox="0 0 34 34" fill="none">
+          <circle cx="17" cy="17" r="15.5" stroke="#d4b978" stroke-width="0.7" opacity="0.55"/>
+          <path d="M17 3.5 L30.5 17 L17 30.5 L3.5 17 Z" stroke="#d4b978" stroke-width="0.7" fill="none"/>
+          <path d="M17 9.5 L24.5 17 L17 24.5 L9.5 17 Z" stroke="#d4b978" stroke-width="0.45" fill="rgba(212,185,120,0.06)"/>
+          <circle cx="17" cy="17" r="1.8" fill="#d4b978"/>
+        </svg>
+      </div>
+      <div><div class="brand-name">Foundation</div><div class="brand-sub">by Ascension</div></div>
+    </div>
+    <div style="display:flex;gap:6px">
+      <div class="icon-btn">📤</div>
+      <div class="icon-btn" style="font-size:11px;font-weight:700;color:var(--gold)">L+M</div>
+    </div>
+  </div>
+
+  <!-- Back bar -->
+  <div class="m-back-bar">
+    <span class="m-back-arrow">←</span>
+    <span class="m-back-label">Back to</span>
+    <span class="m-back-project">Kitchen Remodel</span>
+    <span style="color:var(--muted);font-size:10px;margin-left:4px">·</span>
+    <span class="m-back-phase">58%</span>
+  </div>
+
+  <div class="m-scroll">
+
+    <!-- Progress summary -->
+    <div class="blueprint-progress" style="animation:fadeUp 0.4s ease both">
+      <div class="bp-top">
+        <div>
+          <div class="bp-project-name">Kitchen Remodel</div>
+          <div class="bp-project-sub">124 Maple Ridge Drive · Est. Apr 18</div>
+        </div>
+        <div class="bp-stats">
+          <div class="bp-stat"><div class="bp-stat-val">14</div><div class="bp-stat-lbl">Tasks</div></div>
+          <div class="bp-stat"><div class="bp-stat-val">8</div><div class="bp-stat-lbl">Done</div></div>
+          <div class="bp-stat"><div class="bp-stat-val">38d</div><div class="bp-stat-lbl">Left</div></div>
+        </div>
+      </div>
+      <div class="bp-bar"><div class="bp-fill" id="m-bp-fill" style="width:0%"></div></div>
+      <div class="bp-phases-row" style="margin-top:10px">
+        <div class="bp-phase-mini"><div class="bp-phase-dot" style="background:var(--red-br)"></div>Demo 3/3</div>
+        <div class="bp-phase-mini"><div class="bp-phase-dot" style="background:#d4903a"></div>Frame 2/4</div>
+        <div class="bp-phase-mini"><div class="bp-phase-dot" style="background:var(--green-br)"></div>Finish 3/5</div>
+        <div class="bp-phase-mini"><div class="bp-phase-dot" style="background:var(--blue-br)"></div>Inspect 0/2</div>
+      </div>
+    </div>
+
+    <!-- AI Generate -->
+    <div class="ai-generate-btn" id="m-ai-btn" onclick="triggerAIGenerate('m')" style="animation:fadeUp 0.4s 0.05s ease both">
+      <div class="ai-orb-sm"></div>
+      <div class="ai-btn-text">
+        <div class="title">Re-sequence with AI</div>
+        <div class="sub">Optimize task order based on your timeline</div>
+      </div>
+      <div class="ai-btn-arrow">✦</div>
+    </div>
+
+    <!-- Phase filter -->
+    <div style="animation:fadeUp 0.4s 0.1s ease both">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px">
+        <span class="sec-title">Blueprint</span>
+        <span style="font-size:10px;color:var(--muted);cursor:pointer" onclick="toggleAll()">Expand All</span>
+      </div>
+      <div class="phase-filter-scroll" id="m-phase-filters">
+        <div class="phase-pill pp-all active" onclick="filterPhase('all','m')">All Phases</div>
+        <div class="phase-pill pp-demo" onclick="filterPhase('demo','m')">🔨 Demo</div>
+        <div class="phase-pill pp-frame" onclick="filterPhase('frame','m')">🪵 Framing</div>
+        <div class="phase-pill pp-finish" onclick="filterPhase('finish','m')">🎨 Finishing</div>
+        <div class="phase-pill pp-inspect" onclick="filterPhase('inspect','m')">📋 Inspection</div>
+      </div>
+    </div>
+
+    <!-- Task list rendered by JS -->
+    <div id="m-task-list" style="display:flex;flex-direction:column;gap:4px;animation:fadeUp 0.4s 0.15s ease both"></div>
+
+    <!-- Add task -->
+    <div class="add-task-btn" onclick="addTaskPrompt('m')">
+      <span style="font-size:16px;color:var(--gold)">+</span>
+      <span>Add task to blueprint</span>
+    </div>
+
+    <div style="height:8px"></div>
+  </div>
+
+  <!-- Bottom nav -->
+  <div class="m-nav">
+    <div class="nav-tab" onclick="setMTab(this)"><div class="nav-icon">🏠</div><div class="nav-label">Home</div></div>
+    <div class="nav-tab active" onclick="setMTab(this)"><div class="nav-icon">📐</div><div class="nav-label">Blueprint</div></div>
+    <div class="nav-fab">+</div>
+    <div class="nav-tab" onclick="setMTab(this)"><div class="nav-icon">💰</div><div class="nav-label">Budget</div></div>
+    <div class="nav-tab" onclick="setMTab(this)"><div class="nav-icon">🛒</div><div class="nav-label">Materials</div></div>
+  </div>
+</div><!-- /mobile-shell -->
+
+
+<!-- ========================================================
+     DESKTOP VIEW
+     ======================================================== -->
+<div class="desktop-shell" id="desktop-view">
+
+  <!-- Sidebar -->
+  <div class="d-sidebar">
+    <div class="d-logo">
+      <svg width="30" height="30" viewBox="0 0 34 34" fill="none">
+        <circle cx="17" cy="17" r="15.5" stroke="#d4b978" stroke-width="0.7" opacity="0.55"/>
+        <path d="M17 3.5 L30.5 17 L17 30.5 L3.5 17 Z" stroke="#d4b978" stroke-width="0.7" fill="none"/>
+        <path d="M17 9.5 L24.5 17 L17 24.5 L9.5 17 Z" stroke="#d4b978" stroke-width="0.45" fill="rgba(212,185,120,0.06)"/>
+        <circle cx="17" cy="17" r="1.8" fill="#d4b978"/>
+        <line x1="17" y1="1.5" x2="17" y2="32.5" stroke="#d4b978" stroke-width="0.35" opacity="0.25"/>
+        <line x1="1.5" y1="17" x2="32.5" y2="17" stroke="#d4b978" stroke-width="0.35" opacity="0.25"/>
+      </svg>
+    </div>
+    <div class="d-nav-item">🏠<span class="d-tooltip">Command</span></div>
+    <div class="d-nav-item">🗂️<span class="d-tooltip">Projects</span></div>
+    <div class="d-nav-item active">📐<span class="d-tooltip">Blueprint</span></div>
+    <div class="d-nav-item">💰<span class="d-tooltip">Budget</span></div>
+    <div class="d-nav-item">🛒<span class="d-tooltip">Materials</span></div>
+    <div class="d-nav-item">📅<span class="d-tooltip">Calendar</span></div>
+    <div class="d-nav-item">🏡<span class="d-tooltip">House Memory</span></div>
+    <div class="d-sidebar-bot">
+      <div class="d-nav-item">⚙️<span class="d-tooltip">Settings</span></div>
+      <div class="d-avatar">L+M</div>
+    </div>
+  </div>
+
+  <!-- Topbar -->
+  <div class="d-topbar">
+    <div class="d-breadcrumb">
+      <span class="bc-back">← Home</span>
+      <span class="bc-sep">/</span>
+      <span class="bc-back">Projects</span>
+      <span class="bc-sep">/</span>
+      <span class="bc-current">Kitchen Remodel — Blueprint</span>
+    </div>
+    <div class="d-topbar-right">
+      <button class="btn btn-ghost">📤 Export PDF</button>
+      <button class="btn btn-ghost">📅 Sync Calendar</button>
+      <button class="btn btn-gold" onclick="triggerAIGenerate('d')">✦ AI Re-sequence</button>
+    </div>
+  </div>
+
+  <!-- Main content -->
+  <div class="d-content">
+
+    <!-- Progress + AI row -->
+    <div style="display:grid;grid-template-columns:1fr auto;gap:14px;align-items:start">
+      <div class="blueprint-progress">
+        <div class="bp-top">
+          <div>
+            <div class="bp-project-name">Kitchen Remodel</div>
+            <div class="bp-project-sub">124 Maple Ridge Drive · Started Feb 12 · Est. Completion Apr 18</div>
+          </div>
+          <div class="bp-stats">
+            <div class="bp-stat"><div class="bp-stat-val">14</div><div class="bp-stat-lbl">Total Tasks</div></div>
+            <div class="bp-stat"><div class="bp-stat-val">8</div><div class="bp-stat-lbl">Complete</div></div>
+            <div class="bp-stat"><div class="bp-stat-val">3</div><div class="bp-stat-lbl">Blocked</div></div>
+            <div class="bp-stat"><div class="bp-stat-val">38d</div><div class="bp-stat-lbl">Remaining</div></div>
+          </div>
+        </div>
+        <div class="bp-bar"><div class="bp-fill" id="d-bp-fill" style="width:0%"></div></div>
+        <div class="bp-phases-row">
+          <div class="bp-phase-mini"><div class="bp-phase-dot" style="background:var(--red-br)"></div>Demo 3/3 ✓</div>
+          <div class="bp-phase-mini"><div class="bp-phase-dot" style="background:#d4903a"></div>Framing 2/4</div>
+          <div class="bp-phase-mini"><div class="bp-phase-dot" style="background:var(--green-br)"></div>Finishing 3/5</div>
+          <div class="bp-phase-mini"><div class="bp-phase-dot" style="background:var(--blue-br)"></div>Inspection 0/2</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Gantt mini -->
+    <div class="gantt-mini">
+      <div class="gantt-header">
+        <span class="sec-title">Timeline View</span>
+        <span style="font-size:10px;color:var(--muted)">Mar – Jun 2025</span>
+      </div>
+      <div style="display:flex;margin-bottom:8px;padding-left:120px">
+        <div style="flex:1;text-align:center;font-size:9px;letter-spacing:0.1em;text-transform:uppercase;color:var(--muted)">Mar</div>
+        <div style="flex:1;text-align:center;font-size:9px;letter-spacing:0.1em;text-transform:uppercase;color:var(--muted)">Apr</div>
+        <div style="flex:1;text-align:center;font-size:9px;letter-spacing:0.1em;text-transform:uppercase;color:var(--muted)">May</div>
+        <div style="flex:1;text-align:center;font-size:9px;letter-spacing:0.1em;text-transform:uppercase;color:var(--muted)">Jun</div>
+      </div>
+      <div class="gantt-rows" id="gantt-rows"></div>
+    </div>
+
+    <!-- Phase filters + Task list -->
+    <div>
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px">
+        <span class="sec-title">Task Sequence</span>
+        <div style="display:flex;gap:8px;align-items:center">
+          <span style="font-size:10px;color:var(--muted);cursor:pointer" onclick="toggleAll()">Expand All</span>
+          <span style="color:var(--muted)">·</span>
+          <span style="font-size:10px;color:var(--muted);cursor:pointer">Sort by Date</span>
+        </div>
+      </div>
+      <div class="d-phase-filters" id="d-phase-filters" style="margin-bottom:14px">
+        <div class="phase-pill pp-all active" onclick="filterPhase('all','d')">All Phases</div>
+        <div class="phase-pill pp-demo" onclick="filterPhase('demo','d')">🔨 Demo</div>
+        <div class="phase-pill pp-frame" onclick="filterPhase('frame','d')">🪵 Framing</div>
+        <div class="phase-pill pp-finish" onclick="filterPhase('finish','d')">🎨 Finishing</div>
+        <div class="phase-pill pp-inspect" onclick="filterPhase('inspect','d')">📋 Inspection</div>
+      </div>
+      <div class="d-task-list" id="d-task-list"></div>
+      <div class="add-task-btn" style="margin-top:8px" onclick="addTaskPrompt('d')">
+        <span style="font-size:16px;color:var(--gold)">+</span>
+        <span>Add task to blueprint</span>
+      </div>
+    </div>
+
+  </div><!-- /d-content -->
+
+  <!-- Right panel -->
+  <div class="d-right-panel">
+
+    <!-- AI Generate -->
+    <div class="ai-generate-btn" onclick="triggerAIGenerate('d')">
+      <div class="ai-orb-sm"></div>
+      <div class="ai-btn-text">
+        <div class="title">Foundation AI</div>
+        <div class="sub">Re-sequence · Estimate · Suggest</div>
+      </div>
+      <div class="ai-btn-arrow">✦</div>
+    </div>
+
+    <!-- Decisions needed -->
+    <div class="rp-card">
+      <div class="rp-card-title">⚡ Decisions Needed</div>
+      <div class="decision-item">
+        <div class="d-flag df-urgent">🚨</div>
+        <div class="decision-body">
+          <h4>Tile selection — Master Bath</h4>
+          <p>Showroom visit booked Thu 12–2pm</p>
+          <div class="decision-due">Due in 3 days</div>
+        </div>
+      </div>
+      <div class="decision-item">
+        <div class="d-flag df-urgent">⚠️</div>
+        <div class="decision-body">
+          <h4>Flooring order cutoff</h4>
+          <p>Living Room · Order by Saturday</p>
+          <div class="decision-due">Due in 5 days</div>
+        </div>
+      </div>
+      <div class="decision-item">
+        <div class="d-flag df-normal">💡</div>
+        <div class="decision-body">
+          <h4>Cabinet hardware style</h4>
+          <p>Kitchen · Matte black vs brushed gold</p>
+          <div style="font-size:9px;color:var(--gold);font-weight:600;letter-spacing:0.04em;margin-top:3px">Optional · This week</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Upcoming -->
+    <div class="rp-card">
+      <div class="rp-card-title">📅 Next Up</div>
+      <div style="display:flex;flex-direction:column;gap:8px">
+        <div style="display:flex;align-items:center;gap:10px;padding:8px 0;border-bottom:1px solid var(--border)">
+          <div style="text-align:center;width:36px"><div class="cinzel" style="font-size:16px;font-weight:600">11</div><div style="font-size:8px;color:var(--muted);text-transform:uppercase;letter-spacing:0.1em">Mar</div></div>
+          <div style="flex:1"><div style="font-size:12px;font-weight:500">Contractor walkthrough</div><div style="font-size:10px;color:var(--muted);margin-top:2px">Final measurements · 10am</div></div>
+          <div style="width:7px;height:7px;border-radius:50%;background:var(--gold);flex-shrink:0"></div>
+        </div>
+        <div style="display:flex;align-items:center;gap:10px;padding:8px 0;border-bottom:1px solid var(--border)">
+          <div style="text-align:center;width:36px"><div class="cinzel" style="font-size:16px;font-weight:600">12</div><div style="font-size:8px;color:var(--muted);text-transform:uppercase;letter-spacing:0.1em">Mar</div></div>
+          <div style="flex:1"><div style="font-size:12px;font-weight:500">Cabinet install begins</div><div style="font-size:10px;color:var(--muted);margin-top:2px">Uppers first · ~4hrs</div></div>
+          <div style="width:7px;height:7px;border-radius:50%;background:#d4903a;flex-shrink:0"></div>
+        </div>
+        <div style="display:flex;align-items:center;gap:10px;padding:8px 0">
+          <div style="text-align:center;width:36px"><div class="cinzel" style="font-size:16px;font-weight:600">15</div><div style="font-size:8px;color:var(--muted);text-transform:uppercase;letter-spacing:0.1em">Mar</div></div>
+          <div style="flex:1"><div style="font-size:12px;font-weight:500">Countertop template</div><div style="font-size:10px;color:var(--muted);margin-top:2px">Measure for stone · 1hr</div></div>
+          <div style="width:7px;height:7px;border-radius:50%;background:var(--green-br);flex-shrink:0"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Notes -->
+    <div class="rp-card">
+      <div class="rp-card-title">📝 Project Notes</div>
+      <textarea class="notes-textarea" placeholder="Add notes, contractor info, ideas…">Contractor: Mike's Build Co. — (916) 555-0182
+Cabinet brand: Shaker White from Ikea (SEKTION)
+Countertop: Quartz — leaning Calacatta Gold
+
+Note: plumbing rough-in may need moving 6" east.</textarea>
+    </div>
+
+  </div>
+
+</div><!-- /desktop-shell -->
+
+</div><!-- /page -->
+
+<script>
+// =====================
+// DATA
+// =====================
+const TASKS = [
+  // DEMO
+  { id:1, name:'Remove old cabinets',          phase:'demo',   dur:'3h', owner:'L',    deps:[],    done:true,  date:'Feb 12' },
+  { id:2, name:'Demo countertops + sink',       phase:'demo',   dur:'2h', owner:'both', deps:[1],   done:true,  date:'Feb 12' },
+  { id:3, name:'Patch & prep drywall',          phase:'demo',   dur:'2h', owner:'L',    deps:[2],   done:true,  date:'Feb 14' },
+  // FRAMING
+  { id:4, name:'Deliver & stage cabinets',      phase:'frame',  dur:'1h', owner:'both', deps:[3],   done:true,  date:'Mar 10' },
+  { id:5, name:'Install upper cabinets',        phase:'frame',  dur:'4h', owner:'L',    deps:[4],   done:false, date:'Mar 12', blocked:false },
+  { id:6, name:'Install lower cabinets',        phase:'frame',  dur:'3h', owner:'L',    deps:[5],   done:false, date:'Mar 13' },
+  { id:7, name:'Rough-in plumbing adjustment',  phase:'frame',  dur:'2h', owner:'both', deps:[3],   done:false, date:'Mar 11', blocked:true },
+  // FINISHING
+  { id:8, name:'Countertop template measure',   phase:'finish', dur:'1h', owner:'M',    deps:[6],   done:false, date:'Mar 15' },
+  { id:9, name:'Countertop fabrication',        phase:'finish', dur:'5d', owner:'both', deps:[8],   done:false, date:'Mar 17' },
+  { id:10,name:'Install countertops',           phase:'finish', dur:'3h', owner:'L',    deps:[9],   done:false, date:'Mar 24' },
+  { id:11,name:'Backsplash tile install',        phase:'finish', dur:'4h', owner:'both', deps:[10],  done:false, date:'Mar 26' },
+  { id:12,name:'Install sink + fixtures',        phase:'finish', dur:'2h', owner:'L',    deps:[11],  done:false, date:'Mar 28' },
+  // INSPECTION
+  { id:13,name:'Plumbing sign-off inspection',  phase:'inspect',dur:'1h', owner:'both', deps:[12],  done:false, date:'Apr 4' },
+  { id:14,name:'Final walkthrough + photos',    phase:'inspect',dur:'1h', owner:'both', deps:[13],  done:false, date:'Apr 10' },
+];
+
+const PHASE_META = {
+  demo:   { label:'Demolition',  color:'var(--red-br)',  dotColor:'#cc8888', cls:'tc-demo',    tagCls:'tt-demo',   gCls:'gb-demo',   start:5,  width:12 },
+  frame:  { label:'Framing',     color:'#d4903a',        dotColor:'#d4903a', cls:'tc-frame',   tagCls:'tt-frame',  gCls:'gb-frame',  start:17, width:15 },
+  finish: { label:'Finishing',   color:'var(--green-br)',dotColor:'#72b08a', cls:'tc-finish',  tagCls:'tt-finish', gCls:'gb-finish', start:32, width:22 },
+  inspect:{ label:'Inspection',  color:'var(--blue-br)', dotColor:'#7aaac8', cls:'tc-inspect', tagCls:'tt-inspect',gCls:'gb-inspect',start:56, width:14 },
+};
+
+let activeFilter = 'all';
+let dragSrc = null;
+
+// =====================
+// RENDER TASKS
+// =====================
+function renderTasks(view) {
+  const listId = view === 'm' ? 'm-task-list' : 'd-task-list';
+  const container = document.getElementById(listId);
+  container.innerHTML = '';
+
+  const phases = ['demo','frame','finish','inspect'];
+
+  phases.forEach(phase => {
+    if (activeFilter !== 'all' && activeFilter !== phase) return;
+
+    const phaseTasks = TASKS.filter(t => t.phase === phase);
+    const meta = PHASE_META[phase];
+    const doneCnt = phaseTasks.filter(t => t.done).length;
+
+    // Group header
+    const groupEl = document.createElement('div');
+    groupEl.className = 'phase-group';
+    groupEl.dataset.phase = phase;
+
+    const headerEl = document.createElement('div');
+    headerEl.className = 'phase-group-header';
+    headerEl.innerHTML = `
+      <span class="phase-group-arrow">▾</span>
+      <span class="phase-group-title" style="color:${meta.color}">${meta.label}</span>
+      <span class="phase-group-count">${doneCnt}/${phaseTasks.length} done</span>
+      <div class="phase-group-bar"></div>
+      <span class="phase-group-pct" style="color:${meta.color}">${Math.round(doneCnt/phaseTasks.length*100)}%</span>
+    `;
+
+    const tasksEl = document.createElement('div');
+    tasksEl.className = 'phase-tasks';
+    tasksEl.id = `${view}-phase-${phase}`;
+
+    phaseTasks.forEach(task => {
+      tasksEl.appendChild(createTaskCard(task, meta, view));
+    });
+
+    // Toggle collapse
+    headerEl.addEventListener('click', () => {
+      const arrow = headerEl.querySelector('.phase-group-arrow');
+      tasksEl.classList.toggle('collapsed');
+      arrow.classList.toggle('collapsed');
+    });
+
+    groupEl.appendChild(headerEl);
+    groupEl.appendChild(tasksEl);
+    container.appendChild(groupEl);
+  });
+}
+
+function createTaskCard(task, meta, view) {
+  const card = document.createElement('div');
+  card.className = `task-card ${meta.cls} ${task.done ? 'completed' : ''} ${task.blocked ? 'blocked' : ''}`;
+  card.draggable = true;
+  card.dataset.id = task.id;
+
+  const ownerHTML = task.owner === 'L'
+    ? `<div class="task-owner to-a">L</div>`
+    : task.owner === 'M'
+    ? `<div class="task-owner to-b">M</div>`
+    : `<div class="task-owner to-b" style="font-size:8px;width:22px;border-radius:6px">L+M</div>`;
+
+  const blockedHTML = task.blocked
+    ? `<span style="font-size:9px;background:rgba(122,78,78,0.15);color:var(--red-br);border:1px solid rgba(122,78,78,0.2);border-radius:4px;padding:2px 7px;font-weight:600;letter-spacing:0.06em;text-transform:uppercase">Blocked</span>`
+    : '';
+
+  const depsHTML = task.deps.length > 0
+    ? `<div class="task-deps"><span class="dep-label">After:</span>${task.deps.map(d=>`<span class="dep-chip">#${d}</span>`).join('')}</div>`
+    : '';
+
+  card.innerHTML = `
+    <div class="task-top">
+      <span class="task-drag-handle">⠿</span>
+      <div class="task-check" onclick="toggleTask(${task.id},'${view}')">${task.done ? '✓' : ''}</div>
+      <span class="task-name">${task.name}</span>
+      <div class="task-actions">
+        <span class="task-action-btn" title="Edit">✏️</span>
+        <span class="task-action-btn" title="Delete" onclick="deleteTask(${task.id},'${view}')">🗑</span>
+      </div>
+    </div>
+    <div class="task-meta">
+      <span class="task-tag ${meta.tagCls}">${meta.label}</span>
+      <span class="task-dur">⏱ ${task.dur}</span>
+      <span style="font-size:10px;color:var(--muted)">${task.date}</span>
+      ${ownerHTML}
+      ${blockedHTML}
+    </div>
+    ${depsHTML}
+  `;
+
+  // Drag events
+  card.addEventListener('dragstart', e => {
+    dragSrc = card;
+    setTimeout(() => card.classList.add('dragging'), 0);
+    e.dataTransfer.effectAllowed = 'move';
+  });
+  card.addEventListener('dragend', () => {
+    card.classList.remove('dragging');
+    document.querySelectorAll('.task-card').forEach(c => c.classList.remove('drag-over'));
+  });
+  card.addEventListener('dragover', e => {
+    e.preventDefault();
+    if (dragSrc && dragSrc !== card) card.classList.add('drag-over');
+  });
+  card.addEventListener('dragleave', () => card.classList.remove('drag-over'));
+  card.addEventListener('drop', e => {
+    e.preventDefault();
+    if (dragSrc && dragSrc !== card) {
+      const parent = card.parentNode;
+      const nodes = [...parent.querySelectorAll('.task-card')];
+      const dragIdx = nodes.indexOf(dragSrc);
+      const dropIdx = nodes.indexOf(card);
+      if (dragIdx < dropIdx) parent.insertBefore(dragSrc, card.nextSibling);
+      else parent.insertBefore(dragSrc, card);
+    }
+    card.classList.remove('drag-over');
+  });
+
+  return card;
+}
+
+function toggleTask(id, view) {
+  const task = TASKS.find(t => t.id === id);
+  if (task) { task.done = !task.done; renderTasks(view); renderGantt(); updateProgress(); }
+}
+
+function deleteTask(id, view) {
+  const idx = TASKS.findIndex(t => t.id === id);
+  if (idx > -1) { TASKS.splice(idx, 1); renderTasks(view); renderGantt(); updateProgress(); }
+}
+
+function addTaskPrompt(view) {
+  const name = prompt('Task name:');
+  if (!name) return;
+  const newTask = { id: Date.now(), name, phase:'frame', dur:'1h', owner:'both', deps:[], done:false, date:'TBD' };
+  TASKS.push(newTask);
+  renderTasks(view);
+}
+
+function filterPhase(phase, view) {
+  activeFilter = phase;
+  const filterContainerId = view === 'm' ? 'm-phase-filters' : 'd-phase-filters';
+  document.getElementById(filterContainerId).querySelectorAll('.phase-pill').forEach(p => p.classList.remove('active'));
+  event.target.classList.add('active');
+  renderTasks(view);
+}
+
+function toggleAll() {
+  document.querySelectorAll('.phase-tasks').forEach(el => {
+    el.classList.toggle('collapsed');
+  });
+  document.querySelectorAll('.phase-group-arrow').forEach(el => {
+    el.classList.toggle('collapsed');
+  });
+}
+
+// =====================
+// GANTT
+// =====================
+function renderGantt() {
+  const container = document.getElementById('gantt-rows');
+  if (!container) return;
+  container.innerHTML = '';
+
+  const phases = ['demo','frame','finish','inspect'];
+  phases.forEach(phase => {
+    const meta = PHASE_META[phase];
+    const phaseTasks = TASKS.filter(t => t.phase === phase);
+    const done = phaseTasks.filter(t => t.done).length;
+    const pct = Math.round(done/phaseTasks.length*100);
+
+    const row = document.createElement('div');
+    row.className = 'gantt-row';
+    row.innerHTML = `
+      <div class="gantt-label">${meta.label}</div>
+      <div class="gantt-track">
+        <div class="gantt-bar ${meta.gCls}" style="left:${meta.start}%;width:${meta.width}%">${pct}%</div>
+        <div class="gantt-today" style="left:22%"></div>
+      </div>
+    `;
+    container.appendChild(row);
+  });
+}
+
+// =====================
+// PROGRESS BAR
+// =====================
+function updateProgress() {
+  const done = TASKS.filter(t => t.done).length;
+  const pct = Math.round(done / TASKS.length * 100);
+  ['m-bp-fill','d-bp-fill'].forEach(id => {
+    const el = document.getElementById(id);
+    if (el) el.style.width = pct + '%';
+  });
+}
+
+// =====================
+// AI RE-SEQUENCE
+// =====================
+function triggerAIGenerate(view) {
+  const btn = document.getElementById(view === 'm' ? 'm-ai-btn' : null) || document.querySelector('.ai-generate-btn');
+
+  // Visual feedback
+  const orb = btn ? btn.querySelector('.ai-orb-sm') : null;
+  const sub = btn ? btn.querySelector('.sub') : null;
+  if (sub) sub.textContent = 'Analyzing dependencies…';
+
+  setTimeout(() => {
+    if (sub) sub.textContent = 'Checking timeline conflicts…';
+  }, 700);
+
+  setTimeout(() => {
+    if (sub) sub.textContent = 'Sequence optimized ✓';
+
+    // Show a toast
+    showToast('AI resequenced 3 tasks · Plumbing moved before cabinet install');
+
+    setTimeout(() => {
+      if (sub) sub.textContent = 'Optimize task order based on your timeline';
+    }, 3000);
+  }, 1600);
+}
+
+// =====================
+// TOAST
+// =====================
+function showToast(msg) {
+  let toast = document.getElementById('toast');
+  if (!toast) {
+    toast = document.createElement('div');
+    toast.id = 'toast';
+    toast.style.cssText = `
+      position:fixed; bottom:100px; left:50%; transform:translateX(-50%);
+      background:var(--raised); border:1px solid var(--border-warm);
+      color:var(--white); font-size:12px; padding:10px 18px; border-radius:10px;
+      z-index:9999; white-space:nowrap; opacity:0; transition:opacity 0.3s;
+      box-shadow:0 8px 24px rgba(0,0,0,0.4); font-family:'DM Sans',sans-serif;
+      display:flex; align-items:center; gap:8px;
+    `;
+    document.body.appendChild(toast);
+  }
+  toast.innerHTML = `<span style="color:var(--gold)">✦</span> ${msg}`;
+  toast.style.opacity = '1';
+  setTimeout(() => { toast.style.opacity = '0'; }, 3500);
+}
+
+// =====================
+// VIEW TOGGLE
+// =====================
+function setView(mode) {
+  document.body.className = 'mode-' + mode;
+  document.getElementById('btn-mobile').classList.toggle('active', mode === 'mobile');
+  document.getElementById('btn-desktop').classList.toggle('active', mode === 'desktop');
+
+  renderTasks(mode === 'mobile' ? 'm' : 'd');
+  if (mode === 'desktop') renderGantt();
+  setTimeout(updateProgress, 150);
+}
+
+// =====================
+// NAV
+// =====================
+function setMTab(el) {
+  document.querySelectorAll('.m-nav .nav-tab').forEach(t => t.classList.remove('active'));
+  el.classList.add('active');
+}
+document.querySelectorAll('.d-nav-item').forEach(el => {
+  el.addEventListener('click', function() {
+    document.querySelectorAll('.d-nav-item').forEach(i => i.classList.remove('active'));
+    this.classList.add('active');
+  });
+});
+
+// =====================
+// INIT
+// =====================
+window.addEventListener('load', () => {
+  renderTasks('m');
+  renderTasks('d');
+  renderGantt();
+  setTimeout(updateProgress, 300);
+});
+</script>
+</body>
+</html>

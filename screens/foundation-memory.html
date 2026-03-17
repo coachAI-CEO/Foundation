@@ -1,0 +1,998 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1">
+<title>House Memory - Foundation</title>
+<link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;500;600;700&family=DM+Sans:opsz,wght@9..40,300;9..40,400;9..40,500;9..40,600&display=swap" rel="stylesheet">
+<style>
+
+:root {
+  --void:#0b0b0c; --base:#111113; --card:#161618; --raised:#1c1c1f; --lift:#242428;
+  --border:rgba(255,255,255,0.055); --border-warm:rgba(210,185,130,0.22);
+  --gold:#d4b978; --gold-br:#ecd49a; --gold-dim:rgba(212,185,120,0.08);
+  --white:#ede9e3; --muted:#5c5850; --soft:#8a8478;
+  --green:#4e7a5e; --green-br:#72b08a; --green-dim:rgba(78,122,94,0.12);
+  --red-br:#cc8888; --red-dim:rgba(204,136,136,0.1);
+  --amber:#d4903a; --amber-dim:rgba(212,144,58,0.12);
+  --blue-br:#7aaac8; --blue-dim:rgba(122,170,200,0.1);
+  --r:16px; --r-sm:10px;
+}
+*{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent;}
+html{font-size:16px;}
+body{background:#080809;color:var(--white);font-family:'DM Sans',sans-serif;overflow-x:hidden;}
+
+/* ATMOSPHERE */
+.atmo{position:fixed;inset:0;pointer-events:none;z-index:0;
+  background:
+    radial-gradient(ellipse 65% 45% at 50% -8%,rgba(212,185,120,0.07) 0%,transparent 60%),
+    radial-gradient(ellipse 35% 55% at 95% 55%,rgba(78,122,94,0.03) 0%,transparent 55%),
+    radial-gradient(ellipse 30% 40% at 5% 85%,rgba(122,170,200,0.02) 0%,transparent 50%);}
+.grid-bg{position:fixed;inset:0;pointer-events:none;z-index:0;opacity:0.02;
+  background-image:linear-gradient(var(--gold) 1px,transparent 1px),linear-gradient(90deg,var(--gold) 1px,transparent 1px);
+  background-size:48px 48px;}
+
+/* VIEW TOGGLE */
+.view-toggle{position:fixed;top:14px;left:50%;transform:translateX(-50%);z-index:9999;display:flex;align-items:center;background:rgba(11,11,12,0.92);border:1px solid var(--border-warm);border-radius:12px;padding:4px;backdrop-filter:blur(20px);box-shadow:0 8px 32px rgba(0,0,0,0.5);}
+.vbtn{display:flex;align-items:center;gap:6px;padding:7px 16px;border-radius:8px;font-family:'DM Sans',sans-serif;font-size:12px;font-weight:500;letter-spacing:0.05em;cursor:pointer;border:none;background:transparent;color:var(--muted);transition:all 0.2s;}
+.vbtn.active{background:var(--gold);color:#0b0b0c;font-weight:600;}
+.vdiv{width:1px;height:18px;background:var(--border);margin:0 2px;}
+
+/* MOBILE SHELL */
+body.mode-mobile{display:flex;justify-content:center;padding-top:60px;padding-bottom:40px;min-height:100vh;}
+body.mode-mobile .desktop-shell{display:none;}
+.mobile-shell{width:390px;border-radius:44px;overflow:hidden;box-shadow:0 0 0 10px #0d0d0f,0 0 0 12px #1e1e22,0 0 0 13px #0d0d0f,0 40px 100px rgba(0,0,0,0.9);background:var(--void);min-height:844px;flex-shrink:0;display:flex;flex-direction:column;position:relative;}
+.mobile-shell::before{content:'';position:absolute;top:0;left:50%;transform:translateX(-50%);width:126px;height:34px;background:#0d0d0f;border-radius:0 0 22px 22px;z-index:99;pointer-events:none;}
+body.mode-desktop .mobile-shell{display:none;}
+
+/* DESKTOP */
+body.mode-desktop{display:block;min-height:100vh;}
+.desktop-shell{display:grid;grid-template-columns:64px 1fr;min-height:calc(100vh - 52px);margin-top:52px;}
+
+/* SHARED BUTTONS */
+.btn-primary{display:flex;align-items:center;justify-content:center;gap:7px;padding:10px 18px;border-radius:var(--r-sm);background:var(--gold);color:#0b0b0c;font-family:'DM Sans',sans-serif;font-size:13px;font-weight:600;border:none;cursor:pointer;transition:all 0.2s;white-space:nowrap;}
+.btn-primary:hover{background:var(--gold-br);}
+.btn-primary:active{transform:scale(0.97);}
+.btn-ghost{display:flex;align-items:center;gap:6px;padding:8px 13px;border-radius:8px;background:transparent;border:1px solid var(--border);color:var(--soft);font-family:'DM Sans',sans-serif;font-size:12px;font-weight:500;cursor:pointer;transition:all 0.18s;white-space:nowrap;}
+.btn-ghost:hover{border-color:var(--border-warm);color:var(--white);}
+
+/* SVG ICON HELPERS */
+svg{display:block;flex-shrink:0;}
+
+/* ===================== MOBILE STYLES ===================== */
+.m-topbar{padding:42px 20px 0;flex-shrink:0;}
+.m-topbar-row{display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;}
+.m-brand{display:flex;align-items:center;gap:10px;}
+.m-brand-name{font-family:'Cinzel',serif;font-size:17px;font-weight:700;letter-spacing:0.14em;color:var(--white);}
+.m-brand-by{font-size:9px;color:var(--muted);letter-spacing:0.12em;text-transform:uppercase;margin-top:-2px;}
+.m-topbar-actions{display:flex;gap:8px;}
+.m-icon-btn{width:34px;height:34px;border-radius:10px;background:var(--card);border:1px solid var(--border);display:flex;align-items:center;justify-content:center;cursor:pointer;color:var(--muted);transition:all 0.18s;}
+.m-icon-btn:hover{border-color:var(--border-warm);color:var(--white);}
+
+/* House address pill */
+.m-house-pill{display:flex;align-items:center;gap:10px;background:var(--card);border:1px solid var(--border);border-radius:var(--r-sm);padding:10px 14px;margin-bottom:16px;}
+.m-house-pulse{width:8px;height:8px;border-radius:50%;background:var(--green-br);flex-shrink:0;box-shadow:0 0 0 0 rgba(114,176,138,0.4);animation:housePulse 2.5s ease-in-out infinite;}
+.m-house-addr{font-size:13px;font-weight:500;color:var(--white);flex:1;}
+.m-house-sub{font-size:10px;color:var(--muted);}
+.m-house-caret{color:var(--muted);}
+
+/* Mobile scroll area */
+.m-scroll{flex:1;overflow-y:auto;padding:0 20px;scrollbar-width:thin;scrollbar-color:rgba(212,185,120,0.18) transparent;}
+
+/* Mobile section labels */
+.m-sec{display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;margin-top:18px;}
+.m-sec-title{font-family:'Cinzel',serif;font-size:10px;font-weight:600;letter-spacing:0.15em;text-transform:uppercase;color:var(--soft);}
+.m-sec-link{font-size:11px;color:var(--gold);cursor:pointer;display:flex;align-items:center;gap:4px;}
+
+/* TODAY BRIEF */
+.today-brief{background:var(--card);border:1px solid var(--border-warm);border-radius:var(--r);overflow:hidden;margin-bottom:4px;}
+.tb-header{display:flex;align-items:center;justify-content:space-between;padding:12px 14px 8px;}
+.tb-date{font-family:'Cinzel',serif;font-size:11px;font-weight:600;letter-spacing:0.1em;color:var(--gold);}
+.tb-weather{display:flex;align-items:center;gap:5px;font-size:11px;color:var(--muted);}
+.tb-items{padding:0 14px 12px;display:flex;flex-direction:column;gap:6px;}
+.tb-item{display:flex;align-items:center;gap:10px;padding:8px 10px;background:var(--raised);border-radius:var(--r-sm);}
+.tb-item-dot{width:6px;height:6px;border-radius:50%;flex-shrink:0;}
+.tb-item-text{font-size:12px;color:var(--white);flex:1;font-weight:500;}
+.tb-item-time{font-size:10px;color:var(--muted);}
+.tb-item-tag{font-size:9px;font-weight:600;letter-spacing:0.07em;padding:2px 7px;border-radius:10px;text-transform:uppercase;}
+.tag-blocking{background:var(--red-dim);color:var(--red-br);}
+.tag-delivery{background:var(--gold-dim);color:var(--gold);}
+.tag-task{background:var(--blue-dim);color:var(--blue-br);}
+.tag-buy{background:var(--green-dim);color:var(--green-br);}
+
+/* STAT TILES ROW */
+.stat-tiles{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-bottom:4px;}
+.stat-tile{background:var(--card);border:1px solid var(--border);border-radius:var(--r-sm);padding:10px 8px;text-align:center;}
+.stat-tile-val{font-family:'Cinzel',serif;font-size:16px;font-weight:700;color:var(--white);margin-bottom:2px;}
+.stat-tile-lbl{font-size:8px;text-transform:uppercase;letter-spacing:0.09em;color:var(--muted);}
+
+/* PROJECT CARDS HORIZONTAL */
+.proj-scroll{display:flex;gap:10px;overflow-x:auto;padding-bottom:4px;scrollbar-width:none;}
+.proj-scroll::-webkit-scrollbar{display:none;}
+.proj-mini{background:var(--card);border:1px solid var(--border);border-radius:var(--r);padding:14px;width:200px;flex-shrink:0;cursor:pointer;transition:border-color 0.18s;}
+.proj-mini:hover{border-color:var(--border-warm);}
+.proj-mini-top{display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:10px;}
+.proj-mini-icon{width:32px;height:32px;border-radius:9px;display:flex;align-items:center;justify-content:center;flex-shrink:0;color:var(--gold);}
+.proj-mini-name{font-family:'Cinzel',serif;font-size:11px;font-weight:600;letter-spacing:0.05em;color:var(--white);margin-bottom:2px;line-height:1.3;}
+.proj-mini-room{font-size:9px;color:var(--muted);text-transform:uppercase;letter-spacing:0.09em;}
+.proj-mini-prog{height:2px;background:rgba(255,255,255,0.05);border-radius:2px;overflow:hidden;margin-bottom:8px;}
+.proj-mini-fill{height:100%;border-radius:2px;transition:width 0.7s ease;}
+.proj-mini-stats{display:flex;align-items:center;justify-content:space-between;}
+.proj-mini-pct{font-size:10px;font-weight:600;}
+.proj-mini-budget{font-size:10px;color:var(--muted);}
+.proj-mini-next{font-size:10px;color:var(--soft);margin-top:6px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+
+/* ADD PROJECT MINI */
+.proj-add{background:transparent;border:1px dashed rgba(212,185,120,0.2);border-radius:var(--r);padding:14px;width:140px;flex-shrink:0;cursor:pointer;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px;transition:border-color 0.18s;}
+.proj-add:hover{border-color:var(--gold);}
+.proj-add-icon{width:32px;height:32px;border-radius:50%;background:var(--gold-dim);border:1px solid var(--border-warm);display:flex;align-items:center;justify-content:center;}
+.proj-add-label{font-size:11px;color:var(--muted);text-align:center;line-height:1.4;}
+
+/* NEXT TASKS */
+.next-task-item{display:flex;align-items:center;gap:12px;padding:10px 0;border-bottom:1px solid var(--border);}
+.next-task-item:last-child{border-bottom:none;}
+.nti-check{width:18px;height:18px;border-radius:5px;border:1px solid var(--border);display:flex;align-items:center;justify-content:center;cursor:pointer;flex-shrink:0;transition:all 0.18s;}
+.nti-check:hover{border-color:var(--gold);}
+.nti-check.done{background:var(--green-dim);border-color:rgba(78,122,94,0.4);}
+.nti-body{flex:1;min-width:0;}
+.nti-name{font-size:13px;color:var(--white);font-weight:500;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+.nti-name.done{text-decoration:line-through;color:var(--muted);}
+.nti-meta{font-size:10px;color:var(--muted);margin-top:2px;display:flex;align-items:center;gap:6px;}
+.nti-proj-dot{width:5px;height:5px;border-radius:50%;display:inline-block;}
+.nti-right{display:flex;flex-direction:column;align-items:flex-end;gap:3px;flex-shrink:0;}
+.nti-date{font-size:10px;color:var(--muted);}
+.nti-who{font-size:9px;font-weight:600;letter-spacing:0.07em;padding:2px 7px;border-radius:10px;background:var(--raised);color:var(--soft);}
+
+/* AI BRIEF CARD */
+.ai-brief{background:var(--card);border:1px solid var(--border-warm);border-radius:var(--r);overflow:hidden;}
+.ai-brief-header{display:flex;align-items:center;gap:10px;padding:12px 14px;border-bottom:1px solid var(--border);}
+.ai-brief-avatar{width:28px;height:28px;border-radius:50%;background:var(--gold-dim);border:1px solid var(--border-warm);display:flex;align-items:center;justify-content:center;flex-shrink:0;}
+.ai-brief-name{font-family:'Cinzel',serif;font-size:11px;font-weight:600;letter-spacing:0.08em;color:var(--gold);}
+.ai-brief-status{display:flex;align-items:center;gap:5px;font-size:10px;color:var(--green-br);}
+.ai-brief-dot{width:5px;height:5px;border-radius:50%;background:var(--green-br);animation:housePulse 2s infinite;}
+.ai-brief-body{padding:12px 14px;}
+.ai-brief-text{font-size:13px;line-height:1.65;color:var(--white);}
+.ai-brief-text strong{color:var(--gold-br);}
+.ai-brief-chips{display:flex;gap:6px;flex-wrap:wrap;margin-top:10px;}
+.ai-chip{padding:5px 11px;border-radius:20px;font-size:11px;border:1px solid var(--border);color:var(--muted);cursor:pointer;transition:all 0.15s;background:transparent;font-family:'DM Sans',sans-serif;white-space:nowrap;}
+.ai-chip:hover{border-color:var(--border-warm);color:var(--white);}
+.ai-input-row{display:flex;gap:8px;padding:10px 14px;border-top:1px solid var(--border);}
+.ai-input{flex:1;background:var(--raised);border:1px solid var(--border);border-radius:8px;padding:9px 12px;font-family:'DM Sans',sans-serif;font-size:13px;color:var(--white);outline:none;transition:border-color 0.2s;caret-color:var(--gold);}
+.ai-input:focus{border-color:var(--border-warm);}
+.ai-input::placeholder{color:var(--muted);}
+.ai-send{width:34px;height:34px;border-radius:8px;background:var(--gold);border:none;cursor:pointer;display:flex;align-items:center;justify-content:center;color:#0b0b0c;flex-shrink:0;transition:all 0.18s;}
+.ai-send:hover{background:var(--gold-br);}
+
+/* SPEND STRIP */
+.spend-strip{display:grid;grid-template-columns:1fr 1fr;gap:8px;}
+.spend-cell{background:var(--card);border:1px solid var(--border);border-radius:var(--r-sm);padding:12px 14px;}
+.spend-cell-val{font-family:'Cinzel',serif;font-size:18px;font-weight:700;color:var(--white);margin-bottom:3px;}
+.spend-cell-lbl{font-size:9px;text-transform:uppercase;letter-spacing:0.1em;color:var(--muted);}
+.spend-cell-sub{font-size:10px;color:var(--muted);margin-top:4px;}
+.spend-prog{height:2px;background:rgba(255,255,255,0.05);border-radius:2px;overflow:hidden;margin-top:8px;}
+.spend-prog-fill{height:100%;border-radius:2px;transition:width 0.7s ease;}
+
+/* URGENT ITEMS */
+.urgent-item{display:flex;align-items:center;gap:10px;padding:9px 0;border-bottom:1px solid var(--border);}
+.urgent-item:last-child{border-bottom:none;}
+.ui-dot{width:7px;height:7px;border-radius:50%;flex-shrink:0;}
+.ui-text{flex:1;font-size:12px;color:var(--white);font-weight:500;}
+.ui-project{font-size:10px;color:var(--muted);}
+.ui-price{font-size:12px;font-weight:600;color:var(--white);}
+
+/* MOBILE BOTTOM NAV */
+.m-bottom-nav{display:flex;align-items:center;justify-content:space-around;padding:8px 0 28px;border-top:1px solid var(--border);background:var(--void);flex-shrink:0;}
+.m-nav-item{display:flex;flex-direction:column;align-items:center;gap:3px;padding:6px 12px;cursor:pointer;}
+.m-nav-icon{display:flex;align-items:center;justify-content:center;color:var(--muted);}
+.m-nav-label{font-size:8px;text-transform:uppercase;letter-spacing:0.08em;color:var(--muted);}
+.m-nav-item.active .m-nav-label,.m-nav-item.active .m-nav-icon{color:var(--gold);}
+.m-fab{width:50px;height:50px;border-radius:50%;background:var(--gold);display:flex;align-items:center;justify-content:center;color:#0b0b0c;box-shadow:0 4px 20px rgba(212,185,120,0.35);cursor:pointer;border:none;transition:all 0.2s;}
+.m-fab:hover{background:var(--gold-br);transform:scale(1.05);}
+
+/* ===================== DESKTOP STYLES ===================== */
+.d-sidebar{background:var(--base);border-right:1px solid var(--border);display:flex;flex-direction:column;align-items:center;padding:20px 0;gap:4px;position:sticky;top:52px;height:calc(100vh - 52px);}
+.d-nav-item{width:40px;height:40px;border-radius:10px;display:flex;align-items:center;justify-content:center;cursor:pointer;transition:all 0.2s;color:var(--muted);position:relative;}
+.d-nav-item:hover{color:var(--white);background:var(--raised);}
+.d-nav-item.active{color:var(--gold);background:var(--gold-dim);}
+.d-nav-item.active::before{content:'';position:absolute;left:-1px;width:2px;height:18px;background:var(--gold);border-radius:0 2px 2px 0;}
+.d-tooltip{position:absolute;left:50px;background:var(--raised);border:1px solid var(--border);color:var(--white);font-size:10px;letter-spacing:0.08em;text-transform:uppercase;padding:5px 10px;border-radius:6px;white-space:nowrap;opacity:0;pointer-events:none;transition:opacity 0.15s;z-index:100;}
+.d-nav-item:hover .d-tooltip{opacity:1;}
+.d-sidebar-bot{margin-top:auto;display:flex;flex-direction:column;align-items:center;gap:8px;}
+.d-avatar{width:30px;height:30px;border-radius:50%;background:var(--gold-dim);border:1px solid var(--gold);display:flex;align-items:center;justify-content:center;font-size:9px;color:var(--gold);font-weight:700;letter-spacing:0.04em;cursor:pointer;}
+
+/* DESKTOP TOPBAR */
+.d-topbar{display:flex;align-items:center;justify-content:space-between;padding:20px 32px 16px;border-bottom:1px solid var(--border);background:var(--void);position:sticky;top:52px;z-index:50;}
+.d-topbar-left{display:flex;flex-direction:column;gap:2px;}
+.d-greeting{font-family:'Cinzel',serif;font-size:20px;font-weight:700;letter-spacing:0.08em;color:var(--white);}
+.d-topbar-sub{font-size:11px;color:var(--muted);}
+.d-topbar-right{display:flex;align-items:center;gap:10px;}
+.d-notif-btn{width:34px;height:34px;border-radius:9px;background:var(--card);border:1px solid var(--border);display:flex;align-items:center;justify-content:center;cursor:pointer;color:var(--muted);position:relative;transition:all 0.18s;}
+.d-notif-btn:hover{border-color:var(--border-warm);color:var(--white);}
+.d-notif-badge{position:absolute;top:6px;right:6px;width:7px;height:7px;border-radius:50%;background:var(--amber);border:1.5px solid var(--void);}
+
+/* DESKTOP MAIN GRID */
+.d-main{display:flex;flex-direction:column;min-height:calc(100vh - 52px);overflow:hidden;}
+.d-content{padding:28px 32px;overflow-y:auto;flex:1;scrollbar-width:thin;scrollbar-color:rgba(212,185,120,0.18) transparent;}
+.d-grid{display:grid;grid-template-columns:1fr 340px;gap:24px;align-items:start;}
+.d-left{display:flex;flex-direction:column;gap:20px;}
+.d-right{display:flex;flex-direction:column;gap:16px;}
+
+/* DESKTOP HOUSE HEADER */
+.d-house-banner{background:var(--card);border:1px solid var(--border);border-radius:var(--r);padding:20px 24px;display:flex;align-items:center;gap:20px;}
+.dhb-pulse{width:10px;height:10px;border-radius:50%;background:var(--green-br);flex-shrink:0;box-shadow:0 0 0 0 rgba(114,176,138,0.4);animation:housePulse 2.5s ease-in-out infinite;}
+.dhb-info{flex:1;}
+.dhb-addr{font-family:'Cinzel',serif;font-size:15px;font-weight:600;letter-spacing:0.08em;color:var(--white);margin-bottom:3px;}
+.dhb-meta{font-size:11px;color:var(--muted);}
+.dhb-stats{display:flex;gap:24px;}
+.dhb-stat{text-align:right;}
+.dhb-stat-val{font-family:'Cinzel',serif;font-size:16px;font-weight:700;color:var(--white);}
+.dhb-stat-lbl{font-size:9px;text-transform:uppercase;letter-spacing:0.1em;color:var(--muted);}
+
+/* DESKTOP SECTION HEADERS */
+.d-sec-hdr{display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;}
+.d-sec-title{font-family:'Cinzel',serif;font-size:11px;font-weight:600;letter-spacing:0.15em;text-transform:uppercase;color:var(--soft);}
+.d-sec-link{font-size:11px;color:var(--gold);cursor:pointer;display:flex;align-items:center;gap:4px;transition:color 0.15s;}
+.d-sec-link:hover{color:var(--gold-br);}
+
+/* DESKTOP STAT BAR */
+.d-stat-bar{display:grid;grid-template-columns:repeat(4,1fr);gap:0;background:var(--card);border:1px solid var(--border);border-radius:var(--r);overflow:hidden;}
+.d-stat-cell{padding:16px 20px;border-right:1px solid var(--border);position:relative;}
+.d-stat-cell:last-child{border-right:none;}
+.d-stat-lbl{font-size:9px;text-transform:uppercase;letter-spacing:0.12em;color:var(--muted);margin-bottom:6px;}
+.d-stat-val{font-family:'Cinzel',serif;font-size:24px;font-weight:700;color:var(--white);}
+.d-stat-sub{font-size:10px;color:var(--muted);margin-top:3px;}
+.d-stat-trend{position:absolute;top:14px;right:16px;font-size:10px;display:flex;align-items:center;gap:3px;}
+.trend-up{color:var(--green-br);}
+.trend-warn{color:var(--amber);}
+
+/* DESKTOP PROJECT CARDS */
+.d-proj-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;}
+.d-proj-card{background:var(--card);border:1px solid var(--border);border-radius:var(--r);overflow:hidden;cursor:pointer;transition:all 0.2s;}
+.d-proj-card:hover{border-color:var(--border-warm);transform:translateY(-2px);box-shadow:0 8px 32px rgba(0,0,0,0.35);}
+.dpc-accent{height:3px;}
+.dpc-body{padding:14px 16px 10px;}
+.dpc-top{display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:10px;}
+.dpc-icon{width:36px;height:36px;border-radius:10px;display:flex;align-items:center;justify-content:center;flex-shrink:0;color:var(--gold);}
+.dpc-info{flex:1;margin-left:10px;}
+.dpc-name{font-family:'Cinzel',serif;font-size:12px;font-weight:600;letter-spacing:0.06em;color:var(--white);margin-bottom:2px;line-height:1.3;}
+.dpc-room{font-size:9px;color:var(--muted);text-transform:uppercase;letter-spacing:0.09em;}
+.dpc-status{display:inline-flex;align-items:center;padding:2px 8px;border-radius:20px;font-size:9px;font-weight:600;letter-spacing:0.07em;text-transform:uppercase;}
+.s-active{background:var(--green-dim);color:var(--green-br);border:1px solid rgba(78,122,94,0.2);}
+.s-planning{background:var(--blue-dim);color:var(--blue-br);border:1px solid rgba(122,170,200,0.18);}
+.dpc-prog-row{display:flex;align-items:center;gap:8px;margin-bottom:4px;}
+.dpc-prog-track{flex:1;height:3px;background:rgba(255,255,255,0.05);border-radius:3px;overflow:hidden;}
+.dpc-prog-fill{height:100%;border-radius:3px;transition:width 0.7s ease;}
+.dpc-pct{font-size:10px;color:var(--muted);min-width:28px;text-align:right;}
+.dpc-foot{display:flex;align-items:center;justify-content:space-between;border-top:1px solid var(--border);padding:8px 16px;}
+.dpc-budget{font-size:11px;color:var(--muted);}
+.dpc-spent{font-size:11px;font-weight:600;}
+
+/* DESKTOP TASK LIST */
+.d-task-card{background:var(--card);border:1px solid var(--border);border-radius:var(--r);overflow:hidden;}
+.d-task-item{display:flex;align-items:center;gap:12px;padding:11px 18px;border-bottom:1px solid var(--border);transition:background 0.15s;cursor:default;}
+.d-task-item:last-child{border-bottom:none;}
+.d-task-item:hover{background:rgba(255,255,255,0.015);}
+.dt-check{width:18px;height:18px;border-radius:5px;border:1px solid var(--border);display:flex;align-items:center;justify-content:center;cursor:pointer;flex-shrink:0;transition:all 0.18s;}
+.dt-check:hover{border-color:var(--gold);}
+.dt-check.done{background:var(--green-dim);border-color:rgba(78,122,94,0.4);}
+.dt-name{flex:1;font-size:13px;color:var(--white);font-weight:500;}
+.dt-name.done{text-decoration:line-through;color:var(--muted);}
+.dt-proj{display:flex;align-items:center;gap:5px;font-size:10px;color:var(--muted);}
+.dt-dot{width:5px;height:5px;border-radius:50%;}
+.dt-date{font-size:10px;color:var(--muted);white-space:nowrap;}
+.dt-who{font-size:9px;font-weight:600;padding:2px 7px;border-radius:10px;background:var(--raised);color:var(--soft);}
+
+/* DESKTOP AI CARD */
+.d-ai-card{background:var(--card);border:1px solid var(--border-warm);border-radius:var(--r);overflow:hidden;}
+.d-ai-top{display:flex;align-items:center;gap:10px;padding:14px 16px;border-bottom:1px solid var(--border);}
+.d-ai-avatar{width:30px;height:30px;border-radius:50%;background:var(--gold-dim);border:1px solid var(--border-warm);display:flex;align-items:center;justify-content:center;flex-shrink:0;}
+.d-ai-name{font-family:'Cinzel',serif;font-size:11px;font-weight:600;letter-spacing:0.08em;color:var(--gold);flex:1;}
+.d-ai-live{display:flex;align-items:center;gap:4px;font-size:10px;color:var(--green-br);}
+.d-ai-live-dot{width:5px;height:5px;border-radius:50%;background:var(--green-br);animation:housePulse 2s infinite;}
+.d-ai-body{padding:14px 16px;}
+.d-ai-msg{font-size:13px;line-height:1.65;color:var(--white);margin-bottom:12px;}
+.d-ai-msg strong{color:var(--gold-br);}
+.d-ai-chips{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:12px;}
+.d-ai-chip{padding:5px 10px;border-radius:20px;font-size:10px;border:1px solid var(--border);color:var(--muted);cursor:pointer;transition:all 0.15s;background:transparent;font-family:'DM Sans',sans-serif;}
+.d-ai-chip:hover{border-color:var(--border-warm);color:var(--white);}
+.d-ai-input-row{display:flex;gap:8px;}
+.d-ai-input{flex:1;background:var(--raised);border:1px solid var(--border);border-radius:8px;padding:9px 12px;font-family:'DM Sans',sans-serif;font-size:12px;color:var(--white);outline:none;transition:border-color 0.2s;caret-color:var(--gold);}
+.d-ai-input:focus{border-color:var(--border-warm);}
+.d-ai-input::placeholder{color:var(--muted);}
+.d-ai-send{width:32px;height:32px;border-radius:8px;background:var(--gold);border:none;cursor:pointer;display:flex;align-items:center;justify-content:center;color:#0b0b0c;flex-shrink:0;transition:all 0.18s;}
+.d-ai-send:hover{background:var(--gold-br);}
+
+/* DESKTOP BUDGET RING */
+.d-budget-card{background:var(--card);border:1px solid var(--border);border-radius:var(--r);padding:18px;}
+.d-budget-ring{display:flex;align-items:center;gap:16px;margin-bottom:14px;}
+.ring-wrap{position:relative;width:72px;height:72px;flex-shrink:0;}
+.ring-wrap svg{transform:rotate(-90deg);}
+.ring-center{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;}
+.ring-pct{font-family:'Cinzel',serif;font-size:15px;font-weight:700;color:var(--white);}
+.ring-lbl{font-size:8px;color:var(--muted);text-transform:uppercase;letter-spacing:0.08em;}
+.budget-stats{flex:1;display:flex;flex-direction:column;gap:6px;}
+.bs-row{display:flex;align-items:center;justify-content:space-between;}
+.bs-label{font-size:11px;color:var(--muted);}
+.bs-val{font-size:12px;font-weight:600;}
+.budget-by-proj{display:flex;flex-direction:column;gap:6px;}
+.bbp-row{display:flex;align-items:center;gap:8px;}
+.bbp-dot{width:6px;height:6px;border-radius:50%;flex-shrink:0;}
+.bbp-name{font-size:11px;color:var(--soft);flex:1;}
+.bbp-bar{flex:1;height:3px;background:var(--raised);border-radius:3px;overflow:hidden;}
+.bbp-fill{height:100%;border-radius:3px;transition:width 0.7s ease;}
+.bbp-amt{font-size:11px;color:var(--white);font-weight:500;min-width:38px;text-align:right;}
+
+/* DESKTOP UPCOMING */
+.d-upcoming-card{background:var(--card);border:1px solid var(--border);border-radius:var(--r);overflow:hidden;}
+.d-upcoming-item{display:flex;gap:12px;padding:11px 16px;border-bottom:1px solid var(--border);}
+.d-upcoming-item:last-child{border-bottom:none;}
+.dui-date{display:flex;flex-direction:column;align-items:center;min-width:34px;}
+.dui-day{font-family:'Cinzel',serif;font-size:16px;font-weight:700;color:var(--white);line-height:1;}
+.dui-mon{font-size:8px;text-transform:uppercase;letter-spacing:0.1em;color:var(--muted);}
+.dui-body{flex:1;}
+.dui-title{font-size:12px;font-weight:500;color:var(--white);margin-bottom:2px;}
+.dui-project{font-size:10px;color:var(--muted);}
+.dui-tag{align-self:flex-start;margin-top:2px;}
+
+/* MATERIALS URGENT */
+.d-materials-card{background:var(--card);border:1px solid var(--border);border-radius:var(--r);overflow:hidden;}
+.dmc-item{display:flex;align-items:center;gap:10px;padding:10px 16px;border-bottom:1px solid var(--border);}
+.dmc-item:last-child{border-bottom:none;}
+.dmc-dot{width:7px;height:7px;border-radius:50%;flex-shrink:0;}
+.dmc-name{flex:1;font-size:12px;color:var(--white);font-weight:500;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+.dmc-src{font-size:10px;color:var(--muted);}
+.dmc-price{font-size:12px;font-weight:600;color:var(--white);}
+
+@keyframes fadeUp{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
+@keyframes housePulse{0%,100%{box-shadow:0 0 0 0 rgba(114,176,138,0.35)}70%{box-shadow:0 0 0 7px rgba(114,176,138,0)}}
+
+/* SCROLLBARS */
+::-webkit-scrollbar{width:4px;height:4px;}
+::-webkit-scrollbar-track{background:transparent;}
+::-webkit-scrollbar-thumb{background:rgba(212,185,120,0.18);border-radius:4px;}
+::-webkit-scrollbar-thumb:hover{background:rgba(212,185,120,0.38);}
+::-webkit-scrollbar-corner{background:transparent;}
+*{scrollbar-width:thin;scrollbar-color:rgba(212,185,120,0.18) transparent;}
+
+
+/* ================================================================
+   HOUSE MEMORY - SPECIFIC STYLES
+================================================================ */
+.hm-layout { display:grid; grid-template-columns:260px 1fr; height:100%; overflow:hidden; }
+.hm-sidebar { border-right:1px solid var(--border); overflow-y:auto; background:var(--base);
+  scrollbar-width:thin; scrollbar-color:rgba(212,185,120,0.18) transparent; }
+.hm-main { overflow-y:auto; scrollbar-width:thin; scrollbar-color:rgba(212,185,120,0.18) transparent; }
+
+/* Room list item */
+.rm-item { display:flex; align-items:center; gap:11px; padding:11px 18px; cursor:pointer;
+  transition:background 0.15s; border-bottom:1px solid var(--border); position:relative; }
+.rm-item:hover { background:rgba(255,255,255,0.014); }
+.rm-item.active { background:var(--gold-dim); }
+.rm-item.active::before { content:''; position:absolute; left:0; top:0; bottom:0;
+  width:2px; background:var(--gold); }
+.rm-icon { width:36px; height:36px; border-radius:10px; display:flex; align-items:center;
+  justify-content:center; flex-shrink:0; color:var(--gold); transition:background 0.15s; }
+.rm-item.active .rm-icon { background:var(--gold-dim); }
+.rm-item:not(.active) .rm-icon { background:var(--raised); color:var(--soft); }
+.rm-name { font-size:13px; font-weight:500; color:var(--white); flex:1; }
+.rm-item:not(.active) .rm-name { color:var(--soft); }
+.rm-count { font-family:'Cinzel',serif; font-size:11px; font-weight:600; color:var(--muted); }
+.rm-item.active .rm-count { color:var(--gold); }
+.rm-spent { font-size:10px; color:var(--muted); }
+
+/* Room header */
+.rh-wrap { padding:24px 28px 18px; border-bottom:1px solid var(--border); flex-shrink:0;
+  display:flex; align-items:flex-start; justify-content:space-between; }
+.rh-icon { width:48px; height:48px; border-radius:14px; background:var(--gold-dim);
+  border:1px solid var(--border-warm); display:flex; align-items:center;
+  justify-content:center; color:var(--gold); flex-shrink:0; }
+.rh-title { font-family:'Cinzel',serif; font-size:22px; font-weight:700; letter-spacing:0.08em; }
+.rh-sub { font-size:11px; color:var(--muted); margin-top:3px; }
+.rh-stat { text-align:right; }
+.rh-stat-val { font-family:'Cinzel',serif; font-size:18px; font-weight:700; }
+.rh-stat-lbl { font-size:9px; text-transform:uppercase; letter-spacing:0.1em; color:var(--muted); margin-top:2px; }
+
+/* Summary stats bar */
+.rh-stats { display:grid; grid-template-columns:repeat(4,1fr); background:var(--card);
+  border-bottom:1px solid var(--border); }
+.rh-stat-cell { padding:12px 18px; border-right:1px solid var(--border); }
+.rh-stat-cell:last-child { border-right:none; }
+.rh-stat-cell-lbl { font-size:9px; text-transform:uppercase; letter-spacing:0.11em;
+  color:var(--muted); margin-bottom:4px; }
+.rh-stat-cell-val { font-family:'Cinzel',serif; font-size:18px; font-weight:700; color:var(--white); }
+
+/* Entry card */
+.en-card { background:var(--card); border:1px solid var(--border); border-radius:var(--r);
+  overflow:hidden; margin-bottom:14px; transition:border-color 0.18s; animation:fadeUp 0.3s ease both; }
+.en-card:hover { border-color:var(--border-warm); }
+.en-card-top { padding:16px 18px 12px; display:flex; align-items:flex-start; gap:14px; }
+.en-date { font-family:'Cinzel',serif; font-size:10px; font-weight:600; letter-spacing:0.12em;
+  color:var(--gold); text-transform:uppercase; flex-shrink:0; padding-top:2px; }
+.en-title { font-family:'Cinzel',serif; font-size:14px; font-weight:600; letter-spacing:0.06em;
+  color:var(--white); margin-bottom:5px; }
+.en-desc { font-size:13px; line-height:1.65; color:var(--soft); }
+.en-products { padding:0 18px; margin-bottom:10px; display:flex; gap:6px; flex-wrap:wrap; }
+.en-product { padding:4px 10px; border-radius:20px; background:var(--raised);
+  border:1px solid var(--border); font-size:10px; color:var(--soft); }
+.en-footer { display:flex; align-items:center; gap:8px; padding:10px 18px;
+  border-top:1px solid var(--border); background:rgba(0,0,0,0.12); }
+.en-tag { padding:3px 9px; border-radius:20px; font-size:9px; font-weight:600;
+  letter-spacing:0.08em; text-transform:uppercase; }
+.et-permit  { background:var(--purple-dim);  color:var(--purple); }
+.et-labor   { background:var(--amber-dim);   color:var(--amber);  }
+.et-diy     { background:var(--green-dim);   color:var(--green-br); }
+.et-product { background:var(--blue-dim);    color:var(--blue-br); }
+.et-paint   { background:rgba(200,121,65,0.12); color:var(--orange); }
+.et-tile    { background:var(--gold-dim);    color:var(--gold); }
+.et-fixture { background:var(--raised);      color:var(--soft); }
+.en-cost { font-family:'Cinzel',serif; font-size:13px; font-weight:600;
+  color:var(--white); margin-left:auto; }
+
+/* Products referenced section */
+.prod-section { padding:14px 18px; border-top:1px solid var(--border); }
+.prod-grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(200px,1fr)); gap:8px; }
+.prod-item { background:var(--raised); border:1px solid var(--border); border-radius:var(--r-sm);
+  padding:10px 12px; display:flex; align-items:flex-start; gap:9px; }
+.prod-dot { width:8px; height:8px; border-radius:50%; flex-shrink:0; margin-top:4px; }
+.prod-name { font-size:12px; font-weight:500; color:var(--white); line-height:1.4; }
+.prod-sub { font-size:10px; color:var(--muted); margin-top:2px; }
+
+/* Quick log */
+.ql-bar { display:flex; align-items:center; gap:9px; padding:12px 18px;
+  border-top:1px solid var(--border); background:rgba(0,0,0,0.12); flex-shrink:0; }
+.ql-input { flex:1; background:var(--raised); border:1px solid var(--border);
+  border-radius:8px; padding:9px 13px; font-family:'DM Sans',sans-serif; font-size:13px;
+  color:var(--white); outline:none; transition:border-color 0.2s; caret-color:var(--gold); }
+.ql-input:focus { border-color:var(--border-warm); }
+.ql-input::placeholder { color:var(--muted); }
+.ql-btn { width:34px; height:34px; border-radius:8px; background:var(--gold); border:none;
+  cursor:pointer; display:flex; align-items:center; justify-content:center;
+  color:#0b0b0c; flex-shrink:0; transition:all 0.18s; }
+.ql-btn:hover { background:var(--gold-br); }
+
+/* Mobile room grid */
+.m-room-grid { display:grid; grid-template-columns:repeat(3,1fr); gap:8px; padding:14px 18px; }
+.m-rm-cell { background:var(--card); border:1px solid var(--border); border-radius:var(--r-sm);
+  padding:12px 10px; display:flex; flex-direction:column; align-items:center; gap:6px;
+  cursor:pointer; transition:all 0.18s; text-align:center; }
+.m-rm-cell:hover { border-color:var(--border-warm); }
+.m-rm-cell.active { background:var(--gold-dim); border-color:var(--border-warm); }
+.m-rm-cell-name { font-size:10px; font-weight:500; color:var(--white); letter-spacing:0.03em; }
+.m-rm-cell.active .m-rm-cell-name { color:var(--gold); }
+.m-rm-cell-count { font-size:9px; color:var(--muted); }
+.m-rm-cell.active .m-rm-cell-count { color:var(--gold); }
+.m-rm-icon { color:var(--muted); }
+.m-rm-cell.active .m-rm-icon { color:var(--gold); }
+
+/* Section header */
+.sec-hdr { display:flex; align-items:center; justify-content:space-between; margin-bottom:12px; }
+.sec-title { font-family:'Cinzel',serif; font-size:10px; font-weight:600;
+  letter-spacing:0.15em; text-transform:uppercase; color:var(--soft); }
+.sec-link { font-size:11px; color:var(--gold); cursor:pointer; display:flex; align-items:center; gap:4px; }
+
+/* Empty state */
+.empty-state { padding:48px 24px; text-align:center; display:flex; flex-direction:column;
+  align-items:center; gap:14px; }
+.empty-icon { width:56px; height:56px; border-radius:16px; background:var(--gold-dim);
+  border:1px solid var(--border-warm); display:flex; align-items:center; justify-content:center;
+  color:var(--gold); }
+.empty-title { font-family:'Cinzel',serif; font-size:15px; font-weight:600; letter-spacing:0.08em; }
+.empty-sub { font-size:13px; color:var(--muted); line-height:1.6; max-width:260px; }
+
+@keyframes fadeUp { from{opacity:0;transform:translateY(8px)} to{opacity:1;transform:translateY(0)} }
+</style>
+</head>
+<body class="mode-mobile">
+<div class="atmo"></div>
+<div class="grid-bg"></div>
+<div class="view-toggle">
+  <button class="vbtn active" id="btn-mobile" onclick="setView('mobile')">
+    <svg width="11" height="11" viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"><rect x="3" y="1" width="8" height="12" rx="1.5"/><circle cx="7" cy="10.5" r="0.8" fill="currentColor" stroke="none"/></svg>
+    Mobile
+  </button>
+  <div class="vdiv"></div>
+  <button class="vbtn" id="btn-desktop" onclick="setView('desktop')">
+    <svg width="11" height="11" viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"><rect x="1" y="2" width="12" height="8" rx="1"/><line x1="4" y1="12" x2="10" y2="12"/><line x1="7" y1="10" x2="7" y2="12"/></svg>
+    Desktop
+  </button>
+</div>
+
+<!-- ================================================================
+     MOBILE SHELL
+================================================================ -->
+<div class="mobile-shell" id="mobile-view">
+  <div class="m-screen-wrap" style="flex:1;overflow:hidden;display:flex;flex-direction:column;">
+
+    <!-- HEADER -->
+    <div style="padding:42px 18px 12px;flex-shrink:0;">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:4px;">
+        <div>
+          <div style="font-family:'Cinzel',serif;font-size:20px;font-weight:700;letter-spacing:0.1em;">House Memory</div>
+          <div style="font-size:11px;color:var(--muted);margin-top:2px;">4246 Elmwood Drive</div>
+        </div>
+        <button class="btn-primary" style="padding:9px 13px;font-size:12px;" onclick="showAddEntryModal()">
+          <svg width="11" height="11" viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"><line x1="6" y1="2" x2="6" y2="10"/><line x1="2" y1="6" x2="10" y2="6"/></svg> Log
+        </button>
+      </div>
+    </div>
+
+    <!-- ROOM GRID (mobile) -->
+    <div style="padding:0 18px 10px;flex-shrink:0;">
+      <div class="sec-title" style="margin-bottom:8px;">Select Room</div>
+      <div class="m-room-grid" id="m-room-grid"></div>
+    </div>
+
+    <!-- ROOM DETAIL (mobile scroll) -->
+    <div style="flex:1;overflow-y:auto;padding:0 18px;scrollbar-width:thin;scrollbar-color:rgba(212,185,120,0.18) transparent;">
+      <div id="m-room-detail"></div>
+      <div style="height:20px;"></div>
+    </div>
+
+    <!-- QUICK LOG -->
+    <div class="ql-bar">
+      <input class="ql-input" id="m-ql-input" placeholder="Quick log: paint color, product, observation..."
+        onkeydown="if(event.key==='Enter')quickLog(event)">
+      <button class="ql-btn" onclick="quickLog({target:document.getElementById('m-ql-input'),key:'Enter'})">
+        <svg width="13" height="13" viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="2" x2="2" y2="7"/><line x1="12" y1="2" x2="8" y2="12"/><line x1="2" y1="7" x2="8" y2="12"/></svg>
+      </button>
+    </div>
+  </div>
+<div class="m-bottom-nav">
+    <div class="m-nav-item active">
+      <div class="m-nav-icon"><svg width="18" height="18" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round"><path d="M2 9L10 2.5 18 9"/><path d="M4.5 7.5V17.5H8.5V13H11.5V17.5H15.5V7.5"/></svg></div>
+      <div class="m-nav-label" style="color:var(--gold)">Home</div>
+    </div>
+    <div class="m-nav-item">
+      <div class="m-nav-icon"><svg width="18" height="18" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"><rect x="2" y="2" width="6.5" height="6.5" rx="1"/><rect x="11.5" y="2" width="6.5" height="6.5" rx="1"/><rect x="2" y="11.5" width="6.5" height="6.5" rx="1"/><rect x="11.5" y="11.5" width="6.5" height="6.5" rx="1"/></svg></div>
+      <div class="m-nav-label">Projects</div>
+    </div>
+    <div class="m-nav-item">
+      <button class="m-fab" onclick="showToast('New project wizard launching...')">
+        <svg width="18" height="18" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><line x1="10" y1="3" x2="10" y2="17"/><line x1="3" y1="10" x2="17" y2="10"/></svg>
+      </button>
+    </div>
+    <div class="m-nav-item">
+      <div class="m-nav-icon"><svg width="18" height="18" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round"><circle cx="10" cy="10" r="7.5"/><path d="M10 6.5v7M8 8.5c0-1.1.9-2 2-2s2 .9 2 2-.9 1.5-2 1.5-2 .4-2 1.5.9 2 2 2 2-.9 2-2"/></svg></div>
+      <div class="m-nav-label">Budget</div>
+    </div>
+    <div class="m-nav-item">
+      <div class="m-nav-icon"><svg width="18" height="18" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round"><path d="M10 2.5L17.5 7v6L10 17.5 2.5 13V7z"/><polyline points="2.5,7 10,11.5 17.5,7"/><line x1="10" y1="11.5" x2="10" y2="17.5"/></svg></div>
+      <div class="m-nav-label">Shop</div>
+    </div>
+  </div>
+</div>
+
+<!-- ================================================================
+     DESKTOP SHELL
+================================================================ -->
+<div class="desktop-shell" id="desktop-view">
+<div class="d-sidebar">
+    <div style="margin-bottom:16px">
+      <svg width="28" height="28" viewBox="0 0 34 34" fill="none"><circle cx="17" cy="17" r="15.5" stroke="#d4b978" stroke-width="0.7" opacity="0.55"/><path d="M17 3.5 L30.5 17 L17 30.5 L3.5 17 Z" stroke="#d4b978" stroke-width="0.7" fill="none"/><path d="M17 9.5 L24.5 17 L17 24.5 L9.5 17 Z" stroke="#d4b978" stroke-width="0.45" fill="rgba(212,185,120,0.06)"/><circle cx="17" cy="17" r="1.8" fill="#d4b978"/></svg>
+    </div>
+    <div class="d-nav-item active"><svg width="18" height="18" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round"><path d="M2 9L10 2.5 18 9"/><path d="M4.5 7.5V17.5H8.5V13H11.5V17.5H15.5V7.5"/></svg><span class="d-tooltip">Command</span></div>
+    <div class="d-nav-item"><svg width="18" height="18" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"><rect x="2" y="2" width="6.5" height="6.5" rx="1"/><rect x="11.5" y="2" width="6.5" height="6.5" rx="1"/><rect x="2" y="11.5" width="6.5" height="6.5" rx="1"/><rect x="11.5" y="11.5" width="6.5" height="6.5" rx="1"/></svg><span class="d-tooltip">Projects</span></div>
+    <div class="d-nav-item"><svg width="18" height="18" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"><rect x="2.5" y="2.5" width="15" height="15" rx="1"/><line x1="2.5" y1="7" x2="17.5" y2="7"/><line x1="7" y1="7" x2="7" y2="17.5"/><line x1="10" y1="10" x2="15" y2="10"/><line x1="10" y1="13" x2="15" y2="13"/></svg><span class="d-tooltip">Blueprint</span></div>
+    <div class="d-nav-item"><svg width="18" height="18" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round"><circle cx="10" cy="10" r="7.5"/><path d="M10 6.5v7M8 8.5c0-1.1.9-2 2-2s2 .9 2 2-.9 1.5-2 1.5-2 .4-2 1.5.9 2 2 2 2-.9 2-2"/></svg><span class="d-tooltip">Budget</span></div>
+    <div class="d-nav-item"><svg width="18" height="18" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round"><path d="M10 2.5L17.5 7v6L10 17.5 2.5 13V7z"/><polyline points="2.5,7 10,11.5 17.5,7"/><line x1="10" y1="11.5" x2="10" y2="17.5"/></svg><span class="d-tooltip">Materials</span></div>
+    <div class="d-nav-item"><svg width="18" height="18" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"><rect x="2.5" y="4" width="15" height="13.5" rx="1"/><line x1="2.5" y1="8.5" x2="17.5" y2="8.5"/><line x1="6.5" y1="2" x2="6.5" y2="6"/><line x1="13.5" y1="2" x2="13.5" y2="6"/></svg><span class="d-tooltip">Calendar</span></div>
+    <div class="d-nav-item"><svg width="18" height="18" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round"><path d="M10 2.5l2 4.5 5 .5-3.5 3.5 1 5L10 14l-4.5 2.5 1-5L3 8l5-.5z"/></svg><span class="d-tooltip">Brainstorm</span></div>
+    <div class="d-nav-item"><svg width="18" height="18" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round"><circle cx="10" cy="10" r="7.5"/><circle cx="10" cy="10" r="2.5"/><line x1="10" y1="2.5" x2="10" y2="7.5"/><line x1="10" y1="12.5" x2="10" y2="17.5"/><line x1="2.5" y1="10" x2="7.5" y2="10"/><line x1="12.5" y1="10" x2="17.5" y2="10"/></svg><span class="d-tooltip">House Memory</span></div>
+    <div class="d-sidebar-bot">
+      <div class="d-nav-item"><svg width="18" height="18" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"><circle cx="10" cy="10" r="2.5"/><path d="M10 2v1.5M10 16.5V18M2 10h1.5M16.5 10H18M4.4 4.4l1.1 1.1M14.5 14.5l1.1 1.1M4.4 15.6l1.1-1.1M14.5 5.5l1.1-1.1"/></svg><span class="d-tooltip">Settings</span></div>
+      <div class="d-avatar">L+M</div>
+    </div>
+  </div>
+  <div class="d-main">
+    <!-- TOPBAR -->
+    <div class="d-topbar">
+      <div class="d-topbar-left">
+        <div class="d-page-title">House Memory</div>
+        <div class="d-page-sub">4246 Elmwood Drive &bull; Per-room history &amp; product log</div>
+      </div>
+      <div class="d-topbar-right" style="display:flex;gap:10px;">
+        <button class="btn-ghost" onclick="showToast('Search coming soon')">
+          <svg width="13" height="13" viewBox="0 0 15 15" fill="none" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"><circle cx="6" cy="6" r="4.5"/><line x1="9.5" y1="9.5" x2="13" y2="13"/></svg> Search
+        </button>
+        <button class="btn-primary" onclick="showAddEntryModal()">
+          <svg width="12" height="12" viewBox="0 0 13 13" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"><line x1="6.5" y1="2" x2="6.5" y2="11"/><line x1="2" y1="6.5" x2="11" y2="6.5"/></svg> Log Entry
+        </button>
+      </div>
+    </div>
+    <!-- MAIN CONTENT: sidebar + detail -->
+    <div class="hm-layout" style="flex:1;overflow:hidden;">
+      <!-- Room list sidebar -->
+      <div class="hm-sidebar">
+        <div style="padding:14px 18px 8px;">
+          <div style="font-family:'Cinzel',serif;font-size:9px;font-weight:600;letter-spacing:0.16em;text-transform:uppercase;color:var(--muted);">Rooms</div>
+        </div>
+        <div id="d-room-list"></div>
+      </div>
+      <!-- Room detail -->
+      <div class="hm-main">
+        <div id="d-room-detail"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ADD ENTRY MODAL -->
+<div class="modal-overlay" id="modal-add-entry" onclick="if(event.target===this)closeAddEntry()">
+  <div class="modal-sheet" style="max-width:520px;">
+    <div class="modal-handle"></div>
+    <div class="modal-title">Log Memory Entry</div>
+    <div style="font-size:10px;font-weight:600;letter-spacing:0.1em;text-transform:uppercase;color:var(--muted);margin-bottom:5px;">Room</div>
+    <select class="mf-input" id="ae-room" style="margin-bottom:12px;">
+      <option value="kitchen">Kitchen</option><option value="bathroom">Bathroom</option>
+      <option value="living">Living Room</option><option value="bedroom">Bedroom</option>
+      <option value="exterior">Exterior</option><option value="garage">Garage</option>
+      <option value="laundry">Laundry</option><option value="basement">Basement</option>
+    </select>
+    <div style="font-size:10px;font-weight:600;letter-spacing:0.1em;text-transform:uppercase;color:var(--muted);margin-bottom:5px;">Title</div>
+    <input class="mf-input" id="ae-title" placeholder="e.g. Repainted trim, Replaced garbage disposal">
+    <div style="font-size:10px;font-weight:600;letter-spacing:0.1em;text-transform:uppercase;color:var(--muted);margin-bottom:5px;">Notes</div>
+    <textarea class="mf-input" id="ae-notes" rows="3" style="resize:none;" placeholder="Details, product names, paint colors, measurements..."></textarea>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:12px;">
+      <div>
+        <div style="font-size:10px;font-weight:600;letter-spacing:0.1em;text-transform:uppercase;color:var(--muted);margin-bottom:5px;">Cost ($)</div>
+        <input class="mf-input" id="ae-cost" type="number" placeholder="0" min="0" style="margin-bottom:0;">
+      </div>
+      <div>
+        <div style="font-size:10px;font-weight:600;letter-spacing:0.1em;text-transform:uppercase;color:var(--muted);margin-bottom:5px;">Tag</div>
+        <select class="mf-input" id="ae-tag" style="margin-bottom:0;">
+          <option value="diy">DIY Work</option><option value="labor">Contractor</option>
+          <option value="product">Product</option><option value="paint">Paint</option>
+          <option value="tile">Tile</option><option value="fixture">Fixture</option>
+          <option value="permit">Permit</option>
+        </select>
+      </div>
+    </div>
+    <div style="display:flex;gap:10px;">
+      <button class="btn-ghost" style="flex:1;justify-content:center;" onclick="closeAddEntry()">Cancel</button>
+      <button class="btn-primary" style="flex:2;" onclick="saveEntry()">Save Entry</button>
+    </div>
+  </div>
+</div>
+
+<script>
+'use strict';
+
+var ROOMS = [
+  { id:'kitchen',  name:'Kitchen',     icon:'<svg width="18" height="18" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="11" width="16" height="6" rx="1"/><line x1="2" y1="14" x2="18" y2="14"/><circle cx="6.5" cy="8" r="2"/><circle cx="13.5" cy="8" r="2"/></svg>' },
+  { id:'bathroom', name:'Bathroom',    icon:'<svg width="18" height="18" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round"><path d="M4 11H2.5V8.5a2.5 2.5 0 015 0"/><rect x="2.5" y="11" width="15" height="4.5" rx="1"/><line x1="7" y1="15.5" x2="7" y2="18"/><line x1="13" y1="15.5" x2="13" y2="18"/></svg>' },
+  { id:'living',   name:'Living Room', icon:'<svg width="18" height="18" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round"><rect x="1.5" y="9" width="17" height="7" rx="1.5"/><path d="M1.5 12h17"/><rect x="4" y="12" width="5" height="4" rx="0.5"/><rect x="11" y="12" width="5" height="4" rx="0.5"/></svg>' },
+  { id:'bedroom',  name:'Bedroom',     icon:'<svg width="18" height="18" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round"><rect x="1.5" y="10" width="17" height="6.5" rx="1"/><path d="M1.5 13h17"/><rect x="3" y="4" width="5" height="6" rx="1"/><rect x="12" y="4" width="5" height="6" rx="1"/></svg>' },
+  { id:'exterior', name:'Exterior',    icon:'<svg width="18" height="18" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"><circle cx="10" cy="6" r="2.5"/><line x1="10" y1="1.5" x2="10" y2="3"/><line x1="3" y1="12" x2="3" y2="18.5"/><line x1="7.5" y1="12" x2="7.5" y2="18.5"/><line x1="12.5" y1="12" x2="12.5" y2="18.5"/><line x1="17" y1="12" x2="17" y2="18.5"/><line x1="3" y1="15.5" x2="17" y2="15.5"/></svg>' },
+  { id:'garage',   name:'Garage',      icon:'<svg width="18" height="18" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round"><rect x="1.5" y="7.5" width="17" height="11" rx="1"/><path d="M1.5 7.5L10 2l8.5 5.5"/><line x1="1.5" y1="11" x2="18.5" y2="11"/><line x1="1.5" y1="14" x2="18.5" y2="14"/></svg>' },
+  { id:'basement', name:'Basement',    icon:'<svg width="18" height="18" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round"><rect x="1.5" y="9" width="17" height="9.5" rx="1"/><path d="M1.5 9L10 2l8.5 7"/><line x1="5" y1="18.5" x2="5" y2="13"/><line x1="10" y1="18.5" x2="10" y2="13"/><line x1="15" y1="18.5" x2="15" y2="13"/></svg>' },
+  { id:'laundry',  name:'Laundry',     icon:'<svg width="18" height="18" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"><rect x="2" y="2" width="16" height="17" rx="1.5"/><circle cx="10" cy="12" r="4"/><circle cx="10" cy="12" r="1.8"/><line x1="5" y1="5.5" x2="7" y2="5.5"/></svg>' }
+]
+
+var MEMORY = {
+  kitchen: {
+    totalSpent: 4750, projectCount: 2, lastWork: 'Mar 2025',
+    entries: [
+      { date:'Mar 2025', title:'Kitchen Remodel - Phase 1', desc:'Demo complete, rough-in plumbing done. Cabinets on order from IKEA. Backsplash tile selected: Calacatta marble look.', cost:2840, tags:['permit','labor'], products:['IKEA SEKTION cabinets','GE Profile appliances','Calacatta tile - Floor & Decor'] },
+      { date:'Feb 2025', title:'Under-cabinet lighting install', desc:'Added LED strip lighting beneath all upper cabinets. 2700K warm white. Hardwired to dedicated switch.', cost:145, tags:['product'], products:['Govee LED strip 12ft warm white'] },
+      { date:'Jan 2025', title:'Faucet replacement', desc:'Replaced original 1987 faucet with Moen Arbor pull-down. Took 2 hours. Shutoff valves also replaced.', cost:218, tags:['product','warranty'], products:['Moen Arbor 7594ESRS - 5yr warranty expires Jan 2030'] },
+      { date:'Oct 2022', title:'Dishwasher replaced', desc:'Original dishwasher failed after 35 years. Replaced with Bosch 500 series. Professional install.', cost:1100, tags:['product','warranty'], products:['Bosch SHPM65Z55N - warranty expires Oct 2024'] }
+    ],
+    products: [
+      { name:'IKEA SEKTION Upper Cabinets', brand:'IKEA', tags:['current'] },
+      { name:'Moen Arbor Pull-Down Faucet', brand:'Moen', tags:['warranty','expires Jan 2030'] },
+      { name:'Bosch 500 Series Dishwasher', brand:'Bosch', tags:['product','warranty expired'] }
+    ]
+  },
+  bathroom: {
+    totalSpent: 38, projectCount: 1, lastWork: 'Feb 2025',
+    entries: [
+      { date:'Feb 2025', title:'Recaulk around tub and shower', desc:'Removed old silicone caulk along tub surround and shower base. Applied GE Silicone II in white. 24hr dry time.', cost:38, tags:['product'], products:['GE Silicone II White - Home Depot $12'] },
+      { date:'Jun 2021', title:'Toilet replaced', desc:'Original toilet replaced with Kohler Cimarron elongated. Upgraded to soft-close seat. Water savings noticeable.', cost:380, tags:['product','warranty'], products:['Kohler Cimarron K-3609 - 1yr parts warranty'] }
+    ],
+    products: [
+      { name:'Kohler Cimarron Toilet', brand:'Kohler', tags:['installed Jun 2021'] },
+      { name:'GE Silicone II Caulk', brand:'GE', tags:['applied Feb 2025'] }
+    ]
+  },
+  living: {
+    totalSpent: 980, projectCount: 1, lastWork: 'Mar 2025',
+    entries: [
+      { date:'Mar 2025', title:'Living Room Refresh - flooring sanded', desc:'Refinished original hardwood floors. Sanded to bare wood, applied 2 coats Bona Traffic HD semi-gloss. Color is natural oak.', cost:680, tags:['product','labor'], products:['Bona Traffic HD Semi-Gloss','Varathane Early American stain'] },
+      { date:'Mar 2025', title:'Paint color selected', desc:'SW Repose Gray 7015 confirmed for accent wall. Existing walls remain Swiss Coffee. Paint day scheduled Mar 28.', cost:0, tags:[], products:[] }
+    ],
+    products: [
+      { name:'Bona Traffic HD Finish', brand:'Bona', tags:['applied Mar 2025'] },
+      { name:'SW Repose Gray 7015', brand:'Sherwin-Williams', tags:['accent wall - pending'] }
+    ]
+  },
+  bedroom: { totalSpent: 0, projectCount: 0, lastWork: 'Never', entries: [], products: [] },
+  exterior: {
+    totalSpent: 65, projectCount: 1, lastWork: 'Mar 2025',
+    entries: [
+      { date:'Mar 2025', title:'Back fence repaint started', desc:'Sanded all fence panels with medium-grit sponges. First coat of Behr Solid Stain Cordovan Brown applied to south and east panels. North panels pending.', cost:65, tags:['product'], products:['Behr Solid Stain Cordovan Brown - Home Depot'] },
+      { date:'Sep 2023', title:'Front exterior paint', desc:'Full exterior paint. SW Accessible Beige body, SW Mindful Gray trim, SW Black Magic shutters. Contractor: Lopez Painting.', cost:4200, tags:['labor'], products:['SW Accessible Beige 7036','SW Mindful Gray 7016','SW Black Magic 6991'] }
+    ],
+    products: [
+      { name:'Behr Solid Stain - Cordovan Brown', brand:'Behr', tags:['in progress'] },
+      { name:'SW Accessible Beige 7036', brand:'Sherwin-Williams', tags:['exterior body - 2023'] }
+    ]
+  },
+  garage: { totalSpent: 0, projectCount: 1, lastWork: 'Planning', entries: [{ date:'Mar 2025', title:'Garage ADU conversion - planning', desc:'Researching permit requirements for full ADU conversion. Pulled zoning rules from city website. Structural assessment needed before proceeding.', cost:0, tags:['permit'], products:[] }], products: [] },
+  basement: { totalSpent: 0, projectCount: 0, lastWork: 'Never', entries: [], products: [] },
+  laundry: { totalSpent: 0, projectCount: 0, lastWork: 'Never', entries: [], products: [] }
+}
+
+var selectedRoom = 'kitchen';
+var nextEntryId = 200;
+
+var TAG_CLS = {
+  permit:'et-permit', labor:'et-labor', diy:'et-diy',
+  product:'et-product', paint:'et-paint', tile:'et-tile', fixture:'et-fixture'
+};
+var TAG_LBL = {
+  permit:'Permit', labor:'Labor', diy:'DIY', product:'Product',
+  paint:'Paint', tile:'Tile', fixture:'Fixture'
+};
+
+function setView(mode) {
+  document.body.className = 'mode-' + mode;
+  document.getElementById('btn-mobile').classList.toggle('active', mode === 'mobile');
+  document.getElementById('btn-desktop').classList.toggle('active', mode === 'desktop');
+  setTimeout(animateBars, 100);
+}
+
+
+
+function setText(id, html) { var el = document.getElementById(id); if (el) el.innerHTML = html; }
+
+function fmtMoney(n) {
+  if (!n && n !== 0) return '$0';
+  if (n < 0) return '-' + fmtMoney(-n);
+  if (n < 1000) return '$' + Math.round(n);
+  if (n < 10000) return '$' + (n/1000).toFixed(1).replace(/\.0$/,'') + 'k';
+  return '$' + Math.round(n/1000) + 'k';
+}
+
+function animateBars() {
+  document.querySelectorAll('[data-w]').forEach(function(el) {
+    el.style.width = el.getAttribute('data-w') + '%';
+  });
+}
+
+
+
+function navigate(to) {
+  if (to === 'memory') return;
+  window.location.href = 'foundation-' + to + '.html';
+}
+
+function selectRoom(id) {
+  selectedRoom = id;
+  renderAll();
+}
+
+function renderAll() {
+  renderRoomGrid('m-room-grid');
+  renderRoomList('d-room-list');
+  renderRoomDetail('m-room-detail');
+  renderRoomDetail('d-room-detail');
+  syncNavActive();
+}
+
+function syncNavActive() {
+  document.querySelectorAll('.m-nav-item[data-screen],.d-nav-item[data-screen]').forEach(function(el) {
+    el.classList.toggle('active', el.dataset.screen === 'memory');
+  });
+}
+
+function renderRoomGrid(elId) {
+  var el = document.getElementById(elId);
+  if (!el) return;
+  el.innerHTML = ROOMS.map(function(r) {
+    var mem = MEMORY[r.id];
+    var entryCount = mem ? mem.entries.length : 0;
+    var isActive = r.id === selectedRoom;
+    return '<div class="m-rm-cell' + (isActive ? ' active' : '') + '" data-room="' + r.id + '" onclick="selectRoom(this.dataset.room)">'
+      + '<div class="m-rm-icon">' + r.icon + '</div>'
+      + '<div class="m-rm-cell-name">' + r.name + '</div>'
+      + '<div class="m-rm-cell-count">' + (entryCount > 0 ? entryCount + ' ' + (entryCount === 1 ? 'entry' : 'entries') : 'No entries') + '</div>'
+      + '</div>';
+  }).join('');
+}
+
+function renderRoomList(elId) {
+  var el = document.getElementById(elId);
+  if (!el) return;
+  el.innerHTML = ROOMS.map(function(r) {
+    var mem = MEMORY[r.id];
+    var entryCount = mem ? mem.entries.length : 0;
+    var spent = mem ? mem.totalSpent : 0;
+    var isActive = r.id === selectedRoom;
+    return '<div class="rm-item' + (isActive ? ' active' : '') + '" data-room="' + r.id + '" onclick="selectRoom(this.dataset.room)">'
+      + '<div class="rm-icon">' + r.icon + '</div>'
+      + '<div style="flex:1;min-width:0;">'
+      + '<div class="rm-name">' + r.name + '</div>'
+      + (spent > 0 ? '<div class="rm-spent">' + fmtMoney(spent) + ' invested</div>' : '<div class="rm-spent">No entries yet</div>')
+      + '</div>'
+      + (entryCount > 0 ? '<div class="rm-count">' + entryCount + '</div>' : '')
+      + '</div>';
+  }).join('');
+}
+
+function renderRoomDetail(elId) {
+  var el = document.getElementById(elId);
+  if (!el) return;
+  var room = ROOMS.find(function(r) { return r.id === selectedRoom; });
+  if (!room) return;
+  var mem = MEMORY[selectedRoom];
+
+  if (!mem || mem.entries.length === 0) {
+    el.innerHTML = '<div class="empty-state">'
+      + '<div class="empty-icon">' + room.icon + '</div>'
+      + '<div class="empty-title">' + room.name + '</div>'
+      + '<div class="empty-sub">No entries yet for this room. Log a paint color, product, or work completed.</div>'
+      + '<button class="btn-primary" onclick="showAddEntryModal()"><svg width="12" height="12" viewBox="0 0 13 13" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"><line x1="6.5" y1="2" x2="6.5" y2="11"/><line x1="2" y1="6.5" x2="11" y2="6.5"/></svg> Log First Entry</button>'
+      + '</div>';
+    return;
+  }
+
+  // Stats bar
+  var totalSpent = mem.totalSpent || 0;
+  var projCount = mem.projectCount || 0;
+  var lastWork = mem.lastWork || '---';
+  var prodCount = (mem.entries || []).reduce(function(a, e) { return a + (e.products ? e.products.length : 0); }, 0);
+
+  var html = '';
+
+  // Room header
+  html += '<div class="rh-wrap">'
+    + '<div style="display:flex;align-items:center;gap:14px;flex:1;">'
+    + '<div class="rh-icon">' + room.icon + '</div>'
+    + '<div><div class="rh-title">' + room.name + '</div><div class="rh-sub">' + mem.entries.length + ' entries &bull; Last work: ' + lastWork + '</div></div>'
+    + '</div>'
+    + '<div class="rh-stat"><div class="rh-stat-val" style="color:var(--gold);">' + fmtMoney(totalSpent) + '</div><div class="rh-stat-lbl">Invested</div></div>'
+    + '</div>';
+
+  // Stats bar
+  html += '<div class="rh-stats">'
+    + '<div class="rh-stat-cell"><div class="rh-stat-cell-lbl">Total Invested</div><div class="rh-stat-cell-val">' + fmtMoney(totalSpent) + '</div></div>'
+    + '<div class="rh-stat-cell"><div class="rh-stat-cell-lbl">Projects</div><div class="rh-stat-cell-val">' + projCount + '</div></div>'
+    + '<div class="rh-stat-cell"><div class="rh-stat-cell-lbl">Products Logged</div><div class="rh-stat-cell-val">' + prodCount + '</div></div>'
+    + '<div class="rh-stat-cell"><div class="rh-stat-cell-lbl">Entries</div><div class="rh-stat-cell-val">' + mem.entries.length + '</div></div>'
+    + '</div>';
+
+  // Entries
+  html += '<div style="padding:20px 22px;">';
+  html += '<div class="sec-hdr"><div class="sec-title">History Log</div><div class="sec-link" onclick="showAddEntryModal()"><svg width="11" height="11" viewBox="0 0 13 13" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><line x1="6.5" y1="2" x2="6.5" y2="11"/><line x1="2" y1="6.5" x2="11" y2="6.5"/></svg> Add Entry</div></div>';
+
+  mem.entries.forEach(function(e, i) {
+    var delay = (i * 0.06) + 's';
+    html += '<div class="en-card" style="animation-delay:' + delay + ';">'
+      + '<div class="en-card-top">'
+      + '<div class="en-date">' + e.date + '</div>'
+      + '<div style="flex:1;">'
+      + '<div class="en-title">' + esc(e.title) + '</div>'
+      + '<div class="en-desc">' + esc(e.desc) + '</div>'
+      + '</div>'
+      + '</div>';
+
+    if (e.products && e.products.length > 0) {
+      html += '<div class="en-products">';
+      e.products.forEach(function(p) {
+        html += '<div class="en-product"><span style="width:6px;height:6px;border-radius:50%;background:var(--blue-br);display:inline-block;margin-right:5px;vertical-align:middle;"></span>' + esc(p) + '</div>';
+      });
+      html += '</div>';
+    }
+
+    html += '<div class="en-footer">';
+    if (e.tags && e.tags.length > 0) {
+      e.tags.forEach(function(t) {
+        html += '<span class="en-tag ' + (TAG_CLS[t] || 'et-fixture') + '">' + (TAG_LBL[t] || t) + '</span>';
+      });
+    }
+    if (e.cost) {
+      html += '<span class="en-cost">' + fmtMoney(e.cost) + '</span>';
+    }
+    html += '</div></div>';
+  });
+
+  html += '</div>'; // padding wrap
+  el.innerHTML = html;
+}
+
+function quickLog(e) {
+  if (e.key !== 'Enter') return;
+  var input = e.target;
+  var text = input.value.trim();
+  if (!text) return;
+  var d = new Date();
+  var mo = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+  var dateStr = mo[d.getMonth()] + ' ' + d.getFullYear();
+  if (!MEMORY[selectedRoom]) {
+    MEMORY[selectedRoom] = { totalSpent:0, projectCount:0, lastWork:dateStr, entries:[] };
+  }
+  MEMORY[selectedRoom].entries.unshift({
+    id: nextEntryId++, date: dateStr, title: text,
+    desc: '', products: [], tags: [], cost: 0
+  });
+  MEMORY[selectedRoom].lastWork = dateStr;
+  input.value = '';
+  showToast('Entry logged to ' + (ROOMS.find(function(r){return r.id===selectedRoom;})||{name:'room'}).name);
+  renderAll();
+}
+
+function showAddEntryModal() {
+  var el = document.getElementById('modal-add-entry');
+  if (el) el.classList.add('open');
+  var sel = document.getElementById('ae-room');
+  if (sel) sel.value = selectedRoom;
+}
+function closeAddEntry() {
+  var el = document.getElementById('modal-add-entry');
+  if (el) el.classList.remove('open');
+}
+
+function saveEntry() {
+  var room   = (document.getElementById('ae-room')  || {}).value || selectedRoom;
+  var title  = (document.getElementById('ae-title') || {}).value || '';
+  var notes  = (document.getElementById('ae-notes') || {}).value || '';
+  var cost   = parseFloat((document.getElementById('ae-cost')  || {}).value || 0);
+  var tag    = (document.getElementById('ae-tag')   || {}).value || 'diy';
+  if (!title.trim()) { showToast('Enter a title'); return; }
+  var d = new Date();
+  var mo = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+  var dateStr = mo[d.getMonth()] + ' ' + d.getFullYear();
+  if (!MEMORY[room]) MEMORY[room] = { totalSpent:0, projectCount:0, lastWork:dateStr, entries:[] };
+  MEMORY[room].entries.unshift({
+    id:nextEntryId++, date:dateStr, title:title.trim(),
+    desc:notes.trim(), products:[], tags:[tag], cost:cost
+  });
+  MEMORY[room].totalSpent += cost;
+  MEMORY[room].lastWork = dateStr;
+  selectedRoom = room;
+  document.getElementById('ae-title').value = '';
+  document.getElementById('ae-notes').value = '';
+  document.getElementById('ae-cost').value  = '';
+  closeAddEntry();
+  renderAll();
+  showToast('Entry saved to ' + room);
+}
+
+
+  t.textContent = msg; t.style.opacity = '1';
+  clearTimeout(t._t); t._t = setTimeout(function(){t.style.opacity='0';}, 2400);
+
+window.addEventListener('load', function() {
+  renderAll();
+});
+
+function showToast(msg) {
+  var t = document.getElementById('toast');
+  if (!t) {
+    t = document.createElement('div');
+    t.id = 'toast';
+    t.style.position = 'fixed';
+    t.style.bottom = '90px';
+    t.style.left = '50%';
+    t.style.transform = 'translateX(-50%)';
+    t.style.background = 'var(--raised)';
+    t.style.border = '1px solid var(--border-warm)';
+    t.style.color = 'var(--white)';
+    t.style.fontSize = '12px';
+    t.style.padding = '10px 20px';
+    t.style.borderRadius = '10px';
+    t.style.zIndex = '9999';
+    t.style.whiteSpace = 'nowrap';
+    t.style.opacity = '0';
+    t.style.transition = 'opacity 0.25s';
+    t.style.pointerEvents = 'none';
+    document.body.appendChild(t);
+  }
+  t.textContent = msg;
+  t.style.opacity = '1';
+  clearTimeout(t._t);
+  t._t = setTimeout(function() { t.style.opacity = '0'; }, 2400);
+}
+</script>
+</body>
+</html>

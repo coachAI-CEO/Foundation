@@ -1,0 +1,1121 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<title>Foundation — Command</title>
+<link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;500;600;700&family=DM+Sans:opsz,wght@9..40,300;9..40,400;9..40,500;9..40,600&display=swap" rel="stylesheet">
+<style>
+:root {
+  --void:#0b0b0c; --base:#111113; --card:#161618; --raised:#1c1c1f; --lift:#242428;
+  --border:rgba(255,255,255,0.055); --border-warm:rgba(210,185,130,0.22);
+  --gold:#d4b978; --gold-br:#ecd49a; --gold-dim:rgba(212,185,120,0.08);
+  --white:#ede9e3; --muted:#5c5850; --soft:#8a8478;
+  --green:#4e7a5e; --green-br:#72b08a; --green-dim:rgba(78,122,94,0.12);
+  --red-br:#cc8888; --red-dim:rgba(204,136,136,0.1);
+  --amber:#d4903a; --amber-dim:rgba(212,144,58,0.12);
+  --blue-br:#7aaac8; --blue-dim:rgba(122,170,200,0.1);
+  --r:16px; --r-sm:10px;
+}
+*{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent;}
+html{font-size:16px;}
+body{background:#080809;color:var(--white);font-family:'DM Sans',sans-serif;overflow-x:hidden;}
+
+/* ATMOSPHERE */
+.atmo{position:fixed;inset:0;pointer-events:none;z-index:0;
+  background:
+    radial-gradient(ellipse 65% 45% at 50% -8%,rgba(212,185,120,0.07) 0%,transparent 60%),
+    radial-gradient(ellipse 35% 55% at 95% 55%,rgba(78,122,94,0.03) 0%,transparent 55%),
+    radial-gradient(ellipse 30% 40% at 5% 85%,rgba(122,170,200,0.02) 0%,transparent 50%);}
+.grid-bg{position:fixed;inset:0;pointer-events:none;z-index:0;opacity:0.02;
+  background-image:linear-gradient(var(--gold) 1px,transparent 1px),linear-gradient(90deg,var(--gold) 1px,transparent 1px);
+  background-size:48px 48px;}
+
+/* VIEW TOGGLE */
+.view-toggle{position:fixed;top:14px;left:50%;transform:translateX(-50%);z-index:9999;display:flex;align-items:center;background:rgba(11,11,12,0.92);border:1px solid var(--border-warm);border-radius:12px;padding:4px;backdrop-filter:blur(20px);box-shadow:0 8px 32px rgba(0,0,0,0.5);}
+.vbtn{display:flex;align-items:center;gap:6px;padding:7px 16px;border-radius:8px;font-family:'DM Sans',sans-serif;font-size:12px;font-weight:500;letter-spacing:0.05em;cursor:pointer;border:none;background:transparent;color:var(--muted);transition:all 0.2s;}
+.vbtn.active{background:var(--gold);color:#0b0b0c;font-weight:600;}
+.vdiv{width:1px;height:18px;background:var(--border);margin:0 2px;}
+
+/* MOBILE SHELL */
+body.mode-mobile{display:flex;justify-content:center;padding-top:60px;padding-bottom:40px;min-height:100vh;}
+body.mode-mobile .desktop-shell{display:none;}
+.mobile-shell{width:390px;border-radius:44px;overflow:hidden;box-shadow:0 0 0 10px #0d0d0f,0 0 0 12px #1e1e22,0 0 0 13px #0d0d0f,0 40px 100px rgba(0,0,0,0.9);background:var(--void);min-height:844px;flex-shrink:0;display:flex;flex-direction:column;position:relative;}
+.mobile-shell::before{content:'';position:absolute;top:0;left:50%;transform:translateX(-50%);width:126px;height:34px;background:#0d0d0f;border-radius:0 0 22px 22px;z-index:99;pointer-events:none;}
+body.mode-desktop .mobile-shell{display:none;}
+
+/* DESKTOP */
+body.mode-desktop{display:block;min-height:100vh;}
+.desktop-shell{display:grid;grid-template-columns:64px 1fr;min-height:calc(100vh - 52px);margin-top:52px;}
+
+/* SHARED BUTTONS */
+.btn-primary{display:flex;align-items:center;justify-content:center;gap:7px;padding:10px 18px;border-radius:var(--r-sm);background:var(--gold);color:#0b0b0c;font-family:'DM Sans',sans-serif;font-size:13px;font-weight:600;border:none;cursor:pointer;transition:all 0.2s;white-space:nowrap;}
+.btn-primary:hover{background:var(--gold-br);}
+.btn-primary:active{transform:scale(0.97);}
+.btn-ghost{display:flex;align-items:center;gap:6px;padding:8px 13px;border-radius:8px;background:transparent;border:1px solid var(--border);color:var(--soft);font-family:'DM Sans',sans-serif;font-size:12px;font-weight:500;cursor:pointer;transition:all 0.18s;white-space:nowrap;}
+.btn-ghost:hover{border-color:var(--border-warm);color:var(--white);}
+
+/* SVG ICON HELPERS */
+svg{display:block;flex-shrink:0;}
+
+/* ===================== MOBILE STYLES ===================== */
+.m-topbar{padding:42px 20px 0;flex-shrink:0;}
+.m-topbar-row{display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;}
+.m-brand{display:flex;align-items:center;gap:10px;}
+.m-brand-name{font-family:'Cinzel',serif;font-size:17px;font-weight:700;letter-spacing:0.14em;color:var(--white);}
+.m-brand-by{font-size:9px;color:var(--muted);letter-spacing:0.12em;text-transform:uppercase;margin-top:-2px;}
+.m-topbar-actions{display:flex;gap:8px;}
+.m-icon-btn{width:34px;height:34px;border-radius:10px;background:var(--card);border:1px solid var(--border);display:flex;align-items:center;justify-content:center;cursor:pointer;color:var(--muted);transition:all 0.18s;}
+.m-icon-btn:hover{border-color:var(--border-warm);color:var(--white);}
+
+/* House address pill */
+.m-house-pill{display:flex;align-items:center;gap:10px;background:var(--card);border:1px solid var(--border);border-radius:var(--r-sm);padding:10px 14px;margin-bottom:16px;}
+.m-house-pulse{width:8px;height:8px;border-radius:50%;background:var(--green-br);flex-shrink:0;box-shadow:0 0 0 0 rgba(114,176,138,0.4);animation:housePulse 2.5s ease-in-out infinite;}
+.m-house-addr{font-size:13px;font-weight:500;color:var(--white);flex:1;}
+.m-house-sub{font-size:10px;color:var(--muted);}
+.m-house-caret{color:var(--muted);}
+
+/* Mobile scroll area */
+.m-scroll{flex:1;overflow-y:auto;padding:0 20px;scrollbar-width:thin;scrollbar-color:rgba(212,185,120,0.18) transparent;}
+
+/* Mobile section labels */
+.m-sec{display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;margin-top:18px;}
+.m-sec-title{font-family:'Cinzel',serif;font-size:10px;font-weight:600;letter-spacing:0.15em;text-transform:uppercase;color:var(--soft);}
+.m-sec-link{font-size:11px;color:var(--gold);cursor:pointer;display:flex;align-items:center;gap:4px;}
+
+/* TODAY BRIEF */
+.today-brief{background:var(--card);border:1px solid var(--border-warm);border-radius:var(--r);overflow:hidden;margin-bottom:4px;}
+.tb-header{display:flex;align-items:center;justify-content:space-between;padding:12px 14px 8px;}
+.tb-date{font-family:'Cinzel',serif;font-size:11px;font-weight:600;letter-spacing:0.1em;color:var(--gold);}
+.tb-weather{display:flex;align-items:center;gap:5px;font-size:11px;color:var(--muted);}
+.tb-items{padding:0 14px 12px;display:flex;flex-direction:column;gap:6px;}
+.tb-item{display:flex;align-items:center;gap:10px;padding:8px 10px;background:var(--raised);border-radius:var(--r-sm);}
+.tb-item-dot{width:6px;height:6px;border-radius:50%;flex-shrink:0;}
+.tb-item-text{font-size:12px;color:var(--white);flex:1;font-weight:500;}
+.tb-item-time{font-size:10px;color:var(--muted);}
+.tb-item-tag{font-size:9px;font-weight:600;letter-spacing:0.07em;padding:2px 7px;border-radius:10px;text-transform:uppercase;}
+.tag-blocking{background:var(--red-dim);color:var(--red-br);}
+.tag-delivery{background:var(--gold-dim);color:var(--gold);}
+.tag-task{background:var(--blue-dim);color:var(--blue-br);}
+.tag-buy{background:var(--green-dim);color:var(--green-br);}
+
+/* STAT TILES ROW */
+.stat-tiles{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-bottom:4px;}
+.stat-tile{background:var(--card);border:1px solid var(--border);border-radius:var(--r-sm);padding:10px 8px;text-align:center;}
+.stat-tile-val{font-family:'Cinzel',serif;font-size:16px;font-weight:700;color:var(--white);margin-bottom:2px;}
+.stat-tile-lbl{font-size:8px;text-transform:uppercase;letter-spacing:0.09em;color:var(--muted);}
+
+/* PROJECT CARDS HORIZONTAL */
+.proj-scroll{display:flex;gap:10px;overflow-x:auto;padding-bottom:4px;scrollbar-width:none;}
+.proj-scroll::-webkit-scrollbar{display:none;}
+.proj-mini{background:var(--card);border:1px solid var(--border);border-radius:var(--r);padding:14px;width:200px;flex-shrink:0;cursor:pointer;transition:border-color 0.18s;}
+.proj-mini:hover{border-color:var(--border-warm);}
+.proj-mini-top{display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:10px;}
+.proj-mini-icon{width:32px;height:32px;border-radius:9px;display:flex;align-items:center;justify-content:center;flex-shrink:0;color:var(--gold);}
+.proj-mini-name{font-family:'Cinzel',serif;font-size:11px;font-weight:600;letter-spacing:0.05em;color:var(--white);margin-bottom:2px;line-height:1.3;}
+.proj-mini-room{font-size:9px;color:var(--muted);text-transform:uppercase;letter-spacing:0.09em;}
+.proj-mini-prog{height:2px;background:rgba(255,255,255,0.05);border-radius:2px;overflow:hidden;margin-bottom:8px;}
+.proj-mini-fill{height:100%;border-radius:2px;transition:width 0.7s ease;}
+.proj-mini-stats{display:flex;align-items:center;justify-content:space-between;}
+.proj-mini-pct{font-size:10px;font-weight:600;}
+.proj-mini-budget{font-size:10px;color:var(--muted);}
+.proj-mini-next{font-size:10px;color:var(--soft);margin-top:6px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+
+/* ADD PROJECT MINI */
+.proj-add{background:transparent;border:1px dashed rgba(212,185,120,0.2);border-radius:var(--r);padding:14px;width:140px;flex-shrink:0;cursor:pointer;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px;transition:border-color 0.18s;}
+.proj-add:hover{border-color:var(--gold);}
+.proj-add-icon{width:32px;height:32px;border-radius:50%;background:var(--gold-dim);border:1px solid var(--border-warm);display:flex;align-items:center;justify-content:center;}
+.proj-add-label{font-size:11px;color:var(--muted);text-align:center;line-height:1.4;}
+
+/* NEXT TASKS */
+.next-task-item{display:flex;align-items:center;gap:12px;padding:10px 0;border-bottom:1px solid var(--border);}
+.next-task-item:last-child{border-bottom:none;}
+.nti-check{width:18px;height:18px;border-radius:5px;border:1px solid var(--border);display:flex;align-items:center;justify-content:center;cursor:pointer;flex-shrink:0;transition:all 0.18s;}
+.nti-check:hover{border-color:var(--gold);}
+.nti-check.done{background:var(--green-dim);border-color:rgba(78,122,94,0.4);}
+.nti-body{flex:1;min-width:0;}
+.nti-name{font-size:13px;color:var(--white);font-weight:500;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+.nti-name.done{text-decoration:line-through;color:var(--muted);}
+.nti-meta{font-size:10px;color:var(--muted);margin-top:2px;display:flex;align-items:center;gap:6px;}
+.nti-proj-dot{width:5px;height:5px;border-radius:50%;display:inline-block;}
+.nti-right{display:flex;flex-direction:column;align-items:flex-end;gap:3px;flex-shrink:0;}
+.nti-date{font-size:10px;color:var(--muted);}
+.nti-who{font-size:9px;font-weight:600;letter-spacing:0.07em;padding:2px 7px;border-radius:10px;background:var(--raised);color:var(--soft);}
+
+/* AI BRIEF CARD */
+.ai-brief{background:var(--card);border:1px solid var(--border-warm);border-radius:var(--r);overflow:hidden;}
+.ai-brief-header{display:flex;align-items:center;gap:10px;padding:12px 14px;border-bottom:1px solid var(--border);}
+.ai-brief-avatar{width:28px;height:28px;border-radius:50%;background:var(--gold-dim);border:1px solid var(--border-warm);display:flex;align-items:center;justify-content:center;flex-shrink:0;}
+.ai-brief-name{font-family:'Cinzel',serif;font-size:11px;font-weight:600;letter-spacing:0.08em;color:var(--gold);}
+.ai-brief-status{display:flex;align-items:center;gap:5px;font-size:10px;color:var(--green-br);}
+.ai-brief-dot{width:5px;height:5px;border-radius:50%;background:var(--green-br);animation:housePulse 2s infinite;}
+.ai-brief-body{padding:12px 14px;}
+.ai-brief-text{font-size:13px;line-height:1.65;color:var(--white);}
+.ai-brief-text strong{color:var(--gold-br);}
+.ai-brief-chips{display:flex;gap:6px;flex-wrap:wrap;margin-top:10px;}
+.ai-chip{padding:5px 11px;border-radius:20px;font-size:11px;border:1px solid var(--border);color:var(--muted);cursor:pointer;transition:all 0.15s;background:transparent;font-family:'DM Sans',sans-serif;white-space:nowrap;}
+.ai-chip:hover{border-color:var(--border-warm);color:var(--white);}
+.ai-input-row{display:flex;gap:8px;padding:10px 14px;border-top:1px solid var(--border);}
+.ai-input{flex:1;background:var(--raised);border:1px solid var(--border);border-radius:8px;padding:9px 12px;font-family:'DM Sans',sans-serif;font-size:13px;color:var(--white);outline:none;transition:border-color 0.2s;caret-color:var(--gold);}
+.ai-input:focus{border-color:var(--border-warm);}
+.ai-input::placeholder{color:var(--muted);}
+.ai-send{width:34px;height:34px;border-radius:8px;background:var(--gold);border:none;cursor:pointer;display:flex;align-items:center;justify-content:center;color:#0b0b0c;flex-shrink:0;transition:all 0.18s;}
+.ai-send:hover{background:var(--gold-br);}
+
+/* SPEND STRIP */
+.spend-strip{display:grid;grid-template-columns:1fr 1fr;gap:8px;}
+.spend-cell{background:var(--card);border:1px solid var(--border);border-radius:var(--r-sm);padding:12px 14px;}
+.spend-cell-val{font-family:'Cinzel',serif;font-size:18px;font-weight:700;color:var(--white);margin-bottom:3px;}
+.spend-cell-lbl{font-size:9px;text-transform:uppercase;letter-spacing:0.1em;color:var(--muted);}
+.spend-cell-sub{font-size:10px;color:var(--muted);margin-top:4px;}
+.spend-prog{height:2px;background:rgba(255,255,255,0.05);border-radius:2px;overflow:hidden;margin-top:8px;}
+.spend-prog-fill{height:100%;border-radius:2px;transition:width 0.7s ease;}
+
+/* URGENT ITEMS */
+.urgent-item{display:flex;align-items:center;gap:10px;padding:9px 0;border-bottom:1px solid var(--border);}
+.urgent-item:last-child{border-bottom:none;}
+.ui-dot{width:7px;height:7px;border-radius:50%;flex-shrink:0;}
+.ui-text{flex:1;font-size:12px;color:var(--white);font-weight:500;}
+.ui-project{font-size:10px;color:var(--muted);}
+.ui-price{font-size:12px;font-weight:600;color:var(--white);}
+
+/* MOBILE BOTTOM NAV */
+.m-bottom-nav{display:flex;align-items:center;justify-content:space-around;padding:8px 0 28px;border-top:1px solid var(--border);background:var(--void);flex-shrink:0;}
+.m-nav-item{display:flex;flex-direction:column;align-items:center;gap:3px;padding:6px 12px;cursor:pointer;}
+.m-nav-icon{display:flex;align-items:center;justify-content:center;color:var(--muted);}
+.m-nav-label{font-size:8px;text-transform:uppercase;letter-spacing:0.08em;color:var(--muted);}
+.m-nav-item.active .m-nav-label,.m-nav-item.active .m-nav-icon{color:var(--gold);}
+.m-fab{width:50px;height:50px;border-radius:50%;background:var(--gold);display:flex;align-items:center;justify-content:center;color:#0b0b0c;box-shadow:0 4px 20px rgba(212,185,120,0.35);cursor:pointer;border:none;transition:all 0.2s;}
+.m-fab:hover{background:var(--gold-br);transform:scale(1.05);}
+
+/* ===================== DESKTOP STYLES ===================== */
+.d-sidebar{background:var(--base);border-right:1px solid var(--border);display:flex;flex-direction:column;align-items:center;padding:20px 0;gap:4px;position:sticky;top:52px;height:calc(100vh - 52px);}
+.d-nav-item{width:40px;height:40px;border-radius:10px;display:flex;align-items:center;justify-content:center;cursor:pointer;transition:all 0.2s;color:var(--muted);position:relative;}
+.d-nav-item:hover{color:var(--white);background:var(--raised);}
+.d-nav-item.active{color:var(--gold);background:var(--gold-dim);}
+.d-nav-item.active::before{content:'';position:absolute;left:-1px;width:2px;height:18px;background:var(--gold);border-radius:0 2px 2px 0;}
+.d-tooltip{position:absolute;left:50px;background:var(--raised);border:1px solid var(--border);color:var(--white);font-size:10px;letter-spacing:0.08em;text-transform:uppercase;padding:5px 10px;border-radius:6px;white-space:nowrap;opacity:0;pointer-events:none;transition:opacity 0.15s;z-index:100;}
+.d-nav-item:hover .d-tooltip{opacity:1;}
+.d-sidebar-bot{margin-top:auto;display:flex;flex-direction:column;align-items:center;gap:8px;}
+.d-avatar{width:30px;height:30px;border-radius:50%;background:var(--gold-dim);border:1px solid var(--gold);display:flex;align-items:center;justify-content:center;font-size:9px;color:var(--gold);font-weight:700;letter-spacing:0.04em;cursor:pointer;}
+
+/* DESKTOP TOPBAR */
+.d-topbar{display:flex;align-items:center;justify-content:space-between;padding:20px 32px 16px;border-bottom:1px solid var(--border);background:var(--void);position:sticky;top:52px;z-index:50;}
+.d-topbar-left{display:flex;flex-direction:column;gap:2px;}
+.d-greeting{font-family:'Cinzel',serif;font-size:20px;font-weight:700;letter-spacing:0.08em;color:var(--white);}
+.d-topbar-sub{font-size:11px;color:var(--muted);}
+.d-topbar-right{display:flex;align-items:center;gap:10px;}
+.d-notif-btn{width:34px;height:34px;border-radius:9px;background:var(--card);border:1px solid var(--border);display:flex;align-items:center;justify-content:center;cursor:pointer;color:var(--muted);position:relative;transition:all 0.18s;}
+.d-notif-btn:hover{border-color:var(--border-warm);color:var(--white);}
+.d-notif-badge{position:absolute;top:6px;right:6px;width:7px;height:7px;border-radius:50%;background:var(--amber);border:1.5px solid var(--void);}
+
+/* DESKTOP MAIN GRID */
+.d-main{display:flex;flex-direction:column;min-height:calc(100vh - 52px);overflow:hidden;}
+.d-content{padding:28px 32px;overflow-y:auto;flex:1;scrollbar-width:thin;scrollbar-color:rgba(212,185,120,0.18) transparent;}
+.d-grid{display:grid;grid-template-columns:1fr 340px;gap:24px;align-items:start;}
+.d-left{display:flex;flex-direction:column;gap:20px;}
+.d-right{display:flex;flex-direction:column;gap:16px;}
+
+/* DESKTOP HOUSE HEADER */
+.d-house-banner{background:var(--card);border:1px solid var(--border);border-radius:var(--r);padding:20px 24px;display:flex;align-items:center;gap:20px;}
+.dhb-pulse{width:10px;height:10px;border-radius:50%;background:var(--green-br);flex-shrink:0;box-shadow:0 0 0 0 rgba(114,176,138,0.4);animation:housePulse 2.5s ease-in-out infinite;}
+.dhb-info{flex:1;}
+.dhb-addr{font-family:'Cinzel',serif;font-size:15px;font-weight:600;letter-spacing:0.08em;color:var(--white);margin-bottom:3px;}
+.dhb-meta{font-size:11px;color:var(--muted);}
+.dhb-stats{display:flex;gap:24px;}
+.dhb-stat{text-align:right;}
+.dhb-stat-val{font-family:'Cinzel',serif;font-size:16px;font-weight:700;color:var(--white);}
+.dhb-stat-lbl{font-size:9px;text-transform:uppercase;letter-spacing:0.1em;color:var(--muted);}
+
+/* DESKTOP SECTION HEADERS */
+.d-sec-hdr{display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;}
+.d-sec-title{font-family:'Cinzel',serif;font-size:11px;font-weight:600;letter-spacing:0.15em;text-transform:uppercase;color:var(--soft);}
+.d-sec-link{font-size:11px;color:var(--gold);cursor:pointer;display:flex;align-items:center;gap:4px;transition:color 0.15s;}
+.d-sec-link:hover{color:var(--gold-br);}
+
+/* DESKTOP STAT BAR */
+.d-stat-bar{display:grid;grid-template-columns:repeat(4,1fr);gap:0;background:var(--card);border:1px solid var(--border);border-radius:var(--r);overflow:hidden;}
+.d-stat-cell{padding:16px 20px;border-right:1px solid var(--border);position:relative;}
+.d-stat-cell:last-child{border-right:none;}
+.d-stat-lbl{font-size:9px;text-transform:uppercase;letter-spacing:0.12em;color:var(--muted);margin-bottom:6px;}
+.d-stat-val{font-family:'Cinzel',serif;font-size:24px;font-weight:700;color:var(--white);}
+.d-stat-sub{font-size:10px;color:var(--muted);margin-top:3px;}
+.d-stat-trend{position:absolute;top:14px;right:16px;font-size:10px;display:flex;align-items:center;gap:3px;}
+.trend-up{color:var(--green-br);}
+.trend-warn{color:var(--amber);}
+
+/* DESKTOP PROJECT CARDS */
+.d-proj-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;}
+.d-proj-card{background:var(--card);border:1px solid var(--border);border-radius:var(--r);overflow:hidden;cursor:pointer;transition:all 0.2s;}
+.d-proj-card:hover{border-color:var(--border-warm);transform:translateY(-2px);box-shadow:0 8px 32px rgba(0,0,0,0.35);}
+.dpc-accent{height:3px;}
+.dpc-body{padding:14px 16px 10px;}
+.dpc-top{display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:10px;}
+.dpc-icon{width:36px;height:36px;border-radius:10px;display:flex;align-items:center;justify-content:center;flex-shrink:0;color:var(--gold);}
+.dpc-info{flex:1;margin-left:10px;}
+.dpc-name{font-family:'Cinzel',serif;font-size:12px;font-weight:600;letter-spacing:0.06em;color:var(--white);margin-bottom:2px;line-height:1.3;}
+.dpc-room{font-size:9px;color:var(--muted);text-transform:uppercase;letter-spacing:0.09em;}
+.dpc-status{display:inline-flex;align-items:center;padding:2px 8px;border-radius:20px;font-size:9px;font-weight:600;letter-spacing:0.07em;text-transform:uppercase;}
+.s-active{background:var(--green-dim);color:var(--green-br);border:1px solid rgba(78,122,94,0.2);}
+.s-planning{background:var(--blue-dim);color:var(--blue-br);border:1px solid rgba(122,170,200,0.18);}
+.dpc-prog-row{display:flex;align-items:center;gap:8px;margin-bottom:4px;}
+.dpc-prog-track{flex:1;height:3px;background:rgba(255,255,255,0.05);border-radius:3px;overflow:hidden;}
+.dpc-prog-fill{height:100%;border-radius:3px;transition:width 0.7s ease;}
+.dpc-pct{font-size:10px;color:var(--muted);min-width:28px;text-align:right;}
+.dpc-foot{display:flex;align-items:center;justify-content:space-between;border-top:1px solid var(--border);padding:8px 16px;}
+.dpc-budget{font-size:11px;color:var(--muted);}
+.dpc-spent{font-size:11px;font-weight:600;}
+
+/* DESKTOP TASK LIST */
+.d-task-card{background:var(--card);border:1px solid var(--border);border-radius:var(--r);overflow:hidden;}
+.d-task-item{display:flex;align-items:center;gap:12px;padding:11px 18px;border-bottom:1px solid var(--border);transition:background 0.15s;cursor:default;}
+.d-task-item:last-child{border-bottom:none;}
+.d-task-item:hover{background:rgba(255,255,255,0.015);}
+.dt-check{width:18px;height:18px;border-radius:5px;border:1px solid var(--border);display:flex;align-items:center;justify-content:center;cursor:pointer;flex-shrink:0;transition:all 0.18s;}
+.dt-check:hover{border-color:var(--gold);}
+.dt-check.done{background:var(--green-dim);border-color:rgba(78,122,94,0.4);}
+.dt-name{flex:1;font-size:13px;color:var(--white);font-weight:500;}
+.dt-name.done{text-decoration:line-through;color:var(--muted);}
+.dt-proj{display:flex;align-items:center;gap:5px;font-size:10px;color:var(--muted);}
+.dt-dot{width:5px;height:5px;border-radius:50%;}
+.dt-date{font-size:10px;color:var(--muted);white-space:nowrap;}
+.dt-who{font-size:9px;font-weight:600;padding:2px 7px;border-radius:10px;background:var(--raised);color:var(--soft);}
+
+/* DESKTOP AI CARD */
+.d-ai-card{background:var(--card);border:1px solid var(--border-warm);border-radius:var(--r);overflow:hidden;}
+.d-ai-top{display:flex;align-items:center;gap:10px;padding:14px 16px;border-bottom:1px solid var(--border);}
+.d-ai-avatar{width:30px;height:30px;border-radius:50%;background:var(--gold-dim);border:1px solid var(--border-warm);display:flex;align-items:center;justify-content:center;flex-shrink:0;}
+.d-ai-name{font-family:'Cinzel',serif;font-size:11px;font-weight:600;letter-spacing:0.08em;color:var(--gold);flex:1;}
+.d-ai-live{display:flex;align-items:center;gap:4px;font-size:10px;color:var(--green-br);}
+.d-ai-live-dot{width:5px;height:5px;border-radius:50%;background:var(--green-br);animation:housePulse 2s infinite;}
+.d-ai-body{padding:14px 16px;}
+.d-ai-msg{font-size:13px;line-height:1.65;color:var(--white);margin-bottom:12px;}
+.d-ai-msg strong{color:var(--gold-br);}
+.d-ai-chips{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:12px;}
+.d-ai-chip{padding:5px 10px;border-radius:20px;font-size:10px;border:1px solid var(--border);color:var(--muted);cursor:pointer;transition:all 0.15s;background:transparent;font-family:'DM Sans',sans-serif;}
+.d-ai-chip:hover{border-color:var(--border-warm);color:var(--white);}
+.d-ai-input-row{display:flex;gap:8px;}
+.d-ai-input{flex:1;background:var(--raised);border:1px solid var(--border);border-radius:8px;padding:9px 12px;font-family:'DM Sans',sans-serif;font-size:12px;color:var(--white);outline:none;transition:border-color 0.2s;caret-color:var(--gold);}
+.d-ai-input:focus{border-color:var(--border-warm);}
+.d-ai-input::placeholder{color:var(--muted);}
+.d-ai-send{width:32px;height:32px;border-radius:8px;background:var(--gold);border:none;cursor:pointer;display:flex;align-items:center;justify-content:center;color:#0b0b0c;flex-shrink:0;transition:all 0.18s;}
+.d-ai-send:hover{background:var(--gold-br);}
+
+/* DESKTOP BUDGET RING */
+.d-budget-card{background:var(--card);border:1px solid var(--border);border-radius:var(--r);padding:18px;}
+.d-budget-ring{display:flex;align-items:center;gap:16px;margin-bottom:14px;}
+.ring-wrap{position:relative;width:72px;height:72px;flex-shrink:0;}
+.ring-wrap svg{transform:rotate(-90deg);}
+.ring-center{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;}
+.ring-pct{font-family:'Cinzel',serif;font-size:15px;font-weight:700;color:var(--white);}
+.ring-lbl{font-size:8px;color:var(--muted);text-transform:uppercase;letter-spacing:0.08em;}
+.budget-stats{flex:1;display:flex;flex-direction:column;gap:6px;}
+.bs-row{display:flex;align-items:center;justify-content:space-between;}
+.bs-label{font-size:11px;color:var(--muted);}
+.bs-val{font-size:12px;font-weight:600;}
+.budget-by-proj{display:flex;flex-direction:column;gap:6px;}
+.bbp-row{display:flex;align-items:center;gap:8px;}
+.bbp-dot{width:6px;height:6px;border-radius:50%;flex-shrink:0;}
+.bbp-name{font-size:11px;color:var(--soft);flex:1;}
+.bbp-bar{flex:1;height:3px;background:var(--raised);border-radius:3px;overflow:hidden;}
+.bbp-fill{height:100%;border-radius:3px;transition:width 0.7s ease;}
+.bbp-amt{font-size:11px;color:var(--white);font-weight:500;min-width:38px;text-align:right;}
+
+/* DESKTOP UPCOMING */
+.d-upcoming-card{background:var(--card);border:1px solid var(--border);border-radius:var(--r);overflow:hidden;}
+.d-upcoming-item{display:flex;gap:12px;padding:11px 16px;border-bottom:1px solid var(--border);}
+.d-upcoming-item:last-child{border-bottom:none;}
+.dui-date{display:flex;flex-direction:column;align-items:center;min-width:34px;}
+.dui-day{font-family:'Cinzel',serif;font-size:16px;font-weight:700;color:var(--white);line-height:1;}
+.dui-mon{font-size:8px;text-transform:uppercase;letter-spacing:0.1em;color:var(--muted);}
+.dui-body{flex:1;}
+.dui-title{font-size:12px;font-weight:500;color:var(--white);margin-bottom:2px;}
+.dui-project{font-size:10px;color:var(--muted);}
+.dui-tag{align-self:flex-start;margin-top:2px;}
+
+/* MATERIALS URGENT */
+.d-materials-card{background:var(--card);border:1px solid var(--border);border-radius:var(--r);overflow:hidden;}
+.dmc-item{display:flex;align-items:center;gap:10px;padding:10px 16px;border-bottom:1px solid var(--border);}
+.dmc-item:last-child{border-bottom:none;}
+.dmc-dot{width:7px;height:7px;border-radius:50%;flex-shrink:0;}
+.dmc-name{flex:1;font-size:12px;color:var(--white);font-weight:500;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+.dmc-src{font-size:10px;color:var(--muted);}
+.dmc-price{font-size:12px;font-weight:600;color:var(--white);}
+
+@keyframes fadeUp{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
+@keyframes housePulse{0%,100%{box-shadow:0 0 0 0 rgba(114,176,138,0.35)}70%{box-shadow:0 0 0 7px rgba(114,176,138,0)}}
+
+/* SCROLLBARS */
+::-webkit-scrollbar{width:4px;height:4px;}
+::-webkit-scrollbar-track{background:transparent;}
+::-webkit-scrollbar-thumb{background:rgba(212,185,120,0.18);border-radius:4px;}
+::-webkit-scrollbar-thumb:hover{background:rgba(212,185,120,0.38);}
+::-webkit-scrollbar-corner{background:transparent;}
+*{scrollbar-width:thin;scrollbar-color:rgba(212,185,120,0.18) transparent;}
+</style>
+</head>
+<body class="mode-mobile">
+<div class="atmo"></div>
+<div class="grid-bg"></div>
+
+<div class="view-toggle">
+  <button class="vbtn active" id="btn-mobile" onclick="setView('mobile')">
+    <svg width="11" height="11" viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"><rect x="3" y="1" width="8" height="12" rx="1.5"/><circle cx="7" cy="10.5" r="0.8" fill="currentColor" stroke="none"/></svg>
+    Mobile
+  </button>
+  <div class="vdiv"></div>
+  <button class="vbtn" id="btn-desktop" onclick="setView('desktop')">
+    <svg width="11" height="11" viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"><rect x="1" y="2" width="12" height="8" rx="1"/><line x1="4" y1="12" x2="10" y2="12"/><line x1="7" y1="10" x2="7" y2="12"/></svg>
+    Desktop
+  </button>
+</div>
+
+<!-- ==================== MOBILE ==================== -->
+<div class="mobile-shell" id="mobile-view">
+  <div class="m-topbar">
+    <div class="m-topbar-row">
+      <div class="m-brand">
+        <svg width="24" height="24" viewBox="0 0 34 34" fill="none">
+          <circle cx="17" cy="17" r="15.5" stroke="#d4b978" stroke-width="0.8" opacity="0.5"/>
+          <path d="M17 3.5 L30.5 17 L17 30.5 L3.5 17 Z" stroke="#d4b978" stroke-width="0.8" fill="none"/>
+          <path d="M17 10 L24 17 L17 24 L10 17 Z" stroke="#d4b978" stroke-width="0.5" fill="rgba(212,185,120,0.07)"/>
+          <circle cx="17" cy="17" r="2" fill="#d4b978"/>
+        </svg>
+        <div>
+          <div class="m-brand-name">Foundation</div>
+          <div class="m-brand-by">by Ascension</div>
+        </div>
+      </div>
+      <div class="m-topbar-actions">
+        <div class="m-icon-btn" onclick="showToast('Notifications coming soon')">
+          <svg width="15" height="15" viewBox="0 0 17 17" fill="none" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"><path d="M8.5 2a5.5 5.5 0 015.5 5.5c0 2.5.5 4 1.5 5H2c1-1 1.5-2.5 1.5-5A5.5 5.5 0 018.5 2z"/><path d="M7 14.5a1.5 1.5 0 003 0"/></svg>
+          <div style="position:absolute;top:7px;right:7px;width:6px;height:6px;border-radius:50%;background:var(--amber);border:1.5px solid var(--card)"></div>
+        </div>
+        <div class="m-icon-btn" onclick="showToast('Search coming soon')">
+          <svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"><circle cx="6.5" cy="6.5" r="5"/><line x1="10.2" y1="10.2" x2="14" y2="14"/></svg>
+        </div>
+      </div>
+    </div>
+
+    <!-- House pill -->
+    <div class="m-house-pill">
+      <div class="m-house-pulse"></div>
+      <div style="flex:1">
+        <div class="m-house-addr">4246 Elmwood Drive</div>
+        <div class="m-house-sub">Sacramento, CA &bull; 3 active projects</div>
+      </div>
+      <svg width="10" height="10" viewBox="0 0 12 12" fill="none" stroke="var(--muted)" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"><polyline points="3,4.5 6,7.5 9,4.5"/></svg>
+    </div>
+  </div>
+
+  <div class="m-scroll">
+
+    <!-- TODAY BRIEF -->
+    <div class="m-sec" style="margin-top:4px">
+      <div class="m-sec-title">Today &mdash; <span id="m-today-date" style="color:var(--gold)"></span></div>
+      <div class="m-sec-link">
+        <svg width="10" height="10" viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"><rect x="1.5" y="2" width="9" height="8.5" rx="0.5"/><line x1="1.5" y1="5" x2="10.5" y2="5"/><line x1="4" y1="1" x2="4" y2="3"/><line x1="8" y1="1" x2="8" y2="3"/></svg>
+        Calendar
+      </div>
+    </div>
+    <div class="today-brief">
+      <div class="tb-header">
+        <div class="tb-date" id="m-today-full"></div>
+        <div class="tb-weather">
+          <svg width="12" height="12" viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.2" stroke-linecap="round"><circle cx="7" cy="7" r="3"/><line x1="7" y1="1" x2="7" y2="2.5"/><line x1="7" y1="11.5" x2="7" y2="13"/><line x1="1" y1="7" x2="2.5" y2="7"/><line x1="11.5" y1="7" x2="13" y2="7"/></svg>
+          68&deg; Sunny
+        </div>
+      </div>
+      <div class="tb-items" id="m-today-items"></div>
+    </div>
+
+    <!-- STAT TILES -->
+    <div class="m-sec"><div class="m-sec-title">House Overview</div></div>
+    <div class="stat-tiles" id="m-stat-tiles"></div>
+
+    <!-- PROJECTS -->
+    <div class="m-sec">
+      <div class="m-sec-title">Active Projects</div>
+      <div class="m-sec-link">All
+        <svg width="10" height="10" viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"><line x1="2" y1="6" x2="10" y2="6"/><polyline points="7,3 10,6 7,9"/></svg>
+      </div>
+    </div>
+    <div class="proj-scroll" id="m-proj-scroll"></div>
+
+    <!-- NEXT TASKS -->
+    <div class="m-sec">
+      <div class="m-sec-title">Up Next</div>
+      <div class="m-sec-link">Blueprint
+        <svg width="10" height="10" viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"><line x1="2" y1="6" x2="10" y2="6"/><polyline points="7,3 10,6 7,9"/></svg>
+      </div>
+    </div>
+    <div id="m-tasks" style="background:var(--card);border:1px solid var(--border);border-radius:var(--r);padding:0 14px;margin-bottom:4px;"></div>
+
+    <!-- AI BRIEF -->
+    <div class="m-sec"><div class="m-sec-title">Foundation AI</div></div>
+    <div class="ai-brief" style="margin-bottom:4px">
+      <div class="ai-brief-header">
+        <div class="ai-brief-avatar">
+          <svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="#d4b978" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round"><path d="M8 1.5l1.4 3.1 3.5.35-2.45 2.45.7 3.5L8 9.3l-3.15 1.55.7-3.5L3.1 4.95l3.5-.35z"/></svg>
+        </div>
+        <div style="flex:1">
+          <div class="ai-brief-name">Foundation AI</div>
+          <div class="ai-brief-status"><div class="ai-brief-dot"></div>Ready</div>
+        </div>
+      </div>
+      <div class="ai-brief-body">
+        <div class="ai-brief-text" id="m-ai-text"></div>
+        <div class="ai-brief-chips" id="m-ai-chips"></div>
+      </div>
+      <div class="ai-input-row">
+        <input class="ai-input" id="m-ai-input" placeholder="Ask about any project..." onkeydown="if(event.key==='Enter')sendAI('m')">
+        <button class="ai-send" onclick="sendAI('m')">
+          <svg width="13" height="13" viewBox="0 0 15 15" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><line x1="13" y1="2" x2="2" y2="7.5"/><line x1="13" y1="2" x2="8.5" y2="13"/><line x1="2" y1="7.5" x2="8.5" y2="13"/></svg>
+        </button>
+      </div>
+    </div>
+
+    <!-- SPEND STRIP -->
+    <div class="m-sec">
+      <div class="m-sec-title">Budget</div>
+      <div class="m-sec-link">Details
+        <svg width="10" height="10" viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"><line x1="2" y1="6" x2="10" y2="6"/><polyline points="7,3 10,6 7,9"/></svg>
+      </div>
+    </div>
+    <div class="spend-strip" id="m-spend-strip"></div>
+
+    <!-- URGENT MATERIALS -->
+    <div class="m-sec">
+      <div class="m-sec-title">Urgent Shopping</div>
+      <div class="m-sec-link">All items
+        <svg width="10" height="10" viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"><line x1="2" y1="6" x2="10" y2="6"/><polyline points="7,3 10,6 7,9"/></svg>
+      </div>
+    </div>
+    <div id="m-urgent" style="background:var(--card);border:1px solid var(--border);border-radius:var(--r);padding:0 14px;margin-bottom:24px;"></div>
+
+  </div><!-- /m-scroll -->
+
+  <div class="m-bottom-nav">
+    <div class="m-nav-item active">
+      <div class="m-nav-icon"><svg width="18" height="18" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round"><path d="M2 9L10 2.5 18 9"/><path d="M4.5 7.5V17.5H8.5V13H11.5V17.5H15.5V7.5"/></svg></div>
+      <div class="m-nav-label" style="color:var(--gold)">Home</div>
+    </div>
+    <div class="m-nav-item">
+      <div class="m-nav-icon"><svg width="18" height="18" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"><rect x="2" y="2" width="6.5" height="6.5" rx="1"/><rect x="11.5" y="2" width="6.5" height="6.5" rx="1"/><rect x="2" y="11.5" width="6.5" height="6.5" rx="1"/><rect x="11.5" y="11.5" width="6.5" height="6.5" rx="1"/></svg></div>
+      <div class="m-nav-label">Projects</div>
+    </div>
+    <div class="m-nav-item">
+      <button class="m-fab" onclick="showToast('New project wizard launching...')">
+        <svg width="18" height="18" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><line x1="10" y1="3" x2="10" y2="17"/><line x1="3" y1="10" x2="17" y2="10"/></svg>
+      </button>
+    </div>
+    <div class="m-nav-item">
+      <div class="m-nav-icon"><svg width="18" height="18" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round"><circle cx="10" cy="10" r="7.5"/><path d="M10 6.5v7M8 8.5c0-1.1.9-2 2-2s2 .9 2 2-.9 1.5-2 1.5-2 .4-2 1.5.9 2 2 2 2-.9 2-2"/></svg></div>
+      <div class="m-nav-label">Budget</div>
+    </div>
+    <div class="m-nav-item">
+      <div class="m-nav-icon"><svg width="18" height="18" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round"><path d="M10 2.5L17.5 7v6L10 17.5 2.5 13V7z"/><polyline points="2.5,7 10,11.5 17.5,7"/><line x1="10" y1="11.5" x2="10" y2="17.5"/></svg></div>
+      <div class="m-nav-label">Shop</div>
+    </div>
+  </div>
+</div>
+
+<!-- ==================== DESKTOP ==================== -->
+<div class="desktop-shell" id="desktop-view">
+  <div class="d-sidebar">
+    <div style="margin-bottom:16px">
+      <svg width="28" height="28" viewBox="0 0 34 34" fill="none"><circle cx="17" cy="17" r="15.5" stroke="#d4b978" stroke-width="0.7" opacity="0.55"/><path d="M17 3.5 L30.5 17 L17 30.5 L3.5 17 Z" stroke="#d4b978" stroke-width="0.7" fill="none"/><path d="M17 9.5 L24.5 17 L17 24.5 L9.5 17 Z" stroke="#d4b978" stroke-width="0.45" fill="rgba(212,185,120,0.06)"/><circle cx="17" cy="17" r="1.8" fill="#d4b978"/></svg>
+    </div>
+    <div class="d-nav-item active"><svg width="18" height="18" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round"><path d="M2 9L10 2.5 18 9"/><path d="M4.5 7.5V17.5H8.5V13H11.5V17.5H15.5V7.5"/></svg><span class="d-tooltip">Command</span></div>
+    <div class="d-nav-item"><svg width="18" height="18" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"><rect x="2" y="2" width="6.5" height="6.5" rx="1"/><rect x="11.5" y="2" width="6.5" height="6.5" rx="1"/><rect x="2" y="11.5" width="6.5" height="6.5" rx="1"/><rect x="11.5" y="11.5" width="6.5" height="6.5" rx="1"/></svg><span class="d-tooltip">Projects</span></div>
+    <div class="d-nav-item"><svg width="18" height="18" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"><rect x="2.5" y="2.5" width="15" height="15" rx="1"/><line x1="2.5" y1="7" x2="17.5" y2="7"/><line x1="7" y1="7" x2="7" y2="17.5"/><line x1="10" y1="10" x2="15" y2="10"/><line x1="10" y1="13" x2="15" y2="13"/></svg><span class="d-tooltip">Blueprint</span></div>
+    <div class="d-nav-item"><svg width="18" height="18" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round"><circle cx="10" cy="10" r="7.5"/><path d="M10 6.5v7M8 8.5c0-1.1.9-2 2-2s2 .9 2 2-.9 1.5-2 1.5-2 .4-2 1.5.9 2 2 2 2-.9 2-2"/></svg><span class="d-tooltip">Budget</span></div>
+    <div class="d-nav-item"><svg width="18" height="18" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round"><path d="M10 2.5L17.5 7v6L10 17.5 2.5 13V7z"/><polyline points="2.5,7 10,11.5 17.5,7"/><line x1="10" y1="11.5" x2="10" y2="17.5"/></svg><span class="d-tooltip">Materials</span></div>
+    <div class="d-nav-item"><svg width="18" height="18" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"><rect x="2.5" y="4" width="15" height="13.5" rx="1"/><line x1="2.5" y1="8.5" x2="17.5" y2="8.5"/><line x1="6.5" y1="2" x2="6.5" y2="6"/><line x1="13.5" y1="2" x2="13.5" y2="6"/></svg><span class="d-tooltip">Calendar</span></div>
+    <div class="d-nav-item"><svg width="18" height="18" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round"><path d="M10 2.5l2 4.5 5 .5-3.5 3.5 1 5L10 14l-4.5 2.5 1-5L3 8l5-.5z"/></svg><span class="d-tooltip">Brainstorm</span></div>
+    <div class="d-nav-item"><svg width="18" height="18" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round"><circle cx="10" cy="10" r="7.5"/><circle cx="10" cy="10" r="2.5"/><line x1="10" y1="2.5" x2="10" y2="7.5"/><line x1="10" y1="12.5" x2="10" y2="17.5"/><line x1="2.5" y1="10" x2="7.5" y2="10"/><line x1="12.5" y1="10" x2="17.5" y2="10"/></svg><span class="d-tooltip">House Memory</span></div>
+    <div class="d-sidebar-bot">
+      <div class="d-nav-item"><svg width="18" height="18" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"><circle cx="10" cy="10" r="2.5"/><path d="M10 2v1.5M10 16.5V18M2 10h1.5M16.5 10H18M4.4 4.4l1.1 1.1M14.5 14.5l1.1 1.1M4.4 15.6l1.1-1.1M14.5 5.5l1.1-1.1"/></svg><span class="d-tooltip">Settings</span></div>
+      <div class="d-avatar">L+M</div>
+    </div>
+  </div>
+
+  <div class="d-main">
+    <div class="d-topbar">
+      <div class="d-topbar-left">
+        <div class="d-greeting" id="d-greeting">Good morning, Leo.</div>
+        <div class="d-topbar-sub" id="d-topbar-sub">Loading your home overview...</div>
+      </div>
+      <div class="d-topbar-right">
+        <div class="d-notif-btn" onclick="showToast('Notifications coming soon')">
+          <svg width="15" height="15" viewBox="0 0 17 17" fill="none" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"><path d="M8.5 2a5.5 5.5 0 015.5 5.5c0 2.5.5 4 1.5 5H2c1-1 1.5-2.5 1.5-5A5.5 5.5 0 018.5 2z"/><path d="M7 14.5a1.5 1.5 0 003 0"/></svg>
+          <div class="d-notif-badge"></div>
+        </div>
+        <button class="btn-ghost" onclick="showToast('House Memory coming soon')">
+          <svg width="13" height="13" viewBox="0 0 15 15" fill="none" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round"><circle cx="7.5" cy="7.5" r="6"/><circle cx="7.5" cy="7.5" r="2"/><line x1="7.5" y1="1.5" x2="7.5" y2="5.5"/><line x1="7.5" y1="9.5" x2="7.5" y2="13.5"/><line x1="1.5" y1="7.5" x2="5.5" y2="7.5"/><line x1="9.5" y1="7.5" x2="13.5" y2="7.5"/></svg>
+          House Memory
+        </button>
+        <button class="btn-primary" onclick="showToast('New project wizard launching...')">
+          <svg width="12" height="12" viewBox="0 0 13 13" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"><line x1="6.5" y1="2" x2="6.5" y2="11"/><line x1="2" y1="6.5" x2="11" y2="6.5"/></svg>
+          New Project
+        </button>
+      </div>
+    </div>
+
+    <div class="d-content">
+      <!-- House banner -->
+      <div class="d-house-banner" style="margin-bottom:24px;animation:fadeUp 0.3s ease both">
+        <div class="dhb-pulse"></div>
+        <div class="dhb-info">
+          <div class="dhb-addr">4246 Elmwood Drive</div>
+          <div class="dhb-meta">Sacramento, CA &bull; Built 1987 &bull; 1,840 sqft &bull; Owned</div>
+        </div>
+        <div class="dhb-stats">
+          <div class="dhb-stat">
+            <div class="dhb-stat-val" id="d-stat-projects">3</div>
+            <div class="dhb-stat-lbl">Active</div>
+          </div>
+          <div class="dhb-stat">
+            <div class="dhb-stat-val" id="d-stat-tasks">8</div>
+            <div class="dhb-stat-lbl">This Week</div>
+          </div>
+          <div class="dhb-stat">
+            <div class="dhb-stat-val" id="d-stat-budget">$4.9k</div>
+            <div class="dhb-stat-lbl">Invested</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Stat bar -->
+      <div class="d-stat-bar" style="margin-bottom:24px;animation:fadeUp 0.3s 0.05s ease both" id="d-stat-bar"></div>
+
+      <div class="d-grid">
+        <!-- LEFT COL -->
+        <div class="d-left">
+          <!-- Projects -->
+          <div style="animation:fadeUp 0.3s 0.1s ease both">
+            <div class="d-sec-hdr">
+              <div class="d-sec-title">Active Projects</div>
+              <div class="d-sec-link">All Projects
+                <svg width="10" height="10" viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"><line x1="2" y1="6" x2="10" y2="6"/><polyline points="7,3 10,6 7,9"/></svg>
+              </div>
+            </div>
+            <div class="d-proj-grid" id="d-proj-grid"></div>
+          </div>
+
+          <!-- Next Tasks -->
+          <div style="animation:fadeUp 0.3s 0.15s ease both">
+            <div class="d-sec-hdr">
+              <div class="d-sec-title">Up Next</div>
+              <div class="d-sec-link">Open Blueprint
+                <svg width="10" height="10" viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"><line x1="2" y1="6" x2="10" y2="6"/><polyline points="7,3 10,6 7,9"/></svg>
+              </div>
+            </div>
+            <div class="d-task-card" id="d-task-list"></div>
+          </div>
+
+          <!-- Today brief desktop -->
+          <div style="animation:fadeUp 0.3s 0.18s ease both">
+            <div class="d-sec-hdr">
+              <div class="d-sec-title">Today &mdash; <span id="d-today-date" style="color:var(--gold)"></span></div>
+              <div class="d-sec-link">Calendar</div>
+            </div>
+            <div class="d-task-card" id="d-today-list"></div>
+          </div>
+        </div>
+
+        <!-- RIGHT COL -->
+        <div class="d-right">
+          <!-- AI -->
+          <div style="animation:fadeUp 0.3s 0.12s ease both">
+            <div class="d-sec-hdr"><div class="d-sec-title">Foundation AI</div></div>
+            <div class="d-ai-card">
+              <div class="d-ai-top">
+                <div class="d-ai-avatar">
+                  <svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="#d4b978" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round"><path d="M8 1.5l1.4 3.1 3.5.35-2.45 2.45.7 3.5L8 9.3l-3.15 1.55.7-3.5L3.1 4.95l3.5-.35z"/></svg>
+                </div>
+                <div class="d-ai-name">Foundation AI</div>
+                <div class="d-ai-live"><div class="d-ai-live-dot"></div>Ready</div>
+              </div>
+              <div class="d-ai-body">
+                <div class="d-ai-msg" id="d-ai-msg"></div>
+                <div class="d-ai-chips" id="d-ai-chips"></div>
+                <div class="d-ai-input-row">
+                  <input class="d-ai-input" id="d-ai-input" placeholder="Ask about any room or project..." onkeydown="if(event.key==='Enter')sendAI('d')">
+                  <button class="d-ai-send" onclick="sendAI('d')">
+                    <svg width="13" height="13" viewBox="0 0 15 15" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><line x1="13" y1="2" x2="2" y2="7.5"/><line x1="13" y1="2" x2="8.5" y2="13"/><line x1="2" y1="7.5" x2="8.5" y2="13"/></svg>
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Budget ring -->
+          <div style="animation:fadeUp 0.3s 0.16s ease both">
+            <div class="d-sec-hdr"><div class="d-sec-title">Budget Overview</div><div class="d-sec-link">Details</div></div>
+            <div class="d-budget-card" id="d-budget-card"></div>
+          </div>
+
+          <!-- Upcoming -->
+          <div style="animation:fadeUp 0.3s 0.2s ease both">
+            <div class="d-sec-hdr"><div class="d-sec-title">Upcoming</div><div class="d-sec-link">Calendar</div></div>
+            <div class="d-upcoming-card" id="d-upcoming"></div>
+          </div>
+
+          <!-- Urgent materials -->
+          <div style="animation:fadeUp 0.3s 0.22s ease both">
+            <div class="d-sec-hdr"><div class="d-sec-title">Need to Buy</div><div class="d-sec-link">Full List</div></div>
+            <div class="d-materials-card" id="d-materials"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+var DATA = {
+  projects: [
+    { id:'kitchen', name:'Kitchen Remodel', room:'Kitchen', color:'#d4903a', progress:58, budget:12000, spent:4800, tasksTotal:18, tasksDone:10, status:'active',
+      icon:'<svg width="20" height="20" viewBox="0 0 22 22" fill="none" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="12" width="16" height="7" rx="1"/><line x1="3" y1="15.5" x2="19" y2="15.5"/><circle cx="7.5" cy="9" r="2"/><circle cx="14.5" cy="9" r="2"/><line x1="7.5" y1="3" x2="7.5" y2="7"/><line x1="14.5" y1="3" x2="14.5" y2="7"/></svg>' },
+    { id:'fence', name:'Back Fence Repaint', room:'Exterior', color:'#7aaac8', progress:40, budget:180, spent:78, tasksTotal:5, tasksDone:2, status:'active',
+      icon:'<svg width="20" height="20" viewBox="0 0 22 22" fill="none" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"><circle cx="11" cy="7" r="3"/><line x1="11" y1="2" x2="11" y2="3.5"/><line x1="4" y1="13" x2="4" y2="20"/><line x1="8.5" y1="13" x2="8.5" y2="20"/><line x1="13.5" y1="13" x2="13.5" y2="20"/><line x1="18" y1="13" x2="18" y2="20"/><line x1="4" y1="16" x2="18" y2="16"/></svg>' },
+    { id:'hardware', name:'Cabinet Hardware', room:'Kitchen', color:'#d4b978', progress:0, budget:120, spent:0, tasksTotal:3, tasksDone:0, status:'planning',
+      icon:'<svg width="20" height="20" viewBox="0 0 22 22" fill="none" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"><rect x="3" y="12" width="16" height="7" rx="1"/><line x1="3" y1="15.5" x2="19" y2="15.5"/></svg>' }
+  ],
+  tasks: [
+    { id:1, name:'Install upper cabinets', project:'Kitchen Remodel', projColor:'#d4903a', who:'Both', date:'Mar 12', done:false },
+    { id:2, name:'Second coat on north fence panels', project:'Back Fence', projColor:'#7aaac8', who:'Leo', date:'Mar 13', done:false },
+    { id:3, name:'Order matte black pulls from Amazon', project:'Cabinet Hardware', projColor:'#d4b978', who:'Both', date:'Mar 11', done:false },
+    { id:4, name:'Apply tile adhesive backsplash row 1', project:'Kitchen Remodel', projColor:'#d4903a', who:'Leo', date:'Mar 14', done:false },
+    { id:5, name:'Sand and clean fence posts', project:'Back Fence', projColor:'#7aaac8', who:'Both', date:'Mar 10', done:true }
+  ],
+  todayItems: [
+    { text:'Cabinet delivery window 7-9am', time:'7:00 AM', tag:'delivery', tagCls:'tag-delivery', dot:'#d4b978' },
+    { text:'Plumber inspection rough-in', time:'11:00 AM', tag:'Blocking', tagCls:'tag-blocking', dot:'#cc8888' },
+    { text:'Install upper cabinets', time:'After PM', tag:'Task', tagCls:'tag-task', dot:'#7aaac8' },
+    { text:'Pick up tile grout from Home Depot', time:'Today', tag:'Buy', tagCls:'tag-buy', dot:'#72b08a' }
+  ],
+  upcoming: [
+    { day:'13', mon:'Mar', title:'Second coat fence panels', project:'Back Fence', tag:'Task', tagCls:'tag-task' },
+    { day:'14', mon:'Mar', title:'Grouting backsplash tile', project:'Kitchen Remodel', tag:'Task', tagCls:'tag-task' },
+    { day:'18', mon:'Mar', title:'Cabinet hardware arrives', project:'Cabinet Hardware', tag:'Delivery', tagCls:'tag-delivery' },
+    { day:'22', mon:'Mar', title:'IKEA cabinet delivery', project:'Kitchen Remodel', tag:'Delivery', tagCls:'tag-delivery' }
+  ],
+  urgentMaterials: [
+    { name:'Matte black cabinet pulls (24-pack)', source:'Amazon', price:94, color:'#d4b978' },
+    { name:'Grout float and trowel set', source:'Home Depot', price:28, color:'#d4903a' },
+    { name:'Thinset mortar 50lb x4 bags', source:'Home Depot', price:88, color:'#d4903a' },
+    { name:'Behr Solid Stain 1 more quart', source:'Home Depot', price:14, color:'#7aaac8' }
+  ]
+};
+
+var tasksState = {};
+DATA.tasks.forEach(function(t) { tasksState[t.id] = t.done; });
+
+// ===== INIT =====
+window.addEventListener('load', function() {
+  setDateStrings();
+  renderAll();
+  setTimeout(animateBars, 120);
+});
+
+function setDateStrings() {
+  var d = new Date();
+  var days = ['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'];
+  var months = ['January','February','March','April','May','June','July','August','September','October','November','December'];
+  var shortMons = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+  var dayName = days[d.getDay()];
+  var dateStr = months[d.getMonth()] + ' ' + d.getDate();
+  var shortDate = shortMons[d.getMonth()] + ' ' + d.getDate();
+
+  var hour = d.getHours();
+  var greeting = hour < 12 ? 'Good morning' : hour < 17 ? 'Good afternoon' : 'Good evening';
+
+  setText('m-today-date', shortDate);
+  setText('m-today-full', dayName + ', ' + dateStr);
+  setText('d-today-date', dayName + ', ' + dateStr);
+  setText('d-greeting', greeting + ', Leo.');
+  setText('d-topbar-sub', '4246 Elmwood Drive &bull; ' + dayName + ', ' + dateStr);
+}
+
+function setText(id, html) { var el = document.getElementById(id); if (el) el.innerHTML = html; }
+
+// ===== RENDER ALL =====
+function renderAll() {
+  renderTodayItems();
+  renderStatTiles();
+  renderProjScroll();
+  renderTasks();
+  renderAIBrief();
+  renderSpendStrip();
+  renderUrgentMaterials();
+  renderDStatBar();
+  renderDProjGrid();
+  renderDTasks();
+  renderDTodayItems();
+  renderDAIBrief();
+  renderDBudgetCard();
+  renderDUpcoming();
+  renderDMaterials();
+}
+
+// ===== TODAY ITEMS =====
+function renderTodayItems() {
+  var el = document.getElementById('m-today-items');
+  if (!el) return;
+  var html = '';
+  DATA.todayItems.forEach(function(it) {
+    html += '<div class="tb-item">';
+    html += '<div class="tb-item-dot" style="background:' + it.dot + '"></div>';
+    html += '<div class="tb-item-text">' + it.text + '</div>';
+    html += '<div style="display:flex;flex-direction:column;align-items:flex-end;gap:3px">';
+    html += '<div class="tb-item-time">' + it.time + '</div>';
+    html += '<div class="tb-item-tag ' + it.tagCls + '">' + it.tag + '</div>';
+    html += '</div></div>';
+  });
+  el.innerHTML = html;
+}
+
+// ===== MOBILE STAT TILES =====
+function renderStatTiles() {
+  var el = document.getElementById('m-stat-tiles');
+  if (!el) return;
+  var totalBudget = DATA.projects.reduce(function(a,p) { return a+p.budget; }, 0);
+  var totalSpent = DATA.projects.reduce(function(a,p) { return a+p.spent; }, 0);
+  var pending = DATA.tasks.filter(function(t) { return !tasksState[t.id]; }).length;
+  var tiles = [
+    { val:'3',           lbl:'Projects' },
+    { val:pending,       lbl:'Tasks' },
+    { val:fmtMoney(totalSpent), lbl:'Spent' },
+    { val:fmtMoney(totalBudget - totalSpent), lbl:'Left' }
+  ];
+  var html = '';
+  tiles.forEach(function(t) {
+    html += '<div class="stat-tile"><div class="stat-tile-val">' + t.val + '</div><div class="stat-tile-lbl">' + t.lbl + '</div></div>';
+  });
+  el.innerHTML = html;
+}
+
+// ===== MOBILE PROJ SCROLL =====
+function renderProjScroll() {
+  var el = document.getElementById('m-proj-scroll');
+  if (!el) return;
+  var html = '';
+  DATA.projects.forEach(function(p) {
+    var spentPct = Math.min(Math.round((p.spent/p.budget)*100), 100);
+    html += '<div class="proj-mini" onclick="showToast(\'Opening \' + \'' + p.name + '\'...\')">';
+    html += '<div class="proj-mini-top">';
+    html += '<div class="proj-mini-icon" style="background:' + p.color + '18">' + p.icon + '</div>';
+    html += '<div class="dpc-status ' + (p.status === 'active' ? 's-active' : 's-planning') + '">' + (p.status === 'active' ? 'Active' : 'Planning') + '</div>';
+    html += '</div>';
+    html += '<div class="proj-mini-name">' + p.name + '</div>';
+    html += '<div class="proj-mini-room">' + p.room + '</div>';
+    html += '<div class="proj-mini-prog" style="margin-top:8px"><div class="proj-mini-fill" data-w="' + p.progress + '" style="width:0%;background:' + p.color + '"></div></div>';
+    html += '<div class="proj-mini-stats"><span class="proj-mini-pct" style="color:' + p.color + '">' + p.progress + '%</span><span class="proj-mini-budget">' + fmtMoney(p.budget) + '</span></div>';
+    var nextTask = DATA.tasks.find(function(t) { return t.project.indexOf(p.room) > -1 && !tasksState[t.id]; });
+    if (nextTask) html += '<div class="proj-mini-next">' + nextTask.name + '</div>';
+    html += '</div>';
+  });
+  html += '<div class="proj-add" onclick="showToast(\'New project wizard...\')"><div class="proj-add-icon"><svg width="14" height="14" viewBox="0 0 15 15" fill="none" stroke="var(--gold)" stroke-width="1.5" stroke-linecap="round"><line x1="7.5" y1="3" x2="7.5" y2="12"/><line x1="3" y1="7.5" x2="12" y2="7.5"/></svg></div><div class="proj-add-label">New Project</div></div>';
+  el.innerHTML = html;
+}
+
+// ===== MOBILE TASKS =====
+function renderTasks() {
+  var el = document.getElementById('m-tasks');
+  if (!el) return;
+  var html = '';
+  DATA.tasks.slice(0, 4).forEach(function(t) {
+    var done = tasksState[t.id];
+    html += '<div class="next-task-item">';
+    html += '<div class="nti-check' + (done ? ' done' : '') + '" onclick="toggleTask(' + t.id + ')">';
+    if (done) html += '<svg width="9" height="9" viewBox="0 0 11 11" fill="none" stroke="var(--green-br)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="2,5.5 4.5,8 9,3"/></svg>';
+    html += '</div>';
+    html += '<div class="nti-body"><div class="nti-name' + (done ? ' done' : '') + '">' + t.name + '</div>';
+    html += '<div class="nti-meta"><div class="nti-proj-dot" style="background:' + t.projColor + '"></div>' + t.project + '</div></div>';
+    html += '<div class="nti-right"><div class="nti-date">' + t.date + '</div><div class="nti-who">' + t.who + '</div></div>';
+    html += '</div>';
+  });
+  el.innerHTML = html;
+}
+
+// ===== AI BRIEF =====
+var aiMessages = [
+  'Cabinet delivery is confirmed for <strong>today 7-9am</strong>. Plumber inspection at 11am is blocking the countertop install. After that clears, you have a clean run to upper cabinets this afternoon.',
+  'Looking at your fence project, you need one more quart of Cordovan Brown stain. <strong>40% complete</strong> with 6 days until your target date. Plenty of runway.',
+  'Cabinet hardware: 24 pulls, 30 screws. Order from Amazon today and you\'ll have them <strong>by Thursday</strong> for the Saturday install.'
+];
+var aiChips = ['What needs to happen today?', 'Are we on track?', 'What\'s blocking us?', 'Weekend plan'];
+var currentAIMsg = 0;
+
+function renderAIBrief() {
+  var textEl = document.getElementById('m-ai-text');
+  var chipsEl = document.getElementById('m-ai-chips');
+  var dTextEl = document.getElementById('d-ai-msg');
+  var dChipsEl = document.getElementById('d-ai-chips');
+  var msg = aiMessages[currentAIMsg];
+  if (textEl) textEl.innerHTML = msg;
+  if (dTextEl) dTextEl.innerHTML = msg;
+  var chipsHtml = '';
+  aiChips.forEach(function(c) {
+    chipsHtml += '<div class="ai-chip" onclick="quickAsk(\'' + c.replace(/'/g, '') + '\')">' + c + '</div>';
+  });
+  if (chipsEl) chipsEl.innerHTML = chipsHtml;
+  var dChipsHtml = '';
+  aiChips.forEach(function(c) {
+    dChipsHtml += '<div class="d-ai-chip" onclick="quickAsk(\'' + c.replace(/'/g, '') + '\')">' + c + '</div>';
+  });
+  if (dChipsEl) dChipsEl.innerHTML = dChipsHtml;
+}
+
+function quickAsk(q) {
+  currentAIMsg = (currentAIMsg + 1) % aiMessages.length;
+  renderAIBrief();
+  showToast('AI: thinking...');
+}
+
+async function sendAI(prefix) {
+  var inputId = prefix === 'd' ? 'd-ai-input' : 'm-ai-input';
+  var el = document.getElementById(inputId);
+  if (!el || !el.value.trim()) return;
+  var q = el.value.trim();
+  el.value = '';
+  showToast('AI: thinking...');
+  var textId = prefix === 'd' ? 'd-ai-msg' : 'm-ai-text';
+  var textEl = document.getElementById(textId);
+  if (textEl) textEl.innerHTML = '<span style="color:var(--muted);font-style:italic">Thinking...</span>';
+  try {
+    var resp = await fetch('https://api.anthropic.com/v1/messages', {
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({
+        model:'claude-sonnet-4-20250514',
+        max_tokens:1000,
+        messages:[{ role:'user', content:'You are Foundation AI, a home improvement assistant for 4246 Elmwood Drive. Active projects: Kitchen Remodel (58% done, $4,800 of $12,000 spent), Back Fence Repaint (40% done, $78 of $180 spent), Cabinet Hardware Swap (0%, $120 budget). Today: cabinet delivery 7-9am, plumber inspection 11am. Answer in 2-3 sentences max. Be specific and practical. User asks: ' + q }]
+      })
+    });
+    var data = await resp.json();
+    var reply = data.content && data.content[0] ? data.content[0].text : 'Could not connect. Try again.';
+    if (textEl) textEl.innerHTML = reply.replace(/\*\*([^*]+)\*\*/g, '<strong>$1</strong>');
+  } catch(e) {
+    if (textEl) textEl.innerHTML = 'Could not reach AI. Check your connection.';
+  }
+}
+
+// ===== MOBILE SPEND STRIP =====
+function renderSpendStrip() {
+  var el = document.getElementById('m-spend-strip');
+  if (!el) return;
+  var totalBudget = DATA.projects.reduce(function(a,p) { return a+p.budget; }, 0);
+  var totalSpent = DATA.projects.reduce(function(a,p) { return a+p.spent; }, 0);
+  var pct = Math.round((totalSpent/totalBudget)*100);
+  var html = '';
+  html += '<div class="spend-cell"><div class="spend-cell-val">' + fmtMoney(totalSpent) + '</div><div class="spend-cell-lbl">Spent</div><div class="spend-cell-sub">' + pct + '% of total budget</div><div class="spend-prog"><div class="prog-fill" data-w="' + pct + '" style="width:0%;background:var(--amber)"></div></div></div>';
+  html += '<div class="spend-cell"><div class="spend-cell-val" style="color:var(--green-br)">' + fmtMoney(totalBudget - totalSpent) + '</div><div class="spend-cell-lbl">Remaining</div><div class="spend-cell-sub">Across 3 projects</div><div class="spend-prog"><div class="prog-fill" data-w="' + (100-pct) + '" style="width:0%;background:var(--green-br)"></div></div></div>';
+  el.innerHTML = html;
+}
+
+// ===== MOBILE URGENT MATERIALS =====
+function renderUrgentMaterials() {
+  var el = document.getElementById('m-urgent');
+  if (!el) return;
+  var html = '';
+  DATA.urgentMaterials.forEach(function(it) {
+    html += '<div class="urgent-item"><div class="ui-dot" style="background:' + it.color + '"></div><div style="flex:1"><div class="ui-text">' + it.name + '</div><div class="ui-project">' + it.source + '</div></div><div class="ui-price">' + fmtMoney(it.price) + '</div></div>';
+  });
+  el.innerHTML = html;
+}
+
+// ===== DESKTOP STAT BAR =====
+function renderDStatBar() {
+  var el = document.getElementById('d-stat-bar');
+  if (!el) return;
+  var pending = DATA.tasks.filter(function(t) { return !tasksState[t.id]; }).length;
+  var totalBudget = DATA.projects.reduce(function(a,p) { return a+p.budget; }, 0);
+  var totalSpent = DATA.projects.reduce(function(a,p) { return a+p.spent; }, 0);
+  var cells = [
+    { lbl:'Active Projects', val:'3', sub:'1 planning', trend:'', trendCls:'' },
+    { lbl:'Tasks Pending', val:pending, sub:'This week', trend:'', trendCls:'' },
+    { lbl:'Total Invested', val:fmtMoney(totalSpent), sub:'of ' + fmtMoney(totalBudget) + ' budget', trend: Math.round((totalSpent/totalBudget)*100) + '%', trendCls:'trend-warn' },
+    { lbl:'Completion Est.', val:'Jun 28', sub:'Longest project', trend:'On track', trendCls:'trend-up' }
+  ];
+  var html = '';
+  cells.forEach(function(c) {
+    html += '<div class="d-stat-cell">';
+    html += '<div class="d-stat-lbl">' + c.lbl + '</div>';
+    html += '<div class="d-stat-val">' + c.val + '</div>';
+    html += '<div class="d-stat-sub">' + c.sub + '</div>';
+    if (c.trend) html += '<div class="d-stat-trend ' + c.trendCls + '">' + c.trend + '</div>';
+    html += '</div>';
+  });
+  el.innerHTML = html;
+}
+
+// ===== DESKTOP PROJ GRID =====
+function renderDProjGrid() {
+  var el = document.getElementById('d-proj-grid');
+  if (!el) return;
+  var html = '';
+  DATA.projects.forEach(function(p, i) {
+    var spentPct = p.budget > 0 ? Math.min(Math.round((p.spent/p.budget)*100), 100) : 0;
+    var delay = (i*0.07) + 's';
+    html += '<div class="d-proj-card" style="animation:fadeUp 0.3s ' + delay + ' ease both" onclick="showToast(\'Opening \' + \'' + p.name + '\'...\')">';
+    html += '<div class="dpc-accent" style="background:' + p.color + ';opacity:0.7"></div>';
+    html += '<div class="dpc-body">';
+    html += '<div class="dpc-top"><div class="dpc-icon" style="background:' + p.color + '18">' + p.icon + '</div>';
+    html += '<div class="dpc-info"><div class="dpc-name">' + p.name + '</div><div class="dpc-room">' + p.room + '</div></div>';
+    html += '<div class="dpc-status ' + (p.status === 'active' ? 's-active' : 's-planning') + '">' + (p.status === 'active' ? 'Active' : 'Planning') + '</div></div>';
+    html += '<div class="dpc-prog-row"><div class="dpc-prog-track"><div class="dpc-prog-fill" data-w="' + p.progress + '" style="width:0%;background:' + p.color + '"></div></div><div class="dpc-pct">' + p.progress + '%</div></div>';
+    html += '</div>';
+    html += '<div class="dpc-foot"><div class="dpc-budget">' + fmtMoney(p.budget) + ' budget</div><div class="dpc-spent" style="color:' + p.color + '">' + fmtMoney(p.spent) + ' spent</div></div>';
+    html += '</div>';
+  });
+  el.innerHTML = html;
+}
+
+// ===== DESKTOP TASKS =====
+function renderDTasks() {
+  var el = document.getElementById('d-task-list');
+  if (!el) return;
+  var html = '';
+  DATA.tasks.forEach(function(t) {
+    var done = tasksState[t.id];
+    html += '<div class="d-task-item">';
+    html += '<div class="dt-check' + (done ? ' done' : '') + '" onclick="toggleTask(' + t.id + ')">';
+    if (done) html += '<svg width="9" height="9" viewBox="0 0 11 11" fill="none" stroke="var(--green-br)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="2,5.5 4.5,8 9,3"/></svg>';
+    html += '</div>';
+    html += '<div class="dt-name' + (done ? ' done' : '') + '">' + t.name + '</div>';
+    html += '<div class="dt-proj"><div class="dt-dot" style="background:' + t.projColor + '"></div>' + t.project + '</div>';
+    html += '<div class="dt-date">' + t.date + '</div>';
+    html += '<div class="dt-who">' + t.who + '</div>';
+    html += '</div>';
+  });
+  el.innerHTML = html;
+}
+
+// ===== DESKTOP TODAY =====
+function renderDTodayItems() {
+  var el = document.getElementById('d-today-list');
+  if (!el) return;
+  var html = '';
+  DATA.todayItems.forEach(function(it) {
+    html += '<div class="d-task-item">';
+    html += '<div style="width:8px;height:8px;border-radius:50%;background:' + it.dot + ';flex-shrink:0;margin-top:5px"></div>';
+    html += '<div class="dt-name">' + it.text + '</div>';
+    html += '<div class="tb-item-tag ' + it.tagCls + '" style="white-space:nowrap;margin-left:auto">' + it.tag + '</div>';
+    html += '<div class="dt-date" style="margin-left:10px">' + it.time + '</div>';
+    html += '</div>';
+  });
+  el.innerHTML = html;
+}
+
+// ===== DESKTOP AI BRIEF =====
+function renderDAIBrief() { renderAIBrief(); }
+
+// ===== DESKTOP BUDGET CARD =====
+function renderDBudgetCard() {
+  var el = document.getElementById('d-budget-card');
+  if (!el) return;
+  var totalBudget = DATA.projects.reduce(function(a,p) { return a+p.budget; }, 0);
+  var totalSpent = DATA.projects.reduce(function(a,p) { return a+p.spent; }, 0);
+  var pct = Math.round((totalSpent/totalBudget)*100);
+  var r = 27; var circ = 2*Math.PI*r;
+  var dash = (pct/100)*circ;
+  var html = '<div class="d-budget-ring">';
+  html += '<div class="ring-wrap"><svg width="72" height="72" viewBox="0 0 72 72"><circle cx="36" cy="36" r="' + r + '" fill="none" stroke="var(--raised)" stroke-width="6"/><circle cx="36" cy="36" r="' + r + '" fill="none" stroke="var(--amber)" stroke-width="6" stroke-dasharray="' + dash.toFixed(1) + ' ' + circ.toFixed(1) + '" stroke-linecap="round"/></svg>';
+  html += '<div class="ring-center"><div class="ring-pct">' + pct + '%</div><div class="ring-lbl">Used</div></div></div>';
+  html += '<div class="budget-stats">';
+  html += '<div class="bs-row"><span class="bs-label">Total Budget</span><span class="bs-val">' + fmtMoney(totalBudget) + '</span></div>';
+  html += '<div class="bs-row"><span class="bs-label">Spent</span><span class="bs-val" style="color:var(--amber)">' + fmtMoney(totalSpent) + '</span></div>';
+  html += '<div class="bs-row"><span class="bs-label">Remaining</span><span class="bs-val" style="color:var(--green-br)">' + fmtMoney(totalBudget-totalSpent) + '</span></div>';
+  html += '</div></div>';
+  html += '<div class="budget-by-proj">';
+  DATA.projects.forEach(function(p) {
+    var spentPct = totalSpent > 0 ? Math.round((p.spent/totalSpent)*100) : 0;
+    html += '<div class="bbp-row"><div class="bbp-dot" style="background:' + p.color + '"></div>';
+    html += '<div class="bbp-name">' + p.name.split(' ')[0] + '</div>';
+    html += '<div class="bbp-bar"><div class="bbp-fill" data-w="' + spentPct + '" style="width:0%;background:' + p.color + '"></div></div>';
+    html += '<div class="bbp-amt">' + fmtMoney(p.spent) + '</div></div>';
+  });
+  html += '</div>';
+  el.innerHTML = html;
+}
+
+// ===== DESKTOP UPCOMING =====
+function renderDUpcoming() {
+  var el = document.getElementById('d-upcoming');
+  if (!el) return;
+  var html = '';
+  DATA.upcoming.forEach(function(it) {
+    html += '<div class="d-upcoming-item">';
+    html += '<div class="dui-date"><div class="dui-day">' + it.day + '</div><div class="dui-mon">' + it.mon + '</div></div>';
+    html += '<div class="dui-body"><div class="dui-title">' + it.title + '</div><div class="dui-project">' + it.project + '</div></div>';
+    html += '<div class="tb-item-tag ' + it.tagCls + ' dui-tag">' + it.tag + '</div>';
+    html += '</div>';
+  });
+  el.innerHTML = html;
+}
+
+// ===== DESKTOP MATERIALS =====
+function renderDMaterials() {
+  var el = document.getElementById('d-materials');
+  if (!el) return;
+  var html = '';
+  DATA.urgentMaterials.forEach(function(it) {
+    html += '<div class="dmc-item"><div class="dmc-dot" style="background:' + it.color + '"></div>';
+    html += '<div><div class="dmc-name">' + it.name + '</div><div class="dmc-src">' + it.source + '</div></div>';
+    html += '<div class="dmc-price">' + fmtMoney(it.price) + '</div></div>';
+  });
+  el.innerHTML = html;
+}
+
+// ===== TOGGLE TASK =====
+function toggleTask(id) {
+  tasksState[id] = !tasksState[id];
+  renderTasks();
+  renderDTasks();
+  renderStatTiles();
+  renderDStatBar();
+}
+
+// ===== ANIMATE BARS =====
+function animateBars() {
+  document.querySelectorAll('[data-w]').forEach(function(el) {
+    el.style.width = el.getAttribute('data-w') + '%';
+  });
+}
+
+// ===== VIEW TOGGLE =====
+function setView(mode) {
+  document.body.className = 'mode-' + mode;
+  document.getElementById('btn-mobile').classList.toggle('active', mode === 'mobile');
+  document.getElementById('btn-desktop').classList.toggle('active', mode === 'desktop');
+  setTimeout(animateBars, 100);
+}
+
+// ===== UTILS =====
+function fmtMoney(n) {
+  if (!n && n !== 0) return '$0';
+  if (n < 0) return '-' + fmtMoney(-n);
+  if (n < 1000) return '$' + Math.round(n);
+  if (n < 10000) return '$' + (n/1000).toFixed(1).replace(/\.0$/,'') + 'k';
+  return '$' + Math.round(n/1000) + 'k';
+}
+
+function showToast(msg) {
+  var t = document.getElementById('toast-el');
+  if (!t) {
+    t = document.createElement('div');
+    t.id = 'toast-el';
+    t.style.cssText = 'position:fixed;bottom:90px;left:50%;transform:translateX(-50%);background:var(--raised);border:1px solid var(--border-warm);color:var(--white);font-size:12px;padding:10px 20px;border-radius:10px;z-index:99999;white-space:nowrap;opacity:0;transition:opacity 0.25s;box-shadow:0 8px 24px rgba(0,0,0,0.5);font-family:\'DM Sans\',sans-serif;';
+    document.body.appendChild(t);
+  }
+  t.textContent = msg;
+  t.style.opacity = '1';
+  clearTimeout(t._t);
+  t._t = setTimeout(function() { t.style.opacity = '0'; }, 2400);
+}
+</script>
+</body>
+</html>
